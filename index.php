@@ -22,8 +22,7 @@
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="#">
                 <!-- Placeholder for Logo -->
-                <img src="css/logo.png" alt="Logo" class="me-2 rounded-circle"
-                    style="width: 50px; height: 50px;">
+                <img src="css/logo.png" alt="Logo" class="me-2 rounded-circle" style="width: 50px; height: 50px;">
                 <span class="fs-4 fw-bold font-serif">SCC- CCS Syllabus Portal</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -43,7 +42,8 @@
             <p class="lead text-muted mb-5 mx-auto" style="max-width: 700px;">
                 Streamline syllabus creation, submission, and approval across all departments and colleges.
             </p>
-            <a href="#" class="btn btn-outline-warning btn-lg px-5 py-2 rounded-pill orange-text-btn">Get Started</a>
+            <a href="login.php" class="btn btn-outline-warning btn-lg px-5 py-2 rounded-pill orange-text-btn">Get
+                Started</a>
         </div>
     </section>
 

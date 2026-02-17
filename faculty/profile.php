@@ -10,6 +10,8 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 // Get user information from session
 $username = $_SESSION['username'] ?? 'User';
 $email = $_SESSION['email'] ?? '';
+$role = $_SESSION['role'] ?? 'faculty';
+$role_display = 'Faculty Panel';
 
 // TODO: In a real application, fetch user profile data from database
 // For now, using demo data
@@ -20,7 +22,7 @@ $profile = [
     'birthdate' => '1990-12-1',
     'sex' => 'Male',
     'college' => 'College of Computing Studies',
-    'department' => 'Department of Computer Technology',
+    'department' => 'Department of Computer Science',
     'email' => $email
 ];
 
@@ -47,23 +49,35 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
 
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="sidebar bg-black text-white p-3 min-vh-100 d-flex flex-column"
-            style="width: 280px; position: fixed;">
-            <div class="text-center mb-4 mt-3">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2" style="width: 80px; height: 80px;">
-                <h4 class="font-serif fw-bold">CCS Panel</h4>
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+            style="width: 260px; position: fixed; z-index: 1100;">
+            <div class="text-center mb-3 mt-2">
+                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
+                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
+                    <?php echo htmlspecialchars($username); ?>
+                </p>
             </div>
 
-            <nav class="nav flex-column gap-2 mb-auto">
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
                 <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
                     Dashboard
                 </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
                     Upload Syllabus
                 </a>
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
                     My Submissions
                 </a>
+                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Shared Syllabus
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white active-nav-link p-3 rounded">
                     Profile
                 </a>
@@ -74,11 +88,22 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
         </div>
 
         <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 280px;">
-            <div class="card border-0 shadow-sm p-5" style="max-width: 700px; margin: 0 auto;">
-                <h3 class="text-orange font-serif fw-bold mb-2 text-center">
+        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="text-orange font-serif fw-bold mb-0">
                     <?php echo $edit_mode ? 'Edit my Profile' : 'My Profile'; ?>
                 </h3>
+                <div class="notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        class="bi bi-bell" viewBox="0 0 16 16">
+                        <path
+                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+                    </svg>
+                    <span class="notification-badge-dot"></span>
+                </div>
+            </div>
+
+            <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width: 800px;">
                 <p class="text-center text-muted small mb-4">Update your personal information</p>
 
                 <form action="process_profile.php" method="POST">

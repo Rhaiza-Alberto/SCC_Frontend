@@ -8,8 +8,10 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 // Get user information from session
-$username = $_SESSION['username'] ?? 'Department Head';
+$username = $_SESSION['username'] ?? 'Dr. Jane Smith';
 $email = $_SESSION['email'] ?? '';
+$role = $_SESSION['role'] ?? 'dept_head';
+$role_display = 'Dept Head Panel';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -32,17 +34,29 @@ $email = $_SESSION['email'] ?? '';
 
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="sidebar bg-black text-white p-3 min-vh-100 d-flex flex-column"
-            style="width: 280px; position: fixed;">
-            <div class="text-center mb-4 mt-3">
-                <img src="../css/logo.png" alt="SCC Logo" class="rounded-circle mb-2"
-                    style="width: 80px; height: 80px;">
-                <h4 class="font-serif fw-bold">Head Panel</h4>
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+            style="width: 260px; position: fixed; z-index: 1100;">
+            <div class="text-center mb-3 mt-2">
+                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
+                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
+                    <?php echo htmlspecialchars($username); ?>
+                </p>
             </div>
 
             <nav class="nav flex-column gap-2 mb-auto">
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
                 <a href="dept_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded">
                     Dashboard
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+                <a href="syllabus_review.php"
+                    class="nav-link text-white p-3 rounded hover-effect d-flex justify-content-between align-items-center">
+                    Syllabus Review
+                    <span class="badge bg-danger rounded-circle p-1"
+                        style="width: 8px; height: 8px; border: 2px solid white;"></span>
                 </a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
                     Upload Syllabus
@@ -50,6 +64,16 @@ $email = $_SESSION['email'] ?? '';
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
                     My Submissions
                 </a>
+                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Shared Syllabus
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ACCOUNT MANAGEMENT</div>
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Registration Requests
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
                     Profile
                 </a>
@@ -60,7 +84,7 @@ $email = $_SESSION['email'] ?? '';
         </div>
 
         <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 280px;">
+        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             <div class="d-flex justify-content-between align-items-center mb-5">
                 <h2 class="text-orange font-serif fw-bold">Welcome, <?php echo htmlspecialchars($username); ?>!</h2>
                 <div class="notification-icon">
@@ -73,237 +97,174 @@ $email = $_SESSION['email'] ?? '';
             </div>
 
             <!-- Stats/Summary Cards -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card stat-card-total shadow-sm border-0 bg-white"
+                        style="border-left: 5px solid #ff8800 !important;">
+                        <div class="stat-card-content p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-0">Total Submissions</h6>
+                                <i class="bi bi-files text-orange opacity-50 fs-4"></i>
+                            </div>
+                            <h1 class="display-5 fw-bold text-dark mb-0">0</h1>
+                            <p class="text-muted small mb-0 mt-1">No submissions yet</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card stat-card-approved shadow-sm border-0 bg-white"
+                        style="border-left: 5px solid #28a745 !important;">
+                        <div class="stat-card-content p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-0">Approved</h6>
+                                <i class="bi bi-check-circle text-success opacity-50 fs-4"></i>
+                            </div>
+                            <h1 class="display-5 fw-bold text-dark mb-0">0</h1>
+                            <p class="text-muted small mb-0 mt-1">Files approved</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card stat-card-pending shadow-sm border-0 bg-white"
+                        style="border-left: 5px solid #ffc107 !important;">
+                        <div class="stat-card-content p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-0">Pending</h6>
+                                <i class="bi bi-clock-history text-warning opacity-50 fs-4"></i>
+                            </div>
+                            <h1 class="display-5 fw-bold text-dark mb-0">0</h1>
+                            <p class="text-muted small mb-0 mt-1">All caught up</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card stat-card-rejected shadow-sm border-0 bg-white"
+                        style="border-left: 5px solid #dc3545 !important;">
+                        <div class="stat-card-content p-2">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="text-uppercase fw-bold text-muted small mb-0">Rejected</h6>
+                                <i class="bi bi-x-circle text-danger opacity-50 fs-4"></i>
+                            </div>
+                            <h1 class="display-5 fw-bold text-dark mb-0">0</h1>
+                            <p class="text-muted small mb-0 mt-1">No revisions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="row g-4 mb-5">
-                <div class="col-md-3">
-                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
-                        <h6 class="text-orange fw-bold mb-3">Total</h6>
-                        <h1 class="text-orange fw-bold display-4">0</h1>
+                <!-- Syllabus Review Pipeline -->
+                <div class="col-md-8">
+                    <div class="card premium-card p-4 shadow-sm h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title font-serif fw-bold mb-0 text-orange">Syllabus Review Pipeline</h5>
+                            <span class="badge bg-orange bg-opacity-10 text-orange rounded-pill px-3 py-1 small">Active
+                                Review Cycle</span>
+                        </div>
+                        <div class="row g-4 mb-4">
+                            <div class="col-4">
+                                <div class="p-3 rounded-3 bg-light text-center border-bottom border-warning border-4">
+                                    <h3 class="mb-1 fw-bold text-dark">0</h3>
+                                    <span class="text-muted small fw-bold text-uppercase">Submitted</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded-3 bg-light text-center border-bottom border-primary border-4">
+                                    <h3 class="mb-1 fw-bold text-dark">0</h3>
+                                    <span class="text-muted small fw-bold text-uppercase">Under Review</span>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="p-3 rounded-3 bg-light text-center border-bottom border-success border-4">
+                                    <h3 class="mb-1 fw-bold text-dark">0</h3>
+                                    <span class="text-muted small fw-bold text-uppercase">Approved</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-auto text-center py-3">
+                            <a href="syllabus_review.php" class="btn btn-orange rounded-pill px-5 shadow-sm">Go to Review Queue</a>
+                        </div>
+
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
-                        <h6 class="text-success fw-bold mb-3">Approved</h6>
-                        <h1 class="text-success fw-bold display-4">0</h1>
+
+                <!-- Recent Activity Feed -->
+                <div class="col-md-4">
+                    <div class="card premium-card p-4 shadow-sm h-100">
+                        <h5 class="card-title font-serif fw-bold mb-4 text-orange">Recent Activity</h5>
+                        <div class="activity-feed">
+                            <div class="text-center py-4">
+                                <i class="bi bi-inbox text-muted fs-2 opacity-25"></i>
+                                <p class="text-muted small mt-2">No recent activity to show</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
-                        <h6 class="text-warning fw-bold mb-3">Pending</h6>
-                        <h1 class="text-warning fw-bold display-4">0</h1>
+            </div>
+
+            <!-- Management Hubs -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="card premium-card p-4 h-100 shadow-sm border-warning border-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <i class="bi bi-file-earmark-check text-orange fs-2"></i>
+                            <a href="syllabus_review.php" class="btn btn-sm btn-orange rounded-pill px-3">View
+                                All</a>
+                        </div>
+                        <h5 class="card-title font-serif fw-bold mb-1 text-orange">Syllabus Review</h5>
+                        <p class="text-muted small">Manage faculty syllabus submissions awaiting your approval.</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="badge bg-secondary opacity-50 shadow-sm px-2 py-1 rounded-pill me-2"
+                                style="font-size: 0.75rem;">0 New</span>
+                            <span class="text-muted small">no pending review</span>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card h-100 border-0 shadow-sm p-3 text-center">
-                        <h6 class="text-danger fw-bold mb-3">Rejected</h6>
-                        <h1 class="text-danger fw-bold display-4">0</h1>
+                <div class="col-md-6">
+                    <div class="card premium-card p-4 h-100 shadow-sm border-orange border-opacity-25">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <i class="bi bi-person-check text-orange fs-2"></i>
+                            <a href="registration_requests.php"
+                                class="btn btn-sm btn-orange rounded-pill px-3">Manage</a>
+                        </div>
+                        <h5 class="card-title font-serif fw-bold mb-1 text-orange">Registration Requests</h5>
+                        <p class="text-muted small">Review and approve new faculty registration requests.</p>
+                        <div class="d-flex align-items-center mt-3">
+                            <span class="badge bg-secondary opacity-50 px-2 py-1 rounded-pill me-2"
+                                style="font-size: 0.75rem;">0
+                                New</span>
+                            <span class="text-muted small">no pending approval</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Filter Section -->
-            <div class="card border-0 shadow-sm p-4 mb-5">
-                <h5 class="card-title font-serif fw-bold mb-3">Filter Submissions</h5>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" class="form-control" placeholder="Search course code / title">
+            <!-- Shared Repository Overview -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-12">
+                    <div class="card premium-card p-4 shadow-sm bg-gradient-light border-0">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title font-serif fw-bold mb-0 text-orange">Department Repository Overview
+                            </h5>
+                            <a href="shared_syllabus.php"
+                                class="btn btn-sm btn-orange rounded-pill px-4 shadow-sm">Explore Repository</a>
+                        </div>
+                        <div class="row g-4 align-items-center">
+                            <div class="col-md-3 text-center border-end">
+                                <div class="display-6 fw-bold text-muted opacity-50 mb-0">0</div>
+                                <span class="text-muted small">Approved Syllabus Files</span>
+                            </div>
+                            <div class="col-md-3 text-center border-end">
+                                <div class="display-6 fw-bold text-muted opacity-50 mb-0">0</div>
+                                <span class="text-muted small">Active Instructors</span>
+                            </div>
+                            <div class="col-md-6 ps-4">
+                                <p class="text-muted small mb-0">Your department repository acts as the single source of
+                                    truth for all validated academic content. It ensures consistency across all subject
+                                    offerings and facilitates peer review and quality management.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <select class="form-select">
-                            <option selected>All status</option>
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <input type="date" class="form-control" placeholder="dd/mm/yy">
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-outline-dark w-100">Filter</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Faculty Submissions for Approval -->
-            <div class="card border-0 shadow-sm p-4 mb-5">
-                <h5 class="card-title font-serif fw-bold mb-3">Faculty Submissions Pending Approval</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-secondary small">#</th>
-                                <th scope="col" class="text-secondary small">INSTRUCTOR</th>
-                                <th scope="col" class="text-secondary small">COURSE CODE</th>
-                                <th scope="col" class="text-secondary small">TITLE</th>
-                                <th scope="col" class="text-secondary small">SUBJECT TYPE</th>
-                                <th scope="col" class="text-secondary small">SEMESTER</th>
-                                <th scope="col" class="text-secondary small">YEAR</th>
-                                <th scope="col" class="text-secondary small">STATUS</th>
-                                <th scope="col" class="text-secondary small">FILE</th>
-                                <th scope="col" class="text-secondary small">SUBMITTED</th>
-                                <th scope="col" class="text-secondary small">ACTION</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            // TODO: Replace with database query for faculty submissions in department
-                            $faculty_submissions = []; // This should come from database
-                            
-                            if (empty($faculty_submissions)) {
-                                echo '<tr>';
-                                echo '<td colspan="11" class="text-center text-muted py-4">No submissions awaiting approval</td>';
-                                echo '</tr>';
-                            } else {
-                                $counter = 1;
-                                foreach ($faculty_submissions as $submission) {
-                                    echo '<tr class="bg-light-gray">';
-                                    echo '<td>' . $counter . '</td>';
-                                    echo '<td>';
-                                    echo '<div class="d-flex flex-column">';
-                                    echo '<span class="fw-bold">' . htmlspecialchars($submission['instructor_name']) . '</span>';
-                                    echo '<span class="text-muted small">' . htmlspecialchars($submission['instructor_email']) . '</span>';
-                                    echo '</div>';
-                                    echo '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['course_code']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['course_title']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['subject_type']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['semester']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['year']) . '</td>';
-
-                                    $statusClass = $submission['status'] == 'Pending' ? 'bg-warning text-dark bg-opacity-25 border border-warning' :
-                                        ($submission['status'] == 'Approved' ? 'bg-success text-success bg-opacity-25 border border-success' :
-                                            'bg-danger text-danger bg-opacity-25 border border-danger');
-                                    echo '<td><span class="badge ' . $statusClass . ' rounded-pill px-3">' . htmlspecialchars($submission['status']) . '</span></td>';
-                                    echo '<td><a href="' . htmlspecialchars($submission['file_path']) . '" class="text-orange text-decoration-underline">Preview</a></td>';
-                                    echo '<td>' . htmlspecialchars($submission['submitted_on']) . '</td>';
-                                    echo '<td>';
-                                    echo '<a href="#" class="btn btn-sm btn-outline-success me-2">Approve</a>';
-                                    echo '<a href="#" class="btn btn-sm btn-outline-danger">Reject</a>';
-                                    echo '</td>';
-                                    echo '</tr>';
-                                    $counter++;
-                                }
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- My Submissions Table -->
-            <div class="card border-0 shadow-sm p-4 mb-5">
-                <h5 class="card-title font-serif fw-bold mb-3">My submissions</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-secondary small">#</th>
-                                <th scope="col" class="text-secondary small">COURSE CODE</th>
-                                <th scope="col" class="text-secondary small">TITLE</th>
-                                <th scope="col" class="text-secondary small">SUBJECT TYPE</th>
-                                <th scope="col" class="text-secondary small">SEMESTER</th>
-                                <th scope="col" class="text-secondary small">YEAR</th>
-                                <th scope="col" class="text-secondary small">STATUS</th>
-                                <th scope="col" class="text-secondary small">COMMENT</th>
-                                <th scope="col" class="text-secondary small">FILE</th>
-                                <th scope="col" class="text-secondary small">SUBMITTED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            // TODO: Replace with database query for department head's own submissions
-                            $my_submissions = []; // This should come from database
-                            
-                            if (empty($my_submissions)) {
-                                echo '<tr>';
-                                echo '<td colspan="10" class="text-center text-muted py-4">No files found</td>';
-                                echo '</tr>';
-                            } else {
-                                $counter = 1;
-                                foreach ($my_submissions as $submission) {
-                                    echo '<tr class="bg-light-gray">';
-                                    echo '<td>' . $counter . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['course_code']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['title']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['subject_type']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['semester']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($submission['year']) . '</td>';
-
-                                    $statusClass = $submission['status'] == 'Pending' ? 'bg-warning text-dark bg-opacity-25 border border-warning' :
-                                        ($submission['status'] == 'Approved' ? 'bg-success text-success bg-opacity-25 border border-success' :
-                                            'bg-danger text-danger bg-opacity-25 border border-danger');
-                                    echo '<td><span class="badge ' . $statusClass . ' rounded-pill px-3">' . htmlspecialchars($submission['status']) . '</span></td>';
-                                    echo '<td>' . ($submission['comment'] ?? '—') . '</td>';
-                                    echo '<td><a href="' . htmlspecialchars($submission['file_path']) . '" class="text-orange text-decoration-underline">Preview</a></td>';
-                                    echo '<td>' . htmlspecialchars($submission['submitted_on']) . '</td>';
-                                    echo '</tr>';
-                                    $counter++;
-                                }
-                            }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Shared Syllabus Table -->
-            <div class="card border-0 shadow-sm p-4">
-                <h5 class="card-title font-serif fw-bold mb-3">Shared Syllabus</h5>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th scope="col" class="text-secondary small">#</th>
-                                <th scope="col" class="text-secondary small">COURSE CODE</th>
-                                <th scope="col" class="text-secondary small">TITLE</th>
-                                <th scope="col" class="text-secondary small">SUBJECT TYPE</th>
-                                <th scope="col" class="text-secondary small">SEMESTER</th>
-                                <th scope="col" class="text-secondary small">YEAR</th>
-                                <th scope="col" class="text-secondary small">STATUS</th>
-                                <th scope="col" class="text-secondary small">FILE</th>
-                                <th scope="col" class="text-secondary small">SOURCE</th>
-                                <th scope="col" class="text-secondary small">DELIVERED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            // TODO: Replace with database query for shared syllabus
-                            $shared_syllabus = []; // This should come from database
-                            
-                            if (empty($shared_syllabus)) {
-                                echo '<tr>';
-                                echo '<td colspan="10" class="text-center text-muted py-4">No files found</td>';
-                                echo '</tr>';
-                            } else {
-                                $counter = 1;
-                                foreach ($shared_syllabus as $syllabus) {
-                                    echo '<tr class="bg-light-gray">';
-                                    echo '<td>' . $counter . '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['course_code']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['title']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['subject_type']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['semester']) . '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['year']) . '</td>';
-
-                                    $statusClass = $syllabus['status'] == 'Approved' ? 'bg-success text-success bg-opacity-25 border border-success' :
-                                        ($syllabus['status'] == 'Pending' ? 'bg-warning text-dark bg-opacity-25 border border-warning' :
-                                            'bg-danger text-danger bg-opacity-25 border border-danger');
-                                    echo '<td><span class="badge ' . $statusClass . ' rounded-pill px-3">' . htmlspecialchars($syllabus['status']) . '</span></td>';
-                                    echo '<td><a href="' . htmlspecialchars($syllabus['file_path']) . '" class="text-orange text-decoration-underline">Preview</a></td>';
-                                    echo '<td>';
-                                    echo '<div class="d-flex flex-column">';
-                                    echo '<span class="fw-bold small">' . htmlspecialchars($syllabus['source_name']) . '</span>';
-                                    echo '<span class="text-muted small" style="font-size: 0.75rem;">' . htmlspecialchars($syllabus['source_email']) . '</span>';
-                                    echo '</div>';
-                                    echo '</td>';
-                                    echo '<td>' . htmlspecialchars($syllabus['delivered_on']) . '</td>';
-                                    echo '</tr>';
-                                    $counter++;
-                                }
-                            }
-                            ?>
-                        </tbody>
-                    </table>
                 </div>
             </div>
 

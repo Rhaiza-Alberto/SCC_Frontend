@@ -8,8 +8,10 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 }
 
 // Get user information from session
-$username = $_SESSION['username'] ?? 'User';
+$username = $_SESSION['username'] ?? 'VPAA';
 $email = $_SESSION['email'] ?? '';
+$role = $_SESSION['role'] ?? 'vpaa';
+$role_display = 'VPAA';
 
 // TODO: In a real application, fetch user profile data from database
 // For now, using demo data
@@ -40,28 +42,20 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
         rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <style>
-        .btn-orange {
-            background-color: #ff8800;
-            color: white;
-        }
-        .btn-orange:hover {
-            background-color: #e67e00;
-            color: white;
-        }
-    </style>
 </head>
 
 <body class="bg-light">
 
     <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar bg-black text-white p-3 min-vh-100 d-flex flex-column"
+        <div class="sidebar sidebar-premium text-white p-3 min-vh-100 d-flex flex-column"
             style="width: 280px; position: fixed;">
             <div class="text-center mb-4 mt-3">
-                <img src="../css/logo.png" alt="SCC Logo" class="rounded-circle mb-2" style="width: 80px; height: 80px;">
-                <h4 class="font-serif fw-bold">VPAA Panel</h4>
+                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
+                    style="width: 150px; height: 150px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 5px;">
+                <h4 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h4>
+                <p class="text-white-50 small fw-bold mb-0"><?php echo htmlspecialchars($username); ?></p>
             </div>
+
 
             <nav class="nav flex-column gap-2 mb-auto">
                 <a href="vpaa_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
@@ -76,12 +70,22 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
             </nav>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content flex-grow-1 p-5" style="margin-left: 280px;">
-            <div class="card border-0 shadow-sm p-5" style="max-width: 700px; margin: 0 auto;">
-                <h3 class="text-orange font-serif fw-bold mb-2 text-center">
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="text-orange font-serif fw-bold mb-0">
                     <?php echo $edit_mode ? 'Edit my Profile' : 'My Profile'; ?>
                 </h3>
+                <div class="notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        class="bi bi-bell" viewBox="0 0 16 16">
+                        <path
+                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+                    </svg>
+                    <span class="notification-badge-dot"></span>
+                </div>
+            </div>
+
+            <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width: 800px;">
                 <p class="text-center text-muted small mb-4">Update your personal information</p>
 
                 <form action="process_profile.php" method="POST">
@@ -126,12 +130,20 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
                         </div>
                     </div>
 
-                    <!-- Office -->
-                    <div class="mb-3">
-                        <label for="office" class="form-label fw-bold small">Office</label>
-                        <input type="text" class="form-control" id="office" name="office" 
-                               value="<?php echo htmlspecialchars($profile['office']); ?>" 
-                               <?php echo !$edit_mode ? 'readonly' : ''; ?>>
+                    <!-- College and Department -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="college" class="form-label fw-bold small">College</label>
+                            <input type="text" class="form-control" id="college" name="college" 
+                                   value="<?php echo htmlspecialchars($profile['college']); ?>" 
+                                   <?php echo !$edit_mode ? 'readonly' : ''; ?>>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label fw-bold small">Department</label>
+                            <input type="text" class="form-control" id="department" name="department" 
+                                   value="<?php echo htmlspecialchars($profile['department']); ?>" 
+                                   <?php echo !$edit_mode ? 'readonly' : ''; ?>>
+                        </div>
                     </div>
 
                     <!-- Email -->
@@ -144,12 +156,13 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
                     <!-- Buttons -->
                     <div class="d-grid">
                         <?php if ($edit_mode): ?>
-                            <button type="submit" class="btn btn-orange btn-lg fw-bold">Update my Profile</button>
-                            <a href="profile.php" class="btn btn-outline-secondary btn-lg fw-bold mt-2">Cancel</a>
+                            <button type="submit" class="btn btn-login btn-lg fw-bold mb-2">Update my Profile</button>
+                            <a href="profile.php" class="btn btn-cancel btn-lg fw-bold text-decoration-none text-center">Cancel</a>
                         <?php else: ?>
-                            <a href="profile.php?edit=true" class="btn btn-orange btn-lg fw-bold">Edit Profile</a>
+                            <a href="profile.php?edit=true" class="btn btn-login btn-lg fw-bold">Edit Profile</a>
                         <?php endif; ?>
                     </div>
+
 
                     <div class="mt-4 p-3 bg-light rounded">
                         <small class="text-muted">

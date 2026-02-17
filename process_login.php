@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $demo_users = [
         'faculty@scc.edu' => [
             'password' => 'faculty123',
-            'username' => 'Xy',
+            'username' => 'Achy',
             'role' => 'faculty'
         ],
         'admin@scc.edu' => [
@@ -27,12 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ],
         'dept@scc.edu' => [
             'password' => 'dept123',
-            'username' => 'Department Head',
+            'username' => 'Dr. Jane Smith',
             'role' => 'dept_head'
         ],
         'vpaa@scc.edu' => [
-            'password' => 'vpaa123',    
-            'username' => 'VPAA User',
+            'password' => 'vpaa123',
+            'username' => 'VPAA',
             'role' => 'vpaa'
         ]
     ];
@@ -55,6 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 break;
             case 'dept_head':
                 header('Location: dept_head/dept_dashboard.php');
+                break;
+            case 'vpaa':
+                header('Location: vpaa/vpaa_dashboard.php');
                 break;
             default:
                 header('Location: faculty/faculty_dashboard.php');

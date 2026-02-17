@@ -36,14 +36,14 @@ session_start();
             <form action="login.php" method="POST">
                 <div class="mb-3">
                     <label for="newPassword" class="form-label text-white small">New Password</label>
-                    <input type="password" class="form-control" id="newPassword" placeholder="Enter new password"
-                        required>
+                    <input type="password" name="newPassword" class="form-control" id="newPassword"
+                        placeholder="Enter new password" required>
                 </div>
 
                 <div class="mb-3">
                     <label for="confirmPassword" class="form-label text-white small">Confirm Password</label>
-                    <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password"
-                        required>
+                    <input type="password" name="confirmPassword" class="form-control" id="confirmPassword"
+                        placeholder="Confirm new password" required>
                 </div>
 
                 <div class="d-grid mt-4">

@@ -1,6 +1,6 @@
 /* Fonts */
 .font-serif {
-    font-family: 'Merriweather', serif;
+    font-family: 'sambal', serif;
 }
 
 body {
@@ -17,46 +17,242 @@ body {
     color: #fff !important;
 }
 
+/* Navbar Button Premium (Matches Login Button) */
 .btn-outline-warning {
-    color: #ffaa00;
-    border-color: #ffaa00;
+    background: linear-gradient(135deg, #fc7e2a 0%, #fc7e2a 100%);
+    color: #fff !important;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 136, 0, 0.3);
+    z-index: 1;
+}
+
+.btn-outline-warning::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+    z-index: -1;
 }
 
 .btn-outline-warning:hover {
-    background-color: #ffaa00;
-    color: #000;
+    box-shadow: 0 6px 15px rgba(255, 136, 0, 0.4);
+    color: #fff !important;
+    background-color: transparent !important;
+    /* Override bootstrap */
 }
 
-/* Hero Section */
+.btn-outline-warning:hover::after {
+    width: 300px;
+    height: 300px;
+}
+
+
+.hero-section {
+    position: relative;
+    min-height: 680px;
+    background:
+        linear-gradient(rgba(97, 40, 0, 0.5), rgba(183, 76, 0, 0.7), rgba(97, 40, 0, 0.5)),
+        url('background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+.hero-section .container {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: auto;
+    padding: 0 20px;
+}
+
 .hero-section h1 {
-    color: #000;
+    color: #fff;
+    font-size: 3rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 20px;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
 }
 
 .hero-section h2 {
-    color: #333;
+    color: #fff;
+    font-size: 2rem;
+    font-weight: 400;
+    margin-bottom: 30px;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 }
 
+/* Hero Button */
 .orange-text-btn {
-    color: #ff8800;
-    border-color: #ff8800;
-    background: transparent;
+    background: #ffffff;
+    color: #b46000 !important;
+    border: none;
+    position: relative;
+    overflow: hidden;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 136, 0, 0.3);
+    z-index: 1;
+}
+
+.orange-text-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+    z-index: -1;
 }
 
 .orange-text-btn:hover {
-    background-color: #ff8800;
-    color: #fff;
+    color: #fff !important;
+    box-shadow: 0 6px 15px rgba(255, 136, 0, 0.4);
+    background-color: transparent !important;
+    transform: scale(1.05);
 }
 
-/* Cards */
+.orange-text-btn:hover::after {
+    width: 500px;
+    height: 500px;
+}
+
+/* Optional Scroll Indicator */
+.scroll-indicator {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 30px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    animation: bounce 1.5s infinite;
+}
+
+.scroll-indicator::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+}
+
+/* Bounce Animation */
+@keyframes bounce {
+
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateX(-50%) translateY(0);
+    }
+
+    40% {
+        transform: translateX(-50%) translateY(-10px);
+    }
+
+    60% {
+        transform: translateX(-50%) translateY(-5px);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero-section h2 {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+
+    .hero-section h2 {
+        font-size: 1.2rem;
+    }
+
+    .orange-text-btn {
+        padding: 10px 25px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-section h2 {
+        font-size: 1rem;
+    }
+}
+
+/* Cards Premium */
 .border-orange {
-    border: 1px solid #ffcc80;
-    /* Light orange border */
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 136, 0, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    background: #fff;
+}
+
+.border-orange:hover {
+    box-shadow: 0 8px 15px rgba(255, 136, 0, 0.1);
+    border-color: #ff8800;
 }
 
 .card-title {
-    color: #000;
+    color: #333;
+    transition: color 0.3s;
+}
+
+.border-orange:hover .card-title {
+    color: #ff8800;
 }
 
 /* Footer */
@@ -86,14 +282,38 @@ footer {
 }
 
 .btn-login {
-    background-color: #ff8800;
+    background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
     color: #fff;
     border: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 136, 0, 0.3);
+    z-index: 1;
+}
+
+.btn-login::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s ease, height 0.6s ease;
+    z-index: -1;
 }
 
 .btn-login:hover {
-    background-color: #e67e00;
+    box-shadow: 0 6px 15px rgba(255, 136, 0, 0.4);
     color: #fff;
+}
+
+.btn-login:hover::after {
+    width: 300px;
+    height: 300px;
 }
 
 .text-info {
@@ -149,13 +369,38 @@ footer {
 
 /* Faculty Dashboard Sidebar */
 .active-nav-link {
-    background-color: #333;
+    background: linear-gradient(90deg, rgba(255, 136, 0, 0.2) 0%, transparent 100%);
     border-left: 4px solid #ff8800;
+    color: #ff8800 !important;
+}
+
+.hover-effect {
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
 }
 
 .hover-effect:hover {
-    background-color: #222;
-    transition: 0.3s;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid rgba(255, 136, 0, 0.5);
+    padding-left: 1.5rem !important;
+}
+
+/* Premium Cancel Button */
+.btn-cancel {
+    background: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-cancel:hover {
+    background-color: #f8f9fa;
+    color: #333;
+    border-color: #bbb;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Dashboard Cards */
@@ -185,8 +430,153 @@ footer {
     background-color: #f8d7da !important;
 }
 
+/* Premium Action Buttons in Tables */
+.btn-outline-success,
+.btn-outline-danger {
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.btn-outline-success:hover {
+    box-shadow: 0 3px 8px rgba(25, 135, 84, 0.2);
+}
+
+.btn-outline-danger:hover {
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+}
+
 .bg-light-gray td {
     background-color: #f2f2f2 !important;
     /* Slightly darker gray for specific rows */
     border-bottom-width: 0;
+}
+
+/* --- Premium Dashboard Additions (Final) --- */
+.premium-card {
+    background: #ffffff;
+    border: 1px solid rgba(255, 136, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+}
+
+.premium-card:hover {
+    box-shadow: 0 15px 40px rgba(255, 136, 0, 0.1);
+}
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    border: 2px solid #eee;
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
+
+/* Removed stat-card circle accent for cleaner look */
+
+.stat-card-total {
+    border: 2px solid #ff8800 !important;
+    color: #ff8800 !important;
+    background: #fff !important;
+}
+
+.stat-card-approved {
+    border: 2px solid #28a745 !important;
+    color: #28a745 !important;
+    background: #fff !important;
+}
+
+.stat-card-pending {
+    border: 2px solid #ffc107 !important;
+    color: #ffc107 !important;
+    background: #fff !important;
+}
+
+.stat-card-rejected {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background: #fff !important;
+}
+
+.stat-card h6 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-card .display-4 {
+    font-weight: 700;
+    margin-bottom: 0;
+    font-size: 2.5rem;
+}
+
+.sidebar-premium {
+    background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%) !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(255, 136, 0, 0.1) !important;
+    overflow-y: auto;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 136, 0, 0.3) transparent;
+}
+
+.sidebar-premium::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-premium::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-premium::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 136, 0, 0.3);
+    border-radius: 20px;
+}
+
+.sidebar-premium::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 136, 0, 0.5);
+}
+
+.table-premium thead th {
+    background-color: #fcfcfc !important;
+    color: #495057 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.7rem !important;
+    padding: 1.25rem 1rem !important;
+}
+
+.table-premium tbody td {
+    padding: 1.25rem 1rem !important;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.notification-badge-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: #ff8800;
+    border-radius: 50%;
+    border: 2px solid white;
 }

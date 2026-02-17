@@ -23,7 +23,7 @@ session_start();
     </style>
 </head>
 
-<body class="bg-white">
+<body style="background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%); min-height: 100vh;">
 
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
         <div class="login-card p-5">
@@ -35,7 +35,8 @@ session_start();
             <form action="new_password.php" method="POST">
                 <div class="mb-3">
                     <label for="otp" class="form-label text-white small">Enter Code</label>
-                    <input type="text" class="form-control" id="otp" placeholder="Enter 6-digit code" required>
+                    <input type="text" name="otp" class="form-control" id="otp" placeholder="Enter 6-digit code"
+                        required>
                 </div>
 
                 <div class="d-grid mt-4">

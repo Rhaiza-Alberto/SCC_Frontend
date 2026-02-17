@@ -32,91 +32,134 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
 
 <body class="bg-white">
 
+    <div class="container pt-3">
+        <a href="login.php" class="btn btn-outline-dark position-absolute top-0 start-0 m-3">
+            &larr; Back
+        </a>
+    </div>
+
     <div class="container d-flex justify-content-center align-items-center min-vh-100 py-5">
 
-        <div class="register-card p-5">
-            <a href="login.php" class="btn btn-outline-light mb-3">
-                ← Back
-            </a>
-
-            <h2 class="text-center text-orange font-serif mb-4">REGISTRATION FORM</h2>
-
-            <form>
-                <!-- Name Fields -->
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label for="firstName" class="form-label text-white small">First Name *</label>
-                        <input type="text" class="form-control form-control-dark" id="firstName" placeholder="Name">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="middleName" class="form-label text-white small">Middle Name</label>
-                        <input type="text" class="form-control form-control-dark" id="middleName"
-                            placeholder="Middle Name">
-                    </div>
-                    <div class="col-md-4">
-                        <label for="lastName" class="form-label text-white small">Last Name *</label>
-                        <input type="text" class="form-control form-control-dark" id="lastName" placeholder="Last Name">
-                    </div>
+        <?php if (isset($_GET['success']) && $_GET['success'] === 'true'): ?>
+            <!-- Success Card -->
+            <div class="card p-5 shadow-lg rounded-4 text-center text-white"
+                style="background-color: #000; max-width: 500px;">
+                <div class="mb-4">
+                    <div class="display-1 text-success mb-3">✅</div>
+                    <h2 class="font-serif fw-bold text-orange">Registration Submitted!</h2>
                 </div>
 
-                <!-- Birthdate and Sex -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="birthdate" class="form-label text-white small">Birthdate *</label>
-                        <input type="date" class="form-control form-control-dark" id="birthdate" placeholder="dd/mm/yy">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="sex" class="form-label text-white small">Sex *</label>
-                        <select class="form-select form-select-dark" id="sex">
-                            <option selected disabled>--Select Sex--</option>
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
+                <p class="lead mb-4">Your account has been successfully created and is now pending approval.</p>
+
+                <div class="bg-dark bg-opacity-50 p-4 rounded-3 text-start mb-4 border border-secondary">
+                    <h6 class="text-warning fw-bold mb-2">⏳ Important:</h6>
+                    <p class="small mb-2">Your registration will be reviewed by the Department Head.</p>
+                    <p class="small mb-0">You will receive an email once your account is approved.</p>
                 </div>
 
-                <!-- Email -->
-                <div class="mb-3">
-                    <label for="email" class="form-label text-white small">Email *</label>
-                    <input type="email" class="form-control form-control-dark" id="email"
-                        placeholder="Johndoe@gmail.com">
-                </div>
-
-                <!-- Password and Confirm Password -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label for="password" class="form-label text-white small">Password *</label>
-                        <input type="password" class="form-control form-control-dark" id="password">
-                    </div>
-                    <div class="col-md-6">
-                        <label for="confirmPassword" class="form-label text-white small">Confirm Password *</label>
-                        <input type="password" class="form-control form-control-dark" id="confirmPassword">
-                    </div>
-                </div>
-
-                <!-- College and Department -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <label for="college" class="form-label text-white small">College</label>
-                        <input type="text" class="form-control form-control-dark" id="college"
-                            value="College of Computing Studies" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="department" class="form-label text-white small">Department</label>
-                        <select class="form-select form-select-dark" id="department">
-                            <option selected disabled>--Select Department--</option>
-                            <option value="cs">Department of Computer Science</option>
-                            <option value="it">Department of Information Technology</option>
-                            <option value="is">Department of Information System</option>
-                        </select>
-                    </div>
-                </div>
+                <p class="text-muted small mb-4">Please do not attempt to register again.</p>
 
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-login btn-lg fw-bold">Register</button>
+                    <a href="login.php" class="btn btn-login btn-lg fw-bold">Back to Login</a>
                 </div>
-            </form>
-        </div>
+            </div>
+        <?php else: ?>
+            <!-- Registration Form -->
+            <div class="register-card p-5">
+
+                <h2 class="text-center text-orange font-serif mb-4">REGISTRATION FORM</h2>
+
+                <?php
+                if (isset($_SESSION['register_error'])) {
+                    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">' .
+                        htmlspecialchars($_SESSION['register_error']) .
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+                    unset($_SESSION['register_error']);
+                }
+                ?>
+
+                <form method="POST" action="process_register.php">
+                    <!-- Name Fields -->
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="firstName" class="form-label text-white small">First Name *</label>
+                            <input type="text" name="firstName" class="form-control form-control-dark" id="firstName"
+                                placeholder="Name" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="middleName" class="form-label text-white small">Middle Name</label>
+                            <input type="text" name="middleName" class="form-control form-control-dark" id="middleName"
+                                placeholder="Middle Name">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lastName" class="form-label text-white small">Last Name *</label>
+                            <input type="text" name="lastName" class="form-control form-control-dark" id="lastName"
+                                placeholder="Last Name" required>
+                        </div>
+                    </div>
+
+                    <!-- Birthdate and Sex -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="birthdate" class="form-label text-white small">Birthdate *</label>
+                            <input type="date" name="birthdate" class="form-control form-control-dark" id="birthdate"
+                                placeholder="dd/mm/yy" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="sex" class="form-label text-white small">Sex *</label>
+                            <select name="sex" class="form-select form-select-dark" id="sex" required>
+                                <option selected disabled value="">--Select Sex--</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label for="email" class="form-label text-white small">Email *</label>
+                        <input type="email" name="email" class="form-control form-control-dark" id="email"
+                            placeholder="Johndoe@gmail.com" required>
+                    </div>
+
+                    <!-- Password and Confirm Password -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="password" class="form-label text-white small">Password *</label>
+                            <input type="password" name="password" class="form-control form-control-dark" id="password"
+                                required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirmPassword" class="form-label text-white small">Confirm Password *</label>
+                            <input type="password" name="confirmPassword" class="form-control form-control-dark"
+                                id="confirmPassword" required>
+                        </div>
+                    </div>
+
+                    <!-- College and Department -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="college" class="form-label text-white small">College</label>
+                            <input type="text" name="college" class="form-control form-control-dark" id="college"
+                                value="College of Computing Studies" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="department" class="form-label text-white small">Department</label>
+                            <select name="department" class="form-select form-select-dark" id="department" required>
+                                <option selected disabled value="">--Select Department--</option>
+                                <option value="cs">Department of Computer Science</option>
+                                <option value="it">Department of Information Technology</option>
+                                <option value="is">Department of Information System</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-login btn-lg fw-bold">Register</button>
+                    </div>
+                </form>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Bootstrap 5 JS -->

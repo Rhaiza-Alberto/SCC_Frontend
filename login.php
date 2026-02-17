@@ -44,14 +44,15 @@ if (isset($_SESSION['error'])) {
 
 <body class="bg-white">
 
+    <div class="container pt-3">
+        <a href="index.php" class="btn btn-outline-dark position-absolute top-0 start-0 m-3">
+            &larr; Back
+        </a>
+    </div>
+
     <div class="container d-flex justify-content-center align-items-center min-vh-100">
 
         <div class="login-card p-5 shadow-lg rounded-4 position-relative">
-
-            <!-- Back Button -->
-            <a href="index.php" class="btn btn-outline-light btn-sm position-absolute top-0 start-0 mt-3 ms-3">
-                ← Back
-            </a>
 
             <!-- Title -->
             <h2 class="text-white font-serif mb-4 text-center">
@@ -67,10 +68,10 @@ if (isset($_SESSION['error'])) {
             <form method="POST" action="process_login.php">
 
                 <?php if (!empty($error_message)): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <?php echo htmlspecialchars($error_message); ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <?php echo htmlspecialchars($error_message); ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
                 <?php endif; ?>
 
                 <div class="mb-3">

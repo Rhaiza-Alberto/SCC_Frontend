@@ -37,7 +37,7 @@ session_start();
             <form action="forgot_password_otp.php" method="POST">
                 <div class="mb-3">
                     <label for="email" class="form-label text-white small">Email</label>
-                    <input type="email" class="form-control" id="email" placeholder="Input" required>
+                    <input type="email" name="email" class="form-control" id="email" placeholder="Input" required>
                 </div>
 
                 <div class="d-grid mt-4">

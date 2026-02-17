@@ -9,6 +9,8 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
         header('Location: admin/admin_dashboard.php');
     } elseif ($_SESSION['role'] == 'dept_head') {
         header('Location: dept_head/dept_dashboard.php');
+    } else if ($_SESSION['role'] == 'vpaa') {
+        header('Location: vpaa/vpaa_dashboard.php');
     }
     exit();
 }

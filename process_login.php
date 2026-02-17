@@ -29,6 +29,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'password' => 'dept123',
             'username' => 'Department Head',
             'role' => 'dept_head'
+        ],
+        'vpaa@scc.edu' => [
+            'password' => 'vpaa123',    
+            'username' => 'VPAA User',
+            'role' => 'vpaa'
         ]
     ];
 

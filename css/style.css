@@ -1,0 +1,148 @@
+/* Fonts */
+.font-serif {
+    font-family: 'Merriweather', serif;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: #000;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #000 !important;
+}
+
+.navbar-brand {
+    color: #fff !important;
+}
+
+.btn-outline-warning {
+    color: #ffaa00;
+    border-color: #ffaa00;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffaa00;
+    color: #000;
+}
+
+/* Hero Section */
+.hero-section h1 {
+    color: #000;
+}
+
+.hero-section h2 {
+    color: #333;
+}
+
+.orange-text-btn {
+    color: #ff8800;
+    border-color: #ff8800;
+    background: transparent;
+}
+
+.orange-text-btn:hover {
+    background-color: #ff8800;
+    color: #fff;
+}
+
+/* Cards */
+.border-orange {
+    border: 1px solid #ffcc80;
+    /* Light orange border */
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.card-title {
+    color: #000;
+}
+
+/* Footer */
+footer {
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Login Page */
+.login-card {
+    background-color: #000;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.login-card .form-control {
+    background-color: #f8f9fa;
+    border: none;
+    padding: 0.75rem;
+}
+
+.login-card .form-control:focus {
+    box-shadow: none;
+    border: 2px solid #ffaa00;
+}
+
+.btn-login {
+    background-color: #ff8800;
+    color: #fff;
+    border: none;
+}
+
+.btn-login:hover {
+    background-color: #e67e00;
+    color: #fff;
+}
+
+.text-info {
+    color: #0dcaf0 !important;
+}
+
+/* Registration Page */
+.register-card {
+    background-color: #000;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 800px;
+    /* Wider for registration */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.text-orange {
+    color: #ff8800;
+}
+
+/* Dark Inputs for Registration */
+.form-control-dark {
+    background-color: #000;
+    border: 1px solid #555;
+    color: #fff;
+}
+
+.form-control-dark:focus {
+    background-color: #111;
+    color: #fff;
+    border-color: #ffaa00;
+    box-shadow: none;
+}
+
+.form-control-dark::placeholder {
+    color: #888;
+}
+
+/* Dark Select for Registration */
+.form-select-dark {
+    background-color: #000;
+    border: 1px solid #555;
+    color: #fff;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+.form-select-dark:focus {
+    background-color: #111;
+    color: #fff;
+    border-color: #ffaa00;
+    box-shadow: none;
+}

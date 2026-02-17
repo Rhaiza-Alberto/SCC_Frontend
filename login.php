@@ -1,3 +1,25 @@
+<?php
+session_start();
+
+// Redirect to dashboard if already logged in
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    if ($_SESSION['role'] == 'faculty') {
+        header('Location: faculty/faculty_dashboard.php');
+    } elseif ($_SESSION['role'] == 'admin') {
+        header('Location: admin/admin_dashboard.php');
+    } elseif ($_SESSION['role'] == 'dept_head') {
+        header('Location: dept_head/dept_dashboard.php');
+    }
+    exit();
+}
+
+// Check for error messages from login process
+$error_message = '';
+if (isset($_SESSION['error'])) {
+    $error_message = $_SESSION['error'];
+    unset($_SESSION['error']);
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -41,6 +63,13 @@
 
             <!-- Login Form -->
             <form method="POST" action="process_login.php">
+
+                <?php if (!empty($error_message)): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <?php echo htmlspecialchars($error_message); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <?php endif; ?>
 
                 <div class="mb-3">
                     <label class="form-label text-white small">Email</label>

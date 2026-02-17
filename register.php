@@ -1,3 +1,18 @@
+<?php
+session_start();
+
+// Redirect to dashboard if already logged in
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    if ($_SESSION['role'] == 'faculty') {
+        header('Location: faculty/faculty_dashboard.php');
+    } elseif ($_SESSION['role'] == 'admin') {
+        header('Location: admin/admin_dashboard.php');
+    } elseif ($_SESSION['role'] == 'dept_head') {
+        header('Location: dept_head/dept_dashboard.php');
+    }
+    exit();
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 

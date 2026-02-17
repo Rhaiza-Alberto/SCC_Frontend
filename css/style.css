@@ -146,3 +146,47 @@ footer {
     border-color: #ffaa00;
     box-shadow: none;
 }
+
+/* Faculty Dashboard Sidebar */
+.active-nav-link {
+    background-color: #333;
+    border-left: 4px solid #ff8800;
+}
+
+.hover-effect:hover {
+    background-color: #222;
+    transition: 0.3s;
+}
+
+/* Dashboard Cards */
+.card h1 {
+    margin-bottom: 0;
+}
+
+/* Table Styles */
+.bg-light-gray {
+    background-color: #f8f9fa;
+    /* Light gray for table rows like in image */
+}
+
+/* Badge Styles Override if needed */
+.badge.bg-warning {
+    color: #856404 !important;
+    background-color: #ffeeba !important;
+}
+
+.badge.bg-success {
+    color: #155724 !important;
+    background-color: #d4edda !important;
+}
+
+.badge.bg-danger {
+    color: #721c24 !important;
+    background-color: #f8d7da !important;
+}
+
+.bg-light-gray td {
+    background-color: #f2f2f2 !important;
+    /* Slightly darker gray for specific rows */
+    border-bottom-width: 0;
+}

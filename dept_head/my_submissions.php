@@ -28,6 +28,32 @@ $role_display = 'Dept Head Panel';
         rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .text-orange {
+            color: #ff8800 !important;
+        }
+
+        .btn-orange {
+            background-color: #ff8800 !important;
+            color: white !important;
+            border: none;
+        }
+
+        .btn-orange:hover {
+            background-color: #e67a00 !important;
+            color: white !important;
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
@@ -41,7 +67,8 @@ $role_display = 'Dept Head Panel';
                     style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
                 <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
-                    <?php echo htmlspecialchars($username); ?></p>
+                    <?php echo htmlspecialchars($username); ?>
+                </p>
             </div>
 
 

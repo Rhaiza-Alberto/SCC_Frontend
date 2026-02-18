@@ -7,36 +7,47 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
-// Get user information from session
-$username = $_SESSION['username'] ?? 'Dr. Jane Smith';
-$email = $_SESSION['email'] ?? '';
-$role = $_SESSION['role'] ?? 'dept_head';
-$role_display = 'Dept Head Panel';
-
-// Initialize submissions if not set or contains dummy data
+// Initialize session-based "database" for prototype if empty or contains dummy data
 if (!isset($_SESSION['submissions']) || (isset($_SESSION['submissions'][0]['uploader_name']) && $_SESSION['submissions'][0]['uploader_name'] === 'Alice Johnson')) {
     $_SESSION['submissions'] = [];
 }
 
-// Handle Approval/Rejection
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['submission_id'])) {
-    $id = $_POST['submission_id'];
-    $action = $_POST['action'];
+// Get user information from session
+$username = $_SESSION['username'] ?? 'VPAA';
+$email = $_SESSION['email'] ?? 'vpaa@gmail.com';
+$role = $_SESSION['role'] ?? 'vpaa';
+$role_display = 'VPAA';
 
-    foreach ($_SESSION['submissions'] as &$sub) {
-        if ($sub['id'] == $id) {
-            $sub['status'] = ($action === 'approve') ? 'Approved' : 'Rejected';
-            break;
-        }
-    }
-    header('Location: syllabus_review.php');
-    exit();
+// Initialize session-based "database" for prototype if empty or contains dummy data
+if (!isset($_SESSION['submissions']) || (isset($_SESSION['submissions'][0]['uploader_name']) && $_SESSION['submissions'][0]['uploader_name'] === 'Alice Johnson')) {
+    $_SESSION['submissions'] = [];
 }
 
-$submissions = $_SESSION['submissions'];
+// Handle Actions (Approve/Reject)
+if (isset($_GET['action']) && isset($_GET['id'])) {
+    $action = $_GET['action'];
+    $id = (int) $_GET['id'];
+
+    if (isset($_SESSION['submissions'])) {
+        foreach ($_SESSION['submissions'] as &$s) {
+            if ($s['id'] === $id) {
+                if ($action === 'approve')
+                    $s['status'] = 'Approved';
+                if ($action === 'reject')
+                    $s['status'] = 'Rejected';
+                break;
+            }
+        }
+        header('Location: syllabus_review.php');
+        exit();
+    }
+}
+
+// Get submissions from session
+$submissions = $_SESSION['submissions'] ?? [];
 $pending_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Pending');
 $approved_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Approved');
-$rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Rejected');
+$declined_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Rejected');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,6 +62,8 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
     <link
         href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap"
         rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -102,34 +115,33 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
 
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="dept_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
+                <a href="vpaa_dashboard.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
                     Dashboard
                 </a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white active-nav-link p-3 rounded">
+                <a href="syllabus_review.php"
+                    class="nav-link text-white active-nav-link p-3 rounded text-decoration-none d-block">
                     Syllabus Review
                 </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Upload Syllabus
-                </a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
-                    My Submissions
-                </a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Shared Syllabus
-                </a>
 
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ACCOUNT MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Registration Requests
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ANALYTICS</div>
+                <a href="compliance_reports.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Compliance Reports
+                </a>
+                <a href="syllabus_vault.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Syllabus Vault
                 </a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
+                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
                     Profile
                 </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
+                <a href="../logout.php"
+                    class="nav-link text-white p-3 rounded hover-effect mt-5 text-decoration-none d-block">
                     Logout
                 </a>
             </nav>
@@ -156,7 +168,7 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                 </div>
                 <div>
                     <h6 class="alert-heading font-serif fw-bold mb-1 text-muted opacity-75">All Caught Up</h6>
-                    <p class="mb-0 text-muted opacity-50 small">No faculty syllabus submissions awaiting review.</p>
+                    <p class="mb-0 text-muted opacity-50 small">No syllabus submissions awaiting your final review.</p>
                 </div>
             </div>
 
@@ -167,14 +179,14 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                         <button class="nav-link active font-serif fw-bold text-orange" id="pending-tab"
                             data-bs-toggle="tab" data-bs-target="#pending" type="button" role="tab"
                             aria-controls="pending" aria-selected="true">
-                            Pending Approval
+                            Pending Final Approval
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link font-serif fw-bold text-orange" id="approved-tab" data-bs-toggle="tab"
                             data-bs-target="#approved" type="button" role="tab" aria-controls="approved"
                             aria-selected="false">
-                            Approved
+                            Fully Approved
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
@@ -195,8 +207,8 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                     <tr>
                                         <th scope="col" class="text-secondary small">#</th>
                                         <th scope="col" class="text-secondary small">INSTRUCTOR</th>
+                                        <th scope="col" class="text-secondary small">DEPARTMENT</th>
                                         <th scope="col" class="text-secondary small">COURSE</th>
-                                        <th scope="col" class="text-secondary small d-none d-lg-table-cell">TYPE</th>
                                         <th scope="col" class="text-secondary small">STATUS</th>
                                         <th scope="col" class="text-secondary small text-center">FILE</th>
                                         <th scope="col" class="text-secondary small">SUBMITTED</th>
@@ -206,24 +218,21 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                 <tbody>
                                     <?php
                                     if (empty($pending_submissions)) {
-                                        echo '<tr><td colspan="8" class="text-center text-muted py-4">No submissions awaiting approval</td></tr>';
+                                        echo '<tr><td colspan="8" class="text-center text-muted py-4">No submissions awaiting final approval</td></tr>';
                                     } else {
-                                        foreach ($pending_submissions as $sub) {
+                                        foreach ($pending_submissions as $s) {
                                             echo '<tr>';
-                                            echo '<td>#' . $sub['id'] . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['uploader_name']) . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['course_code']) . '</td>';
-                                            echo '<td class="d-none d-lg-table-cell">' . htmlspecialchars($sub['subject_type']) . '</td>';
-                                            echo '<td><span class="badge bg-warning-subtle text-warning rounded-pill px-3">Pending</span></td>';
-                                            echo '<td class="text-center"><a href="#" class="btn btn-sm btn-outline-orange"><i class="bi bi-file-pdf"></i> View</a></td>';
-                                            echo '<td>' . $sub['submitted_on'] . '</td>';
-                                            echo '<td class="text-center">
-                                                    <form method="POST" class="d-inline">
-                                                        <input type="hidden" name="submission_id" value="' . $sub['id'] . '">
-                                                        <button type="submit" name="action" value="approve" class="btn btn-sm btn-success rounded-circle me-1" title="Approve"><i class="bi bi-check"></i></button>
-                                                        <button type="submit" name="action" value="reject" class="btn btn-sm btn-danger rounded-circle" title="Reject"><i class="bi bi-x"></i></button>
-                                                    </form>
-                                                  </td>';
+                                            echo '<td>' . $s['id'] . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['uploader_name']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['department']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['course_code']) . '</td>';
+                                            echo '<td><span class="badge bg-warning text-dark">' . $s['status'] . '</span></td>';
+                                            echo '<td class="text-center"><a href="' . $s['file_path'] . '"><i class="bi bi-file-earmark-pdf text-danger fs-4"></i></a></td>';
+                                            echo '<td>' . $s['submitted_on'] . '</td>';
+                                            echo '<td class="text-center">';
+                                            echo '<a href="?action=approve&id=' . $s['id'] . '" class="btn btn-sm btn-outline-success me-2">Approve</a>';
+                                            echo '<a href="?action=reject&id=' . $s['id'] . '" class="btn btn-sm btn-outline-danger">Reject</a>';
+                                            echo '</td>';
                                             echo '</tr>';
                                         }
                                     }
@@ -241,8 +250,8 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                     <tr>
                                         <th scope="col" class="text-secondary small">#</th>
                                         <th scope="col" class="text-secondary small">INSTRUCTOR</th>
+                                        <th scope="col" class="text-secondary small">DEPARTMENT</th>
                                         <th scope="col" class="text-secondary small">COURSE</th>
-                                        <th scope="col" class="text-secondary small d-none d-lg-table-cell">TYPE</th>
                                         <th scope="col" class="text-secondary small">STATUS</th>
                                         <th scope="col" class="text-secondary small text-center">FILE</th>
                                         <th scope="col" class="text-secondary small">APPROVED ON</th>
@@ -251,17 +260,17 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                 <tbody>
                                     <?php
                                     if (empty($approved_submissions)) {
-                                        echo '<tr><td colspan="7" class="text-center text-muted py-4">No approved submissions found</td></tr>';
+                                        echo '<tr><td colspan="7" class="text-center text-muted py-4">No fully approved submissions found</td></tr>';
                                     } else {
-                                        foreach ($approved_submissions as $sub) {
+                                        foreach ($approved_submissions as $s) {
                                             echo '<tr>';
-                                            echo '<td>#' . $sub['id'] . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['uploader_name']) . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['course_code']) . '</td>';
-                                            echo '<td class="d-none d-lg-table-cell">' . htmlspecialchars($sub['subject_type']) . '</td>';
-                                            echo '<td><span class="badge bg-success-subtle text-success rounded-pill px-3">Approved</span></td>';
-                                            echo '<td class="text-center"><a href="#" class="btn btn-sm btn-outline-success"><i class="bi bi-file-pdf"></i> View</a></td>';
-                                            echo '<td>2024-02-18</td>';
+                                            echo '<td>' . $s['id'] . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['uploader_name']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['department']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['course_code']) . '</td>';
+                                            echo '<td><span class="badge bg-success">' . $s['status'] . '</span></td>';
+                                            echo '<td class="text-center"><a href="' . $s['file_path'] . '"><i class="bi bi-file-earmark-pdf text-danger fs-4"></i></a></td>';
+                                            echo '<td>' . $s['submitted_on'] . '</td>';
                                             echo '</tr>';
                                         }
                                     }
@@ -279,8 +288,8 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                     <tr>
                                         <th scope="col" class="text-secondary small">#</th>
                                         <th scope="col" class="text-secondary small">INSTRUCTOR</th>
+                                        <th scope="col" class="text-secondary small">DEPARTMENT</th>
                                         <th scope="col" class="text-secondary small">COURSE</th>
-                                        <th scope="col" class="text-secondary small d-none d-lg-table-cell">TYPE</th>
                                         <th scope="col" class="text-secondary small">STATUS</th>
                                         <th scope="col" class="text-secondary small">REASON</th>
                                         <th scope="col" class="text-secondary small">DECLINED ON</th>
@@ -288,18 +297,18 @@ $rejected_submissions = array_filter($submissions, fn($s) => $s['status'] == 'Re
                                 </thead>
                                 <tbody>
                                     <?php
-                                    if (empty($rejected_submissions)) {
+                                    if (empty($declined_submissions)) {
                                         echo '<tr><td colspan="7" class="text-center text-muted py-4">No declined submissions found</td></tr>';
                                     } else {
-                                        foreach ($rejected_submissions as $sub) {
+                                        foreach ($declined_submissions as $s) {
                                             echo '<tr>';
-                                            echo '<td>#' . $sub['id'] . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['uploader_name']) . '</td>';
-                                            echo '<td>' . htmlspecialchars($sub['course_code']) . '</td>';
-                                            echo '<td class="d-none d-lg-table-cell">' . htmlspecialchars($sub['subject_type']) . '</td>';
-                                            echo '<td><span class="badge bg-danger-subtle text-danger rounded-pill px-3">Rejected</span></td>';
-                                            echo '<td>Needs revision</td>';
-                                            echo '<td>2024-02-18</td>';
+                                            echo '<td>' . $s['id'] . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['uploader_name']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['department']) . '</td>';
+                                            echo '<td>' . htmlspecialchars($s['course_code']) . '</td>';
+                                            echo '<td><span class="badge bg-danger">' . $s['status'] . '</span></td>';
+                                            echo '<td>Incomplete Content</td>';
+                                            echo '<td>' . $s['submitted_on'] . '</td>';
                                             echo '</tr>';
                                         }
                                     }

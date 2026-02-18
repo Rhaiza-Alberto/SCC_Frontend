@@ -9,9 +9,47 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 // Get user information from session
 $username = $_SESSION['username'] ?? 'VPAA';
-$email = $_SESSION['email'] ?? '';
+$email = $_SESSION['email'] ?? 'vpaa@gmail.com';
 $role = $_SESSION['role'] ?? 'vpaa';
-$role_display = 'VPAA';
+$role_display = 'VPAA Institutional Hub';
+
+// Initialize session-based "database" for prototype if empty
+if (!isset($_SESSION['submissions']) || (isset($_SESSION['submissions'][0]['uploader_name']) && $_SESSION['submissions'][0]['uploader_name'] === 'Alice Johnson')) {
+    $_SESSION['submissions'] = [];
+}
+
+$submissions = $_SESSION['submissions'];
+
+// Calculate Stats
+$total_count = count($submissions);
+$pending_count = count(array_filter($submissions, fn($s) => $s['status'] == 'Pending'));
+$approved_count = count(array_filter($submissions, fn($s) => $s['status'] == 'Approved'));
+$rejected_count = count(array_filter($submissions, fn($s) => $s['status'] == 'Rejected'));
+
+// Department Specific Stats
+$dept_stats = [
+    'CS' => ['total' => 0, 'approved' => 0],
+    'IT' => ['total' => 0, 'approved' => 0],
+    'IS' => ['total' => 0, 'approved' => 0],
+];
+
+foreach ($submissions as $s) {
+    if (isset($dept_stats[$s['department']])) {
+        $dept_stats[$s['department']]['total']++;
+        if ($s['status'] == 'Approved')
+            $dept_stats[$s['department']]['approved']++;
+    }
+}
+
+function get_readiness($dept)
+{
+    global $dept_stats;
+    if ($dept_stats[$dept]['total'] == 0)
+        return 0;
+    return round(($dept_stats[$dept]['approved'] / $dept_stats[$dept]['total']) * 100);
+}
+
+$compliance_pct = $total_count > 0 ? round(($approved_count / $total_count) * 100) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -28,37 +66,85 @@ $role_display = 'VPAA';
         rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        .text-orange {
+            color: #ff8800 !important;
+        }
+
+        .btn-orange {
+            background-color: #ff8800 !important;
+            color: white !important;
+            border: none;
+        }
+
+        .btn-orange:hover {
+            background-color: #e67a00 !important;
+            color: white !important;
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
 
     <div class="d-flex">
         <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-3 min-vh-100 d-flex flex-column"
-            style="width: 280px; position: fixed;">
-            <div class="text-center mb-4 mt-3">
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+            style="width: 260px; position: fixed; z-index: 1100;">
+            <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width: 150px; height: 150px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 5px;">
-                <h4 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h4>
-                <p class="text-white-50 small fw-bold mb-0"><?php echo htmlspecialchars($username); ?></p>
+                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
+                    <?php echo htmlspecialchars($username); ?>
+                </p>
             </div>
 
-
             <nav class="nav flex-column gap-2 mb-auto">
-                <a href="vpaa_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded">
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+                <a href="vpaa_dashboard.php"
+                    class="nav-link text-white active-nav-link p-3 rounded text-decoration-none d-block">
                     Dashboard
                 </a>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+                <a href="syllabus_review.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Syllabus Review
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ANALYTICS</div>
+                <a href="compliance_reports.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Compliance Reports
+                </a>
+                <a href="syllabus_vault.php"
+                    class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Syllabus Vault
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
                     Profile
                 </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
+                <a href="../logout.php"
+                    class="nav-link text-white p-3 rounded hover-effect mt-5 text-decoration-none d-block">
                     Logout
                 </a>
             </nav>
         </div>
 
         <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 280px;">
+        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             <div class="d-flex justify-content-between align-items-center mb-5">
                 <h2 class="text-orange font-serif fw-bold">Welcome, <?php echo htmlspecialchars($username); ?>!</h2>
                 <div class="notification-icon">
@@ -71,37 +157,161 @@ $role_display = 'VPAA';
                 </div>
             </div>
 
-            <!-- Stats/Summary Cards -->
+            <!-- Stats/Summary Cards (Refined White Minimalist) -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-orange border-4">
+                        <h6 class="text-uppercase fw-bold text-muted small mb-3">Total Submissions</h6>
+                        <h1 class="display-4 fw-bold text-dark mb-0"><?php echo $total_count; ?></h1>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-success border-4">
+                        <h6 class="text-uppercase fw-bold text-success small mb-3">Approved</h6>
+                        <h1 class="display-4 fw-bold text-success mb-0"><?php echo $approved_count; ?></h1>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-warning border-4">
+                        <h6 class="text-uppercase fw-bold text-warning small mb-3">Pending</h6>
+                        <h1 class="display-4 fw-bold text-warning mb-0"><?php echo $pending_count; ?></h1>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-danger border-4">
+                        <h6 class="text-uppercase fw-bold text-danger small mb-3">Rejected</h6>
+                        <h1 class="display-4 fw-bold text-danger mb-0"><?php echo $rejected_count; ?></h1>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CCS Compliance and Analytics (Department Level) -->
             <div class="row g-4 mb-5">
-                <div class="col-md-3">
-                    <div class="card stat-card stat-card-total">
-                        <div class="stat-card-content text-center">
-                            <h6>Total</h6>
-                            <h1 class="display-4">0</h1>
+                <!-- Compliance Overview -->
+                <div class="col-md-4">
+                    <div class="card premium-card p-4 shadow-sm h-100 border-0 bg-white">
+                        <h5 class="card-title font-serif fw-bold mb-4 text-orange">CCS Compliance Overview</h5>
+                        <div class="text-center py-3">
+                            <div class="position-relative d-inline-block">
+                                <svg width="120" height="120" viewBox="0 0 120 120">
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#f3f3f3" stroke-width="12" />
+                                    <circle cx="60" cy="60" r="54" fill="none" stroke="#ff8800" stroke-width="12"
+                                        stroke-dasharray="339.292"
+                                        stroke-dashoffset="<?php echo 339.292 * (1 - ($compliance_pct / 100)); ?>"
+                                        style="transition: stroke-dashoffset 1s ease-out;" />
+                                </svg>
+                                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                    <h2 class="mb-0 fw-bold"><?php echo $compliance_pct; ?>%</h2>
+                                    <span class="text-muted small">Validated</span>
+                                </div>
+                            </div>
+                            <p class="mt-4 text-muted small fw-bold">Overall CCS Readiness</p>
+                            <div class="d-flex justify-content-between mt-3 px-3">
+                                <div class="text-start">
+                                    <span class="text-secondary small d-block">Required</span>
+                                    <span class="fw-bold"><?php echo $total_count; ?></span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-secondary small d-block">Approved</span>
+                                    <span class="fw-bold text-success"><?php echo $approved_count; ?></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card stat-card-approved">
-                        <div class="stat-card-content text-center">
-                            <h6>Approved</h6>
-                            <h1 class="display-4">0</h1>
+
+                <!-- Department Readiness Breakdown -->
+                <div class="col-md-8">
+                    <div class="card premium-card p-4 shadow-sm h-100 border-0 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title font-serif fw-bold mb-0 text-orange">Department Readiness</h5>
+                            <a href="compliance_reports.php"
+                                class="btn btn-sm btn-outline-warning rounded-pill px-3">Full Report</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle table-sm border-0">
+                                <thead class="border-bottom">
+                                    <tr>
+                                        <th class="text-muted small py-2">DEPARTMENT</th>
+                                        <th class="text-muted small py-2">READINESS</th>
+                                        <th class="text-muted small py-2 text-end">STATUS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="py-3 fw-bold">CS</td>
+                                        <td class="py-3">
+                                            <div class="progress" style="height: 8px; width: 100px;">
+                                                <div class="progress-bar bg-success"
+                                                    style="width: <?php echo get_readiness('CS'); ?>%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-end"><span
+                                                class="badge bg-success-subtle text-success border border-success border-opacity-25 rounded-pill px-3"><?php echo get_readiness('CS') > 80 ? 'High' : 'Low'; ?></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 fw-bold">IT</td>
+                                        <td class="py-3">
+                                            <div class="progress" style="height: 8px; width: 100px;">
+                                                <div class="progress-bar bg-warning"
+                                                    style="width: <?php echo get_readiness('IT'); ?>%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-end"><span
+                                                class="badge bg-warning-subtle text-warning border border-warning border-opacity-25 rounded-pill px-3"><?php echo get_readiness('IT') > 50 ? 'Average' : 'Critical'; ?></span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 fw-bold">IS</td>
+                                        <td class="py-3">
+                                            <div class="progress" style="height: 8px; width: 100px;">
+                                                <div class="progress-bar bg-danger"
+                                                    style="width: <?php echo get_readiness('IS'); ?>%"></div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-end"><span
+                                                class="badge bg-danger-subtle text-danger border border-danger border-opacity-25 rounded-pill px-3"><?php echo get_readiness('IS') > 30 ? 'Moderate' : 'Critical'; ?></span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card stat-card-pending">
-                        <div class="stat-card-content text-center">
-                            <h6>Pending</h6>
-                            <h1 class="display-4">0</h1>
+            </div>
+
+            <!-- Management Hubs & Vault -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="card premium-card p-4 shadow-sm border-0 bg-white border-start border-orange border-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-orange bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-safe2 text-orange fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-serif fw-bold mb-1">Accreditation Vault</h5>
+                                <p class="text-muted small mb-0">Access approved historical syllabi for audits.</p>
+                            </div>
                         </div>
+                        <a href="syllabus_vault.php" class="btn btn-orange w-100 rounded-pill mt-2">Explore
+                            Repository</a>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="card stat-card stat-card-rejected">
-                        <div class="stat-card-content text-center">
-                            <h6>Rejected</h6>
-                            <h1 class="display-4">0</h1>
+                <div class="col-md-6">
+                    <div class="card premium-card p-4 shadow-sm border-0 bg-white border-start border-dark border-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-dark bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="bi bi-calendar-event text-dark fs-3"></i>
+                            </div>
+                            <div>
+                                <h5 class="font-serif fw-bold mb-1">Academic Countdown</h5>
+                                <p class="text-muted small mb-0">Semester starts in <strong>12 days</strong>.</p>
+                            </div>
+                        </div>
+                        <div class="alert alert-warning py-2 small mb-0 border-0">
+                            <strong>Action Required:</strong> <?php echo $pending_count; ?> syllabus bottlenecks
+                            detected.
                         </div>
                     </div>
                 </div>
@@ -152,9 +362,8 @@ $role_display = 'VPAA';
                         </thead>
                         <tbody>
                             <?php
-                            // TODO: Replace with database query for all submissions
-                            $all_submissions = []; // This should come from database
-                            
+                            $all_submissions = $submissions;
+
                             if (empty($all_submissions)) {
                                 echo '<tr>';
                                 echo '<td colspan="10" class="text-center text-muted py-4">No submissions found</td>';

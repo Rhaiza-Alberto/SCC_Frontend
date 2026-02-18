@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $_SESSION['register_error'] = 'Invalid email format.';
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match("/@gmail\.com$/i", $email)) {
+        $_SESSION['register_error'] = 'Invalid email. Only @gmail.com addresses are accepted.';
         header('Location: register.php');
         exit();
     }

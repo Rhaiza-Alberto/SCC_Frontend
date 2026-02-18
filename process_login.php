@@ -14,23 +14,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit();
     }
 
+    // Email domain validation
+    if (!preg_match("/@gmail\.com$/i", $email)) {
+        $_SESSION['error'] = 'Invalid email. Only @gmail.com addresses are accepted.';
+        header('Location: login.php');
+        exit();
+    }
+
     $demo_users = [
-        'faculty@scc.edu' => [
+        'faculty@gmail.com' => [
             'password' => 'faculty123',
             'username' => 'Achy',
             'role' => 'faculty'
         ],
-        'admin@scc.edu' => [
+        'admin@gmail.com' => [
             'password' => 'admin123',
             'username' => 'Admin User',
             'role' => 'admin'
         ],
-        'dept@scc.edu' => [
+        'dept@gmail.com' => [
             'password' => 'dept123',
             'username' => 'Dr. Jane Smith',
             'role' => 'dept_head'
         ],
-        'vpaa@scc.edu' => [
+        'vpaa@gmail.com' => [
             'password' => 'vpaa123',
             'username' => 'VPAA',
             'role' => 'vpaa'

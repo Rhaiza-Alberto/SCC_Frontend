@@ -19,8 +19,10 @@ $profile = [
     'first_name' => 'John',
     'middle_name' => '',
     'last_name' => 'Doe',
-    'birthdate' => '1990-12-1',
+    'birthdate' => '1990-12-01',
     'sex' => 'Male',
+    'college' => 'College of Computing Studies',
+    'department' => 'Department of Computer Science',
     'office' => 'Office of the Vice President for Academic Affairs',
     'email' => $email
 ];
@@ -47,30 +49,47 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
 <body class="bg-light">
 
     <div class="d-flex">
-        <div class="sidebar sidebar-premium text-white p-3 min-vh-100 d-flex flex-column"
-            style="width: 280px; position: fixed;">
-            <div class="text-center mb-4 mt-3">
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+            style="width: 260px; position: fixed; z-index: 1100;">
+            <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width: 150px; height: 150px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 5px;">
-                <h4 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h4>
-                <p class="text-white-50 small fw-bold mb-0"><?php echo htmlspecialchars($username); ?></p>
+                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
+                    <?php echo htmlspecialchars($username); ?>
+                </p>
             </div>
 
 
-            <nav class="nav flex-column gap-2 mb-auto">
-                <a href="vpaa_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+                <a href="vpaa_dashboard.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
                     Dashboard
                 </a>
-                <a href="profile.php" class="nav-link text-white active-nav-link p-3 rounded">
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Syllabus Review
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ANALYTICS</div>
+                <a href="compliance_reports.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Compliance Reports
+                </a>
+                <a href="syllabus_vault.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none d-block">
+                    Syllabus Vault
+                </a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+                <a href="profile.php" class="nav-link text-white active-nav-link p-3 rounded text-decoration-none d-block">
                     Profile
                 </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 text-decoration-none d-block">
                     Logout
                 </a>
             </nav>
         </div>
 
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 280px;">
+        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             <div class="d-flex justify-content-between align-items-center mb-5">
                 <h3 class="text-orange font-serif fw-bold mb-0">
                     <?php echo $edit_mode ? 'Edit my Profile' : 'My Profile'; ?>
@@ -157,9 +176,9 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
                     <div class="d-grid">
                         <?php if ($edit_mode): ?>
                             <button type="submit" class="btn btn-login btn-lg fw-bold mb-2">Update my Profile</button>
-                            <a href="profile.php" class="btn btn-cancel btn-lg fw-bold text-decoration-none text-center">Cancel</a>
+                            <a href="profile.php" class="btn btn-outline-secondary btn-lg">Cancel</a>
                         <?php else: ?>
-                            <a href="profile.php?edit=true" class="btn btn-login btn-lg fw-bold">Edit Profile</a>
+                            <a href="profile.php?edit=true" class="btn btn-login btn-lg fw-bold">Edit my profile</a>
                         <?php endif; ?>
                     </div>
 

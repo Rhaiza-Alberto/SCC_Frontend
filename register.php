@@ -119,7 +119,10 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
                     <div class="mb-3">
                         <label for="email" class="form-label text-white small">Email *</label>
                         <input type="email" name="email" class="form-control form-control-dark" id="email"
-                            placeholder="Johndoe@gmail.com" required>
+                            placeholder="Johndoe@gmail.com" required pattern=".*@gmail\.com"
+                            title="Please use a @gmail.com address">
+                        <div class="form-text text-white-50" style="font-size: 0.75rem;">Only @gmail.com addresses are
+                            accepted.</div>
                     </div>
 
                     <!-- Password and Confirm Password -->

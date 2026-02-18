@@ -33,44 +33,40 @@ $role_display = 'Faculty Panel';
 <body class="bg-light">
 
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
             style="width: 260px; position: fixed; z-index: 1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                     style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0">
-                    <?php echo $role_display; ?>
-                </h5>
+                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
                 <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
                     <?php echo htmlspecialchars($username); ?>
                 </p>
             </div>
 
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Dashboard
-                </a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+            <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
+                Dashboard
+            </a>
 
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Upload Syllabus
-                </a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
-                    My Submissions
-                </a>
-                <a href="shared_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">
-                    Shared Syllabus
-                </a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
+                Upload Syllabus
+            </a>
+            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
+                My Submissions
+            </a>
+            <a href="shared_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">
+                Shared Syllabus
+            </a>
 
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Profile
-                </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
-                    Logout
-                </a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
+                Profile
+            </a>
+            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
+                Logout
+            </a>
             </nav>
         </div>
 

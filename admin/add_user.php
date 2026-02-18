@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </nav>
         </div>
 
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
+        <div class="main-content flex-grow-1 p-5 justify-content-center align-items-center" style="margin-left: 260px;">
             <div class="mb-4">
                 <h2 class="text-orange font-serif fw-bold">Add New User</h2>
                 <p class="text-muted small">Enter details to register a new system member.</p>
@@ -121,51 +121,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <div class="card premium-card p-4 shadow-sm border-0 bg-white" style="max-width: 700px;">
-                <form method="POST">
-                    <div class="row g-4">
-                        <div class="col-md-6 text-center border-end">
-                            <div class="bg-light rounded-circle p-5 mb-3 d-inline-block border">
-                                <i class="bi bi-person-plus text-orange fs-1"></i>
+            <div class="d-flex justify-content-center">
+                <div class="card premium-card p-4 shadow-sm border-0 bg-white" style="max-width: 700px; width: 100%;">
+                    <form method="POST">
+                        <div class="row g-4">
+                            <div class="col-md-6 text-center border-end">
+                                <div class="bg-light rounded-circle p-5 mb-3 d-inline-block border">
+                                    <i class="bi bi-person-plus text-orange fs-1"></i>
+                                </div>
+                                <p class="text-muted small">Standard Registration Flow</p>
                             </div>
-                            <p class="text-muted small">Standard Registration Flow</p>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">FULL NAME</label>
+                                    <input type="text" class="form-control" name="fullname" placeholder="E.g. John Doe"
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">GMAIL ADDRESS</label>
+                                    <input type="email" class="form-control" name="email" placeholder="user@gmail.com"
+                                        required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">ASSIGNED ROLE</label>
+                                    <select class="form-select" name="role" required>
+                                        <option value="faculty">Instructor</option>
+                                        <option value="dept_head">Department Head</option>
+                                        <option value="vpaa">VPAA Hub</option>
+                                        <option value="admin">Admin / Dean</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small text-muted">DEPARTMENT</label>
+                                    <select class="form-select" name="dept" required>
+                                        <option value="CS">Computer Science</option>
+                                        <option value="IT">Information Technology</option>
+                                        <option value="IS">Information Systems</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">FULL NAME</label>
-                                <input type="text" class="form-control" name="fullname" placeholder="E.g. John Doe"
-                                    required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">GMAIL ADDRESS</label>
-                                <input type="email" class="form-control" name="email" placeholder="user@gmail.com"
-                                    required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">ASSIGNED ROLE</label>
-                                <select class="form-select" name="role" required>
-                                    <option value="faculty">Instructor</option>
-                                    <option value="dept_head">Department Head</option>
-                                    <option value="vpaa">VPAA Hub</option>
-                                    <option value="admin">Admin / Dean</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold small text-muted">DEPARTMENT</label>
-                                <select class="form-select" name="dept" required>
-                                    <option value="CS">Computer Science</option>
-                                    <option value="IT">Information Technology</option>
-                                    <option value="IS">Information Systems</option>
-                                    <option value="Institutional">Institutional</option>
-                                </select>
-                            </div>
+                        <div class="text-center mt-4 pt-3 border-top">
+                            <button type="reset" class="btn btn-light rounded-pill px-4 me-2">Clear</button>
+                            <button type="submit" class="btn btn-orange rounded-pill px-5">Add User Profile</button>
                         </div>
-                    </div>
-                    <div class="text-end mt-4 pt-3 border-top">
-                        <button type="reset" class="btn btn-light rounded-pill px-4 me-2">Clear</button>
-                        <button type="submit" class="btn btn-orange rounded-pill px-5">Add User Profile</button>
-                    </div>
-                </form>
+
+                    </form>
+                </div>
             </div>
         </div>
     </div>

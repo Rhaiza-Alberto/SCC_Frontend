@@ -37,127 +37,71 @@ $rejected_count = count(array_filter($submissions, fn($s) => $s['status'] == 'Re
     <link rel="stylesheet" href="../css/style.css">
     
     <style>
-        /* Force Sidebar Width and Position */
-        .sidebar {
-            width: 260px !important;
-            position: fixed !important;
-            top: 0;
-            left: 0;
-            z-index: 1100;
-            transition: transform 0.3s ease;
-        }
-
-        /* Force Main Content to offset by the sidebar's width */
-        .main-content {
-            margin-left: 260px !important;
-            min-height: 100vh;
-            transition: margin-left 0.3s ease;
-        }
-
-        /* Mobile Overlay */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1050;
-        }
-
-        /* Responsive rules for smaller screens */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.show {
-                transform: translateX(0);
-            }
-            .main-content {
-                margin-left: 0 !important;
-            }
-            .sidebar-overlay.show {
-                display: block;
-            }
-        }
     </style>
 </head>
 
 <body class="bg-light">
 
     <div class="d-flex">
-        
-        <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column" id="sidebar">
-            
-            <button class="btn btn-sm btn-link text-white d-md-none position-absolute top-0 end-0 mt-2 me-2" id="closeSidebar">
-                <i class="bi bi-x-lg"></i>
-            </button>
-
-            <div class="text-center mb-3 mt-4">
+        <!-- Sidebar -->
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+            style="width: 260px; position: fixed; z-index: 1100;">
+            <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px; background: white;">
+                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
                 <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
                     <?php echo htmlspecialchars($username); ?>
                 </p>
             </div>
 
-            <nav class="nav flex-column gap-2 mb-auto pb-4">
+
+            <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="dept_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded" style="background-color: rgba(255, 136, 0, 0.2);">
-                    <i class="bi bi-grid-1x2-fill me-2 text-orange"></i> Dashboard
+                <a href="dept_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded">
+                    Dashboard
                 </a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect d-flex justify-content-between align-items-center">
-                    <span><i class="bi bi-journal-check me-2"></i> Syllabus Review</span>
-                    <?php if ($pending_count > 0): ?>
-                        <span class="badge bg-danger rounded-circle p-1" style="width: 10px; height: 10px;"></span>
-                    <?php endif; ?>
+                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Syllabus Review
                 </a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    <i class="bi bi-cloud-upload me-2"></i> Upload Syllabus
+                    Upload Syllabus
                 </a>
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
-                    <i class="bi bi-file-earmark-person me-2"></i> My Submissions
+                    My Submissions
                 </a>
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    <i class="bi bi-folder2-open me-2"></i> Shared Syllabus
+                    Shared Syllabus
                 </a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ACCOUNT MANAGEMENT</div>
                 <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
-                    <i class="bi bi-person-lines-fill me-2"></i> Registration Requests
+                    Registration Requests
                 </a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">
-                    <i class="bi bi-person-circle me-2"></i> Profile
+                    Profile
                 </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-3 border border-secondary border-opacity-25">
-                    <i class="bi bi-box-arrow-left me-2"></i> Logout
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
+                    Logout
                 </a>
             </nav>
         </div>
 
-        <div class="main-content flex-grow-1 p-4 p-md-5">
+        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div class="d-flex align-items-center gap-3">
-                    <button class="btn btn-outline-dark d-md-none" id="sidebarToggle">
-                        <i class="bi bi-list"></i>
-                    </button>
-                    <h2 class="text-orange font-serif fw-bold mb-0">Welcome, <?php echo htmlspecialchars($username); ?>!</h2>
-                </div>
-                
-                <div class="notification-icon position-relative">
-                    <i class="bi bi-bell fs-4"></i>
-                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle">
-                        <span class="visually-hidden">New alerts</span>
-                    </span>
+            <div class="d-flex justify-content-between align-items-center mb-5">
+                <h3 class="text-orange font-serif fw-bold mb-0">Welcome, <?php echo htmlspecialchars($username); ?>!</h3>
+                <div class="notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                        class="bi bi-bell" viewBox="0 0 16 16">
+                        <path
+                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+                    </svg>
+                    <span class="notification-badge-dot"></span>
                 </div>
             </div>
 
@@ -295,30 +239,5 @@ $rejected_count = count(array_filter($submissions, fn($s) => $s['status'] == 'Re
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebarToggle');
-            const closeBtn = document.getElementById('closeSidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-
-            if(sidebar && toggleBtn && closeBtn && overlay) {
-                function openSidebar() {
-                    sidebar.classList.add('show');
-                    overlay.classList.add('show');
-                }
-
-                function closeSidebarFunc() {
-                    sidebar.classList.remove('show');
-                    overlay.classList.remove('show');
-                }
-
-                toggleBtn.addEventListener('click', openSidebar);
-                closeBtn.addEventListener('click', closeSidebarFunc);
-                overlay.addEventListener('click', closeSidebarFunc);
-            }
-        });
-    </script>
 </body>
 </html>

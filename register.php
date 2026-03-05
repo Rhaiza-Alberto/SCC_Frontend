@@ -14,6 +14,23 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     }
     exit();
 }
+
+// Load departments from DB (College of Computing Studies only)
+$departments = [];
+try {
+    $conn = get_db();
+    $stmt = $conn->prepare("
+        SELECT d.id, d.department_name 
+        FROM departments d
+        JOIN colleges c ON d.college_id = c.id
+        WHERE c.college_name = 'College of Computing Studies'
+        ORDER BY d.department_name ASC
+    ");
+    $stmt->execute();
+    $departments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    error_log("Register page DB error: " . $e->getMessage());
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -152,9 +169,11 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
                             <label for="department" class="form-label text-white small">Department</label>
                             <select name="department" class="form-select form-select-dark" id="department" required>
                                 <option selected disabled value="">--Select Department--</option>
-                                <option value="cs">Department of Computer Science</option>
-                                <option value="it">Department of Information Technology</option>
-                                <option value="is">Department of Information System</option>
+                                <?php foreach ($departments as $dept): ?>
+                                    <option value="<?php echo $dept['id']; ?>">
+                                        <?php echo htmlspecialchars($dept['department_name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                     </div>

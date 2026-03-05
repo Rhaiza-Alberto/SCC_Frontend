@@ -1,9 +1,12 @@
 <?php
-$conn = new mysqli("127.0.0.1", "root", "", "scc_database");
+require_once "database.php";
 
-if ($conn->connect_error) {
-    die("Failed: " . $conn->connect_error);
+$db = new Database();
+$conn = $db->connect();
+
+$stmt = $conn->query("SELECT * FROM users");
+
+while($row = $stmt->fetch()){
+    echo $row['first_name'] . " " . $row['last_name'] . "<br>";
 }
-
-echo "Connected successfully!";
 ?>

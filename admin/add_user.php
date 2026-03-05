@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once 'database.php';
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: ../login.php');

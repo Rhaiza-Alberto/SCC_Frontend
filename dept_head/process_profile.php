@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once '../config/db.php';
+require_once 'database.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_SESSION['logged_in'])) {
     $email = $_SESSION['email'];

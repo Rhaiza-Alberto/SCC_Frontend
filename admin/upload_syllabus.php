@@ -1,6 +1,8 @@
 <?php
 session_start();
-require_once 'database.php';
+require_once __DIR__ . '/../database.php';
+require_once __DIR__ . '/../functions.php';
+
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: ../login.php');
     exit();

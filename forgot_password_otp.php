@@ -1,6 +1,7 @@
 <?php
 session_start();
-require_once 'database.php';
+require_once __DIR__ . '/database.php';
+require_once __DIR__ . '/functions.php';
 ?>
 <!DOCTYPE html>
 <html lang="en">

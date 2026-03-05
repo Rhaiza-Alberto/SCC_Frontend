@@ -64,14 +64,13 @@ try {
             <div class="card p-5 shadow-lg rounded-4 text-center text-white"
                 style="background-color: #000; max-width: 500px;">
                 <div class="mb-4">
-                    <div class="display-1 text-success mb-3">✅</div>
                     <h2 class="font-serif fw-bold text-orange">Registration Submitted!</h2>
                 </div>
 
                 <p class="lead mb-4">Your account has been successfully created and is now pending approval.</p>
 
                 <div class="bg-dark bg-opacity-50 p-4 rounded-3 text-start mb-4 border border-secondary">
-                    <h6 class="text-warning fw-bold mb-2">⏳ Important:</h6>
+                    <h6 class="text-warning fw-bold mb-2"> Important:</h6>
                     <p class="small mb-2">Your registration will be reviewed by the Department Head.</p>
                     <p class="small mb-0">You will receive an email once your account is approved.</p>
                 </div>

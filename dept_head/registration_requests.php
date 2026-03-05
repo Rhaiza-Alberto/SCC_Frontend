@@ -24,10 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
     if ($action === 'approve') {
         $conn->prepare("UPDATE users SET is_approved = 1 WHERE id = ?")
              ->execute([$target_id]);
-
-        // Notify the faculty user
-        notify_user($target_id, " Your registration has been approved by the Department Head. You may now log in.", null);
-
+        notify_user($target_id, "Your registration has been approved by the Department Head. You may now log in.", null);
     } elseif ($action === 'reject') {
         $conn->prepare("UPDATE users SET is_deleted = 1 WHERE id = ?")
              ->execute([$target_id]);
@@ -37,23 +34,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
     exit();
 }
 
-// Fetch pending faculty registrations for this department
+// Fetch ALL pending faculty registrations
+// If dept_id is set, filter by department; otherwise show all pending faculty
 $pending_registrations = [];
-if ($dept_id) {
-    $stmt = $conn->prepare("
-        SELECT u.id, u.first_name, u.middle_name, u.last_name,
-               u.email, u.created_at, d.department_name
-        FROM users u
-        JOIN departments d ON u.department_id = d.id
-        JOIN roles r ON u.role_id = r.id
-        WHERE r.role_name = 'faculty'
-          AND u.is_approved = 0
-          AND u.is_deleted = 0
-          AND u.department_id = ?
-        ORDER BY u.created_at DESC
-    ");
-    $stmt->execute([$dept_id]);
+try {
+    if ($dept_id) {
+        $stmt = $conn->prepare("
+            SELECT u.id, u.first_name, u.middle_name, u.last_name,
+                   u.email, u.created_at, d.department_name
+            FROM users u
+            JOIN departments d ON u.department_id = d.id
+            JOIN roles r ON u.role_id = r.id
+            WHERE r.role_name = 'faculty'
+              AND u.is_approved = 0
+              AND u.is_deleted = 0
+              AND u.department_id = ?
+            ORDER BY u.created_at DESC
+        ");
+        $stmt->execute([$dept_id]);
+    } else {
+        // Fallback: show all pending faculty if no dept assigned
+        $stmt = $conn->prepare("
+            SELECT u.id, u.first_name, u.middle_name, u.last_name,
+                   u.email, u.created_at, d.department_name
+            FROM users u
+            JOIN departments d ON u.department_id = d.id
+            JOIN roles r ON u.role_id = r.id
+            WHERE r.role_name = 'faculty'
+              AND u.is_approved = 0
+              AND u.is_deleted = 0
+            ORDER BY u.created_at DESC
+        ");
+        $stmt->execute();
+    }
     $pending_registrations = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    // If is_approved column doesn't exist yet, show helpful message
+    error_log("Registration requests error: " . $e->getMessage());
+    $pending_registrations = [];
+    $db_error = "Database column 'is_approved' may be missing. Please run add_is_approved.sql first.";
 }
 
 $reg_count = count($pending_registrations);
@@ -118,6 +137,12 @@ $reg_count = count($pending_registrations);
                     </span>
                 </div>
             </div>
+
+            <?php if (isset($db_error)): ?>
+            <div class="alert alert-danger mb-4">
+                <strong>Setup Required:</strong> <?php echo htmlspecialchars($db_error); ?>
+            </div>
+            <?php endif; ?>
 
             <!-- Alert: all caught up vs pending -->
             <?php if ($reg_count === 0): ?>
@@ -198,7 +223,7 @@ $reg_count = count($pending_registrations);
         </div>
     </div>
 
-    <!-- Hidden forms for approve/reject -->
+    <!-- Hidden form for approve/reject POST -->
     <form id="actionForm" method="POST" action="registration_requests.php">
         <input type="hidden" name="action" id="formAction">
         <input type="hidden" name="user_id" id="formUserId">

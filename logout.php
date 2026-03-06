@@ -1,10 +1,12 @@
-<?php
+ <?php
+/**
+ * logout.php
+ * Destroys the session and redirects to the login page.
+ */
 session_start();
-require_once __DIR__ . '/database.php';
-require_once __DIR__ . '/functions.php';
 
-// Destroy all session data
-$_SESSION = array();
+// Clear all session data
+$_SESSION = [];
 
 // Destroy the session cookie
 if (isset($_COOKIE[session_name()])) {
@@ -14,7 +16,6 @@ if (isset($_COOKIE[session_name()])) {
 // Destroy the session
 session_destroy();
 
-// Redirect to login page
-header('Location: index.php');
+// Redirect to login
+header('Location: login.php');
 exit();
-?>

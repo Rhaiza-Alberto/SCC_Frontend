@@ -1,7 +1,7 @@
- <?php
+<?php
 /**
- * profile.php
- * Faculty profile — all data fetched from database.
+ * edit_syllabus.php
+ * Allows faculty to edit a pending syllabus submission (replace the PDF and/or update fields).
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -18,18 +18,33 @@ $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'User';
 $role_display = 'Faculty Panel';
 
-// Handle mark-all-read
-if (isset($_GET['mark_read'])) {
-    mark_all_notifications_read($user_id);
-    header('Location: profile.php');
+$syllabus_id = (int) ($_GET['id'] ?? 0);
+if (!$syllabus_id) {
+    header('Location: my_submissions.php');
     exit();
 }
 
-// Fetch real profile from DB
-$user = get_user_by_id($user_id);
-if (!$user) {
-    session_destroy();
-    header('Location: ../login.php');
+// Handle mark-all-read
+if (isset($_GET['mark_read'])) {
+    mark_all_notifications_read($user_id);
+    header('Location: edit_syllabus.php?id=' . $syllabus_id);
+    exit();
+}
+
+// Fetch the syllabus — must belong to this user and be Pending
+$conn = get_db();
+$stmt = $conn->prepare("
+    SELECT s.*, c.course_code AS matched_code, c.course_title AS matched_title
+    FROM syllabus s
+    LEFT JOIN courses c ON s.course_id = c.id
+    WHERE s.id = ? AND s.uploaded_by = ? AND s.status = 'Pending'
+");
+$stmt->execute([$syllabus_id, $user_id]);
+$syllabus = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$syllabus) {
+    $_SESSION['error_message'] = "Submission not found or cannot be edited.";
+    header('Location: my_submissions.php');
     exit();
 }
 
@@ -37,26 +52,21 @@ $success_message = $_SESSION['success_message'] ?? '';
 $error_message   = $_SESSION['error_message']   ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
 
-$edit_mode     = isset($_GET['edit']) && $_GET['edit'] === 'true';
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
-
-// Load all colleges and departments for dropdowns
-$colleges    = get_colleges();
-$departments = get_departments();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - SCC-CCS Syllabus Portal</title>
+    <title>Edit Submission - SCC-CCS Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        .text-orange { color: #ff8800 !important; }
+        .text-orange  { color: #ff8800 !important; }
         .notif-dot { position:absolute;top:2px;right:2px;width:10px;height:10px;
                      background:#dc3545;border-radius:50%;border:2px solid #fff; }
     </style>
@@ -80,11 +90,11 @@ $departments = get_departments();
 
         <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
         <a href="upload_syllabus.php"  class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-        <a href="my_submissions.php"   class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
+        <a href="my_submissions.php"   class="nav-link text-white active-nav-link p-3 rounded">My Submissions</a>
         <a href="shared_syllabus.php"  class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
         <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-        <a href="profile.php"   class="nav-link text-white active-nav-link p-3 rounded">Profile</a>
+        <a href="profile.php"   class="nav-link text-white p-3 rounded hover-effect">Profile</a>
         <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
     </div>
 
@@ -92,9 +102,7 @@ $departments = get_departments();
     <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
 
         <div class="d-flex justify-content-between align-items-center mb-5">
-            <h3 class="text-orange font-serif fw-bold mb-0">
-                <?= $edit_mode ? 'Edit My Profile' : 'My Profile' ?>
-            </h3>
+            <h3 class="text-orange font-serif fw-bold mb-0">Edit Submission</h3>
 
             <!-- Notification Bell -->
             <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown" aria-expanded="false">
@@ -106,7 +114,7 @@ $departments = get_departments();
                     <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
-                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                            <a href="?mark_read=1&id=<?= $syllabus_id ?>" class="text-decoration-none small text-orange">Mark all read</a>
                         <?php endif; ?>
                     </li>
                     <?php if (empty($notifications)): ?>
@@ -137,93 +145,96 @@ $departments = get_departments();
         <?php endif; ?>
 
         <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
-            <p class="text-center text-muted small mb-4">
-                <?= $edit_mode ? 'Update your personal information below.' : 'Your profile information.' ?>
+            <p class="text-muted small mb-4">
+                Update your syllabus details below. Only pending submissions can be edited.
             </p>
 
-            <form action="process_profile.php" method="POST">
+            <form action="process_edit_syllabus.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="syllabus_id" value="<?= $syllabus_id ?>">
 
-                <!-- Name -->
-                <div class="row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small">First Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="first_name"
-                               value="<?= htmlspecialchars($user['first_name']) ?>"
-                               <?= !$edit_mode ? 'readonly' : 'required' ?>>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small">Middle Name</label>
-                        <input type="text" class="form-control" name="middle_name"
-                               value="<?= htmlspecialchars($user['middle_name'] ?? '') ?>"
-                               <?= !$edit_mode ? 'readonly' : '' ?>>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-bold small">Last Name <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="last_name"
-                               value="<?= htmlspecialchars($user['last_name']) ?>"
-                               <?= !$edit_mode ? 'readonly' : 'required' ?>>
+                <!-- Course Code -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Course Code <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="course_code"
+                           value="<?= htmlspecialchars($syllabus['course_code']) ?>" required>
+                </div>
+
+                <!-- Course Title -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Course Title / Subject Name <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="course_title"
+                           value="<?= htmlspecialchars($syllabus['course_title']) ?>" required>
+                </div>
+
+                <!-- Course Name -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Course</label>
+                    <input type="text" class="form-control" name="course"
+                           value="<?= htmlspecialchars($syllabus['course_name'] ?? '') ?>">
+                </div>
+
+                <!-- Subject Type -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Subject Type <span class="text-danger">*</span></label>
+                    <select class="form-select" name="subject_type" required>
+                        <option disabled>-- Select Subject Type --</option>
+                        <?php
+                        $types = [
+                            'Institutional Subject',
+                            'General Education (GE)',
+                            'Core Subject',
+                            'Professional Subjects',
+                            'Mandatory / Elect Subject',
+                        ];
+                        foreach ($types as $t): ?>
+                            <option value="<?= $t ?>" <?= ($syllabus['subject_type'] ?? '') === $t ? 'selected' : '' ?>>
+                                <?= $t ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Semester -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Subject Semester <span class="text-danger">*</span></label>
+                    <select class="form-select" name="subject_semester" required>
+                        <option disabled>-- Select Semester --</option>
+                        <?php foreach (['1st Semester', '2nd Semester', 'Summer'] as $sem): ?>
+                            <option value="<?= $sem ?>" <?= ($syllabus['semester'] ?? '') === $sem ? 'selected' : '' ?>>
+                                <?= $sem ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <!-- Current File -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Current File</label>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="view_syllabus.php?file=<?= urlencode(basename($syllabus['file_path'])) ?>"
+                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-file-earmark-pdf me-1 text-orange"></i>View Current PDF
+                        </a>
                     </div>
                 </div>
 
-                <!-- Birthdate & Sex -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">Birthdate <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control" name="birthdate"
-                               value="<?= htmlspecialchars($user['birthdate'] ?? '') ?>"
-                               <?= !$edit_mode ? 'readonly' : 'required' ?>>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">Sex <span class="text-danger">*</span></label>
-                        <select class="form-select" name="sex" <?= !$edit_mode ? 'disabled' : 'required' ?>>
-                            <option value="Male"   <?= ($user['sex'] ?? '') === 'Male'   ? 'selected' : '' ?>>Male</option>
-                            <option value="Female" <?= ($user['sex'] ?? '') === 'Female' ? 'selected' : '' ?>>Female</option>
-                        </select>
-                        <?php if (!$edit_mode): ?>
-                            <!-- Hidden input to preserve value when disabled -->
-                            <input type="hidden" name="sex" value="<?= htmlspecialchars($user['sex'] ?? '') ?>">
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <!-- College (read-only) -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">College</label>
-                        <input type="text" class="form-control" readonly
-                               value="<?= htmlspecialchars($user['college_name'] ?? '—') ?>">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-bold small">Department</label>
-                        <input type="text" class="form-control" readonly
-                               value="<?= htmlspecialchars($user['department_name'] ?? '—') ?>">
-                    </div>
-                </div>
-
-                <!-- Email (always read-only) -->
+                <!-- Replace File (optional) -->
                 <div class="mb-4">
-                    <label class="form-label fw-bold small">Email</label>
-                    <input type="email" class="form-control" readonly
-                           value="<?= htmlspecialchars($user['email']) ?>">
+                    <label class="form-label fw-bold small">Replace File (PDF Only — optional)</label>
+                    <input type="file" class="form-control" name="pdf_file" accept=".pdf">
+                    <small class="text-muted">Leave blank to keep the existing file. Maximum file size: 10MB.</small>
                 </div>
 
                 <!-- Buttons -->
                 <div class="d-grid gap-2">
-                    <?php if ($edit_mode): ?>
-                        <button type="submit" class="btn btn-login btn-lg fw-bold">
-                            <i class="bi bi-save me-2"></i>Save Changes
-                        </button>
-                        <a href="profile.php" class="btn btn-outline-secondary btn-lg">Cancel</a>
-                    <?php else: ?>
-                        <a href="profile.php?edit=true" class="btn btn-login btn-lg fw-bold">
-                            <i class="bi bi-pencil me-2"></i>Edit My Profile
-                        </a>
-                    <?php endif; ?>
+                    <button type="submit" class="btn btn-login btn-lg fw-bold">
+                        <i class="bi bi-save me-2"></i>Save Changes
+                    </button>
+                    <a href="my_submissions.php" class="btn btn-outline-secondary btn-lg">Cancel</a>
                 </div>
-
             </form>
         </div>
-    </div><!-- /main-content -->
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

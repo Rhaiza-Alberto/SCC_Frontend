@@ -236,7 +236,25 @@ function get_faculty_submissions($user_id) {
                      AND sw2.action      = 'Approved'
                    ORDER BY sw2.action_at DESC
                    LIMIT 1
-               ) AS last_reviewer
+               ) AS last_reviewer,
+            (
+                   SELECT r2.role_name
+                   FROM syllabus_workflow sw3
+                   JOIN roles r2 ON sw3.role_id = r2.id
+                   WHERE sw3.syllabus_id = s.id
+                     AND sw3.action      = 'Pending'
+                   ORDER BY sw3.step_order ASC
+                   LIMIT 1
+               ) AS current_stage_role,
+               (
+                   SELECT r3.role_name
+                   FROM syllabus_workflow sw4
+                   JOIN roles r3 ON sw4.role_id = r3.id
+                   WHERE sw4.syllabus_id = s.id
+                     AND sw4.action      = 'Rejected'
+                   ORDER BY sw4.action_at DESC
+                   LIMIT 1
+               ) AS rejecting_role
         FROM syllabus s
         LEFT JOIN courses c     ON s.course_id      = c.id
         LEFT JOIN users u       ON s.uploaded_by    = u.id

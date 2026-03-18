@@ -10,9 +10,12 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'Admin User';
-$role_display = "Dean's Panel"
+$role_display = "Dean's Panel";   // ← was missing semicolon
 
+$unread_count  = count_unread_notifications($user_id);
+$notifications = get_notifications($user_id, 5);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

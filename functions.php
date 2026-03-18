@@ -111,9 +111,6 @@ function get_user_by_id($user_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-/**
- * Get the dean (optionally scoped to a department).
- */
 function get_dean($department_id = null) {
     $conn = get_db();
     if ($department_id) {
@@ -251,30 +248,10 @@ function get_faculty_submissions($user_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// FIX 1: get_shared_syllabi now returns EMPTY.
+// After VPAA approves, syllabi only appear in faculty My Submissions — not shared.
 function get_shared_syllabi($department_id = null) {
-    $conn = get_db();
-    $sql  = "
-        SELECT s.*,
-               COALESCE(NULLIF(s.course_code,  ''), c.course_code)  AS course_code,
-               COALESCE(NULLIF(s.course_title, ''), c.course_title) AS course_title,
-               d.department_name, col.college_name,
-               u.first_name, u.last_name, u.email
-        FROM syllabus s
-        LEFT JOIN courses c     ON s.course_id      = c.id
-        LEFT JOIN users u       ON s.uploaded_by    = u.id
-        LEFT JOIN departments d ON COALESCE(c.department_id, u.department_id) = d.id
-        LEFT JOIN colleges col  ON d.college_id     = col.id
-        WHERE s.status = 'Approved'
-    ";
-    $params = [];
-    if ($department_id) {
-        $sql    .= " AND COALESCE(c.department_id, u.department_id) = ?";
-        $params[] = $department_id;
-    }
-    $sql .= " ORDER BY s.submitted_at DESC";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return [];
 }
 
 function get_courses($department_id = null) {
@@ -316,9 +293,6 @@ function get_step_order($role_name) {
     };
 }
 
-/**
- * Who reviews next after the given role approves?
- */
 function determine_next_role($current_role) {
     return match ($current_role) {
         'faculty' => 'dean',
@@ -328,19 +302,9 @@ function determine_next_role($current_role) {
     };
 }
 
-/**
- * Called immediately after inserting a new syllabus row.
- * Decides the first workflow step based on who uploaded:
- *   - faculty  → step 1 = dean review
- *   - dean     → step 2 = vpaa final (dean already implicitly approved their own)
- *
- * @param int    $syllabus_id
- * @param string $uploader_role  'faculty' | 'dean' (default 'faculty')
- */
 function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
     $conn = get_db();
 
-    // Guard: don't insert a duplicate step
     $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ?");
     $exists->execute([$syllabus_id]);
     if ((int) $exists->fetchColumn() > 0) return;
@@ -348,7 +312,6 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
     $is_dean = in_array($uploader_role, ['dean', 'admin']);
 
     if ($is_dean) {
-        // Dean's own upload → skip to VPAA (step 2)
         $role_id = get_role_id('vpaa');
         if (!$role_id) { error_log("init_syllabus_workflow: 'vpaa' role not found"); return; }
         $conn->prepare("
@@ -357,7 +320,6 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
         ")->execute([$syllabus_id, $role_id]);
         notify_next_reviewer($syllabus_id, 'vpaa');
     } else {
-        // Faculty upload → dean reviews first (step 1)
         $role_id = get_role_id('dean');
         if (!$role_id) { error_log("init_syllabus_workflow: 'dean' role not found"); return; }
         $conn->prepare("
@@ -413,21 +375,14 @@ function notify_on_vpaa_approval($syllabus_id) {
    MAIN WORKFLOW ENGINE
 ============================ */
 
-/**
- * Called when a dean or vpaa approves/rejects a syllabus.
- *
- * @param int         $syllabus_id
- * @param string      $action   'Approved' | 'Rejected'
- * @param string|null $comment
- */
+// FIX 2: process_syllabus_action — dean approval now keeps syllabus
+// status as 'Pending' (not 'Approved') until VPAA gives final approval.
 function process_syllabus_action($syllabus_id, $action, $comment = null) {
     if (session_status() === PHP_SESSION_NONE) session_start();
 
     $conn    = get_db();
     $user_id = $_SESSION['user_id'];
 
-    // Resolve the reviewer's role_name directly from the DB — never trust
-    // session role strings alone, as role_id is the authoritative FK.
     $role_id = $_SESSION['role_id']
         ?? get_role_id($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
 
@@ -436,9 +391,9 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
         return;
     }
 
-    $role = get_role_name($role_id); // e.g. 'dean' or 'vpaa'
+    $role = get_role_name($role_id); // 'dean' or 'vpaa'
 
-    // ── Update the Pending workflow step for this reviewer's role ────────────
+    // Update the Pending workflow step for this reviewer's role
     $upd = $conn->prepare("
         UPDATE syllabus_workflow
         SET action      = ?,
@@ -453,8 +408,6 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
 
     $rows_affected = $upd->rowCount();
 
-    // Safety net: if nothing was updated the workflow row may be missing —
-    // this can happen with old data. Insert + update in that case.
     if ($rows_affected === 0) {
         error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Inserting completed step.");
         $conn->prepare("
@@ -485,12 +438,17 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
     $next_role = determine_next_role($role);
 
     if ($next_role === null) {
-        // VPAA is final — mark fully approved
+        // VPAA is final — only NOW mark as fully Approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
         return;
     }
+
+    // Dean approved — keep syllabus as Pending until VPAA acts
+    // Do NOT set status = 'Approved' here
+    $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")
+         ->execute([$syllabus_id]);
 
     // Insert the next pending workflow step (skip if already exists)
     $next_role_id = get_role_id($next_role);

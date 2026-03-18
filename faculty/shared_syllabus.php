@@ -1,7 +1,7 @@
- <?php
+<?php
 /**
- * shared_syllabus.php
- * Shows all approved syllabi from the database (shared repository).
+ * faculty/shared_syllabus.php
+ * Shared Syllabus is disabled. After VPAA approval, syllabi appear in My Submissions only.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -18,7 +18,6 @@ $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'User';
 $role_display = 'Faculty Panel';
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: shared_syllabus.php');
@@ -27,27 +26,6 @@ if (isset($_GET['mark_read'])) {
 
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
-
-// Fetch all approved syllabi
-$all_shared = get_shared_syllabi();
-
-// Search / filter
-$search       = trim($_GET['search']       ?? '');
-$filter_type  = trim($_GET['subject_type'] ?? '');
-
-$shared = $all_shared;
-
-// Note: shared syllabi don't have subject_type stored in DB currently,
-// so we filter on course_code / course_title / uploader name.
-if ($search !== '') {
-    $needle = strtolower($search);
-    $shared = array_filter($shared, function($s) use ($needle) {
-        return str_contains(strtolower($s['course_code']),  $needle)
-            || str_contains(strtolower($s['course_title']), $needle)
-            || str_contains(strtolower($s['first_name'] . ' ' . $s['last_name']), $needle);
-    });
-}
-$shared = array_values($shared);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -99,11 +77,11 @@ $shared = array_values($shared);
             <h2 class="text-orange font-serif fw-bold">Shared Syllabus Repository</h2>
 
             <!-- Notification Bell -->
-            <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-bell fs-4 text-secondary"></i>
-                <?php if ($unread_count > 0): ?>
-                    <span class="notif-dot"></span>
-                <?php endif; ?>
+            <div class="dropdown">
+                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell fs-4 text-secondary"></i>
+                    <?php if ($unread_count > 0): ?><span class="notif-dot"></span><?php endif; ?>
+                </div>
                 <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;max-height:400px;overflow-y:auto;">
                     <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
                         <strong>Notifications</strong>
@@ -125,103 +103,21 @@ $shared = array_values($shared);
             </div>
         </div>
 
-        <!-- Search / Filter -->
-        <div class="card premium-card p-4 mb-5">
-            <h5 class="card-title font-serif fw-bold mb-3 text-orange">Search Repository</h5>
-            <form method="GET" action="shared_syllabus.php">
-                <div class="row g-3">
-                    <div class="col-md-8">
-                        <input type="text" class="form-control" name="search"
-                               placeholder="Search course code / title / instructor"
-                               value="<?= htmlspecialchars($search) ?>">
-                    </div>
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-outline-dark w-100">
-                            <i class="bi bi-search me-1"></i>Search
-                        </button>
-                    </div>
-                    <?php if ($search): ?>
-                    <div class="col-md-2">
-                        <a href="shared_syllabus.php" class="btn btn-outline-secondary w-100">Clear</a>
-                    </div>
-                    <?php endif; ?>
-                </div>
-            </form>
+        <!-- Info notice -->
+        <div class="card premium-card p-5 shadow-sm border-0 text-center">
+            <i class="bi bi-folder2 text-orange fs-1 mb-3"></i>
+            <h5 class="font-serif fw-bold text-orange mb-2">Repository Unavailable</h5>
+            <p class="text-muted mb-4">
+                Approved syllabi are no longer published to the shared repository.<br>
+                You can view all of your submitted syllabi — including VPAA-approved ones — in
+                <strong>My Submissions</strong>.
+            </p>
+            <a href="my_submissions.php" class="btn btn-orange rounded-pill px-5">
+                <i class="bi bi-list-check me-2"></i>Go to My Submissions
+            </a>
         </div>
 
-        <!-- Shared Syllabus Table -->
-        <div class="card premium-card p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="card-title font-serif fw-bold mb-0 text-orange">Department Syllabus Repository</h5>
-                <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1 small">
-                    <?= count($shared) ?> Approved Syllab<?= count($shared) === 1 ? 'us' : 'i' ?>
-                </span>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle table-premium">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-secondary small">#</th>
-                            <th class="text-secondary small">COURSE</th>
-                            <th class="text-secondary small d-none d-xl-table-cell">SCHOOL YEAR</th>
-                            <th class="text-secondary small">DEPARTMENT</th>
-                            <th class="text-secondary small">STATUS</th>
-                            <th class="text-secondary small text-center">FILE</th>
-                            <th class="text-secondary small">UPLOADER</th>
-                            <th class="text-secondary small">SUBMITTED</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($shared)): ?>
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-4">
-                                    <?= $search ? 'No results found for "' . htmlspecialchars($search) . '".' : 'No approved syllabi in the repository yet.' ?>
-                                </td>
-                            </tr>
-                        <?php else: foreach ($shared as $i => $s): ?>
-                            <tr>
-                                <td><?= $i + 1 ?></td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span class="fw-bold small"><?= htmlspecialchars($s['course_code']) ?></span>
-                                        <span class="text-muted text-truncate" style="font-size:.7rem;max-width:160px;">
-                                            <?= htmlspecialchars($s['course_title']) ?>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="d-none d-xl-table-cell small">
-                                    <?= htmlspecialchars($s['school_year'] ?? '—') ?>
-                                </td>
-                                <td class="small"><?= htmlspecialchars($s['department_name'] ?? '—') ?></td>
-                                <td>
-                                    <span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3"
-                                          style="font-size:.75rem;">Approved</span>
-                                </td>
-                                <td class="text-center">
-                                    <a href="view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>"
-                                       target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                        <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <div class="d-flex flex-column">
-                                        <span class="fw-bold small">
-                                            <?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?>
-                                        </span>
-                                        <span class="text-muted" style="font-size:.7rem;">
-                                            <?= htmlspecialchars($s['email']) ?>
-                                        </span>
-                                    </div>
-                                </td>
-                                <td class="small"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
-                            </tr>
-                        <?php endforeach; endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div><!-- /main-content -->
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

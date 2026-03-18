@@ -382,7 +382,7 @@ function notify_next_reviewer($syllabus_id, $next_role) {
     if ($user) {
         notify_user(
             $user['id'],
-            "📄 New syllabus awaiting your approval: " . $syllabus['course_code'],
+            "New syllabus awaiting your approval: " . $syllabus['course_code'],
             $syllabus_id
         );
     }
@@ -393,7 +393,7 @@ function notify_rejection($syllabus_id, $by_role) {
     if (!$syllabus) return;
     notify_user(
         $syllabus['uploaded_by'],
-        "❌ Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
+        "Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
             . ucfirst(str_replace('_', ' ', $by_role)),
         $syllabus_id
     );
@@ -404,7 +404,7 @@ function notify_on_vpaa_approval($syllabus_id) {
     if (!$syllabus) return;
     notify_user(
         $syllabus['uploaded_by'],
-        "✅ Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
+        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
         $syllabus_id
     );
 }

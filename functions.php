@@ -414,10 +414,15 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
         ")->execute([$action, $comment, $user_id, $workflow_row_id]);
     } else {
         // No pending row found — insert a completed one (safety net for old data)
-        error_log("process_syllabus_action: no Pending row for syllabus_id={$syllabus_id} role={$role}. Inserting.");
+        error_log("process_syllabus_action: no Pending row for syllabus_id={$syllabus_id} role={$role}. Upserting.");
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
             VALUES (?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+                action      = VALUES(action),
+                reviewer_id = VALUES(reviewer_id),
+                action_at   = VALUES(action_at),
+                comment     = VALUES(comment)
         ")->execute([$syllabus_id, get_step_order($role), $role_id, $action, $user_id]);
     }
 

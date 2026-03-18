@@ -207,6 +207,21 @@ $notifications = get_notifications($user_id, 5);
                     </select>
                 </div>
 
+                <!-- Year Level -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Year Level <span class="text-danger">*</span></label>
+                    <select class="form-select" name="year_level" required>
+                        <option disabled>-- Select Year Level --</option>
+                        <?php
+                        $levels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
+                        foreach ($levels as $lvl): ?>
+                            <option value="<?= $lvl ?>" <?= ($syllabus['year_level'] ?? '') === $lvl ? 'selected' : '' ?>>
+                                <?= $lvl ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
                 <!-- Current File -->
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Current File</label>

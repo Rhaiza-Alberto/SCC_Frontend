@@ -167,6 +167,7 @@ $notifications = get_notifications($user_id, 5);
                                 <tr>
                                     <th class="text-secondary small">#</th>
                                     <th class="text-secondary small">COURSE</th>
+                                    <th class="text-secondary small d-none d-xl-table-cell">LEVEL</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
                                     <th class="text-secondary small text-center">FILE</th>
@@ -176,40 +177,45 @@ $notifications = get_notifications($user_id, 5);
                             </thead>
                             <tbody>
                                 <?php if (empty($pending)): ?>
-                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending submissions.</td></tr>
-                                <?php else: foreach ($pending as $i => $sub): ?>
-                                    <tr>
-                                        <td><?= $i + 1 ?></td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                    <?= htmlspecialchars($sub['course_title']) ?>
+                                    <tr><td colspan="8" class="text-center text-muted py-4">No pending submissions.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($pending as $i => $sub): ?>
+                                        <tr>
+                                            <td><?= $i + 1 ?></td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
+                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
+                                                        <?= htmlspecialchars($sub['course_title']) ?>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['year_level'] ?? '—') ?>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3"
+                                                      style="font-size:.75rem;">
+                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td class="d-none d-xl-table-cell small">
-                                            <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3"
-                                                  style="font-size:.75rem;">
-                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                               target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                            </a>
-                                        </td>
-                                        <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
-                                        <td class="text-center">
-                                            <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
-                                               class="btn btn-sm btn-outline-warning rounded-pill px-3">Edit</a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; endif; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
+                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
+                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                </a>
+                                            </td>
+                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                            <td class="text-center">
+                                                <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
+                                                   class="btn btn-sm btn-outline-warning rounded-pill px-3">Edit</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -223,6 +229,7 @@ $notifications = get_notifications($user_id, 5);
                                 <tr>
                                     <th class="text-secondary small">#</th>
                                     <th class="text-secondary small">COURSE</th>
+                                    <th class="text-secondary small d-none d-xl-table-cell">LEVEL</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
                                     <th class="text-secondary small">LAST REVIEWER</th>
@@ -232,37 +239,42 @@ $notifications = get_notifications($user_id, 5);
                             </thead>
                             <tbody>
                                 <?php if (empty($approved)): ?>
-                                    <tr><td colspan="7" class="text-center text-muted py-4">No approved submissions yet.</td></tr>
-                                <?php else: foreach ($approved as $i => $sub): ?>
-                                    <tr>
-                                        <td><?= $i + 1 ?></td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                    <?= htmlspecialchars($sub['course_title']) ?>
+                                    <tr><td colspan="8" class="text-center text-muted py-4">No approved submissions yet.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($approved as $i => $sub): ?>
+                                        <tr>
+                                            <td><?= $i + 1 ?></td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
+                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
+                                                        <?= htmlspecialchars($sub['course_title']) ?>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['year_level'] ?? '—') ?>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success text-success bg-opacity-25 border border-success rounded-pill px-3"
+                                                      style="font-size:.75rem;">
+                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td class="d-none d-xl-table-cell small">
-                                            <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-success text-success bg-opacity-25 border border-success rounded-pill px-3"
-                                                  style="font-size:.75rem;">
-                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="small"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
-                                        <td class="text-center">
-                                            <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                               target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                            </a>
-                                        </td>
-                                        <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
-                                    </tr>
-                                <?php endforeach; endif; ?>
+                                            </td>
+                                            <td class="small"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
+                                            <td class="text-center">
+                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
+                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
+                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                </a>
+                                            </td>
+                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -276,6 +288,7 @@ $notifications = get_notifications($user_id, 5);
                                 <tr>
                                     <th class="text-secondary small">#</th>
                                     <th class="text-secondary small">COURSE</th>
+                                    <th class="text-secondary small d-none d-xl-table-cell">LEVEL</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
                                     <th class="text-secondary small">REASON</th>
@@ -286,41 +299,46 @@ $notifications = get_notifications($user_id, 5);
                             </thead>
                             <tbody>
                                 <?php if (empty($rejected)): ?>
-                                    <tr><td colspan="8" class="text-center text-muted py-4">No declined submissions.</td></tr>
-                                <?php else: foreach ($rejected as $i => $sub): ?>
-                                    <tr>
-                                        <td><?= $i + 1 ?></td>
-                                        <td>
-                                            <div class="d-flex flex-column">
-                                                <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                    <?= htmlspecialchars($sub['course_title']) ?>
+                                    <tr><td colspan="9" class="text-center text-muted py-4">No declined submissions.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($rejected as $i => $sub): ?>
+                                        <tr>
+                                            <td><?= $i + 1 ?></td>
+                                            <td>
+                                                <div class="d-flex flex-column">
+                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
+                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
+                                                        <?= htmlspecialchars($sub['course_title']) ?>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['year_level'] ?? '—') ?>
+                                            </td>
+                                            <td class="d-none d-xl-table-cell small">
+                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-danger text-danger bg-opacity-25 border border-danger rounded-pill px-3"
+                                                      style="font-size:.75rem;">
+                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
                                                 </span>
-                                            </div>
-                                        </td>
-                                        <td class="d-none d-xl-table-cell small">
-                                            <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                        </td>
-                                        <td>
-                                            <span class="badge bg-danger text-danger bg-opacity-25 border border-danger rounded-pill px-3"
-                                                  style="font-size:.75rem;">
-                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
-                                            </span>
-                                        </td>
-                                        <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
-                                        <td class="text-center">
-                                            <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                               target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                            </a>
-                                        </td>
-                                        <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
-                                        <td class="text-center">
-                                            <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
-                                               class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
-                                        </td>
-                                    </tr>
-                                <?php endforeach; endif; ?>
+                                            </td>
+                                            <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
+                                            <td class="text-center">
+                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
+                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
+                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                </a>
+                                            </td>
+                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                            <td class="text-center">
+                                                <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
+                                                   class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -332,5 +350,25 @@ $notifications = get_notifications($user_id, 5);
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Handle tab switching via URL hash
+    document.addEventListener('DOMContentLoaded', function() {
+        const hash = window.location.hash;
+        if (hash) {
+            const tabBtn = document.querySelector(`button[data-bs-target="${hash}"]`);
+            if (tabBtn) {
+                new bootstrap.Tab(tabBtn).show();
+            }
+        }
+    });
+
+    // Update hash on tab click
+    document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.getAttribute('data-bs-target');
+            if (target) history.replaceState(null, null, target);
+        });
+    });
+</script>
 </body>
 </html>

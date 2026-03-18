@@ -31,6 +31,7 @@ $course_name  = trim($_POST['course']           ?? '');
 $subject_type = trim($_POST['subject_type']     ?? '');
 $semester     = trim($_POST['subject_semester'] ?? $_POST['semester'] ?? '');
 $school_year  = trim($_POST['school_year']      ?? get_current_school_year());
+$year_level   = trim($_POST['year_level']       ?? '');
 
 // ── Validate required fields ─────────────────────────────────────────────────
 if (empty($course_code) || empty($course_title) || empty($subject_type) || empty($semester)) {

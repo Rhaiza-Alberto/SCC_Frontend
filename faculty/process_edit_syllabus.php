@@ -45,6 +45,7 @@ $course_title = trim($_POST['course_title']     ?? '');
 $course_name  = trim($_POST['course']           ?? '');
 $subject_type = trim($_POST['subject_type']     ?? '');
 $semester     = trim($_POST['subject_semester'] ?? '');
+$year_level   = trim($_POST['year_level']       ?? '');
 
 if (empty($course_code) || empty($course_title) || empty($subject_type) || empty($semester)) {
     $_SESSION['error_message'] = "Please fill in all required fields.";

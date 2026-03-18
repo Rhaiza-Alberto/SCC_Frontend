@@ -171,19 +171,29 @@ $notifications = get_notifications($user_id, 5);
                     ['label' => 'Pending', 'value' => $pending, 'color' => '#ffc107', 'icon' => 'bi-clock-history', 'sub' => 'Awaiting review'],
                     ['label' => 'Rejected', 'value' => $rejected, 'color' => '#dc3545', 'icon' => 'bi-x-circle', 'sub' => 'Needs revision'],
                 ];
-                foreach ($stats as $s): ?>
+                foreach ($stats as $i => $s): 
+                    $target_tab = match ($s['label']) {
+                        'Approved' => 'tabApproved',
+                        'Pending' => 'tabPending',
+                        'Rejected' => 'tabDeclined',
+                        default => ''
+                    };
+                    $link = $target_tab ? "my_submissions.php#$target_tab" : "my_submissions.php";
+                ?>
                     <div class="col-md-3">
-                        <div class="card stat-card shadow-sm border-0 bg-white"
-                            style="border-left:5px solid <?= $s['color'] ?> !important;">
-                            <div class="stat-card-content p-3">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <h6 class="text-uppercase fw-bold text-muted small mb-0"><?= $s['label'] ?></h6>
-                                    <i class="bi <?= $s['icon'] ?> opacity-50 fs-4" style="color:<?= $s['color'] ?>"></i>
+                        <a href="<?= $link ?>" class="text-decoration-none">
+                            <div class="card stat-card shadow-sm border-0 bg-white h-100"
+                                style="border-left:5px solid <?= $s['color'] ?> !important;">
+                                <div class="stat-card-content p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="text-uppercase fw-bold text-muted small mb-0"><?= $s['label'] ?></h6>
+                                        <i class="bi <?= $s['icon'] ?> opacity-50 fs-4" style="color:<?= $s['color'] ?>"></i>
+                                    </div>
+                                    <h1 class="display-5 fw-bold text-dark mb-0"><?= $s['value'] ?></h1>
+                                    <p class="text-muted small mb-0 mt-1"><?= $s['sub'] ?></p>
                                 </div>
-                                <h1 class="display-5 fw-bold text-dark mb-0"><?= $s['value'] ?></h1>
-                                <p class="text-muted small mb-0 mt-1"><?= $s['sub'] ?></p>
                             </div>
-                        </div>
+                        </a>
                     </div>
                 <?php endforeach; ?>
             </div>
@@ -205,22 +215,33 @@ $notifications = get_notifications($user_id, 5);
                             </div>
                         <?php else:
                             foreach ($my_courses as $course):
-                                [$badge_class, $badge_label] = match ($course['status']) {
-                                    'Approved' => ['bg-success bg-opacity-10 text-success', 'Approved'],
-                                    'Pending' => ['bg-warning bg-opacity-10 text-warning', 'Under Review'],
-                                    default => ['bg-danger bg-opacity-10 text-danger', 'Rejected'],
+                                $status_color = match ($course['status']) {
+                                    'Approved' => '#28a745',
+                                    'Pending' => '#ff8800',
+                                    default => '#dc3545',
+                                };
+                                $badge_class = match ($course['status']) {
+                                    'Approved' => 'bg-success text-success bg-opacity-25 border border-success',
+                                    'Pending' => 'bg-warning text-dark bg-opacity-25 border border-warning',
+                                    default => 'bg-danger text-danger bg-opacity-25 border border-danger',
+                                };
+                                $target_tab = match ($course['status']) {
+                                    'Approved' => 'tabApproved',
+                                    'Pending' => 'tabPending',
+                                    default => 'tabDeclined',
                                 };
                                 ?>
-                                <div class="d-flex justify-content-between align-items-center p-3 mb-2 rounded-3 bg-light border-start border-4"
-                                    style="border-color:#ff8800 !important;">
+                                <a href="my_submissions.php#<?= $target_tab ?>"
+                                    class="d-flex justify-content-between align-items-center p-3 mb-2 rounded-3 bg-light border-start border-4 text-decoration-none text-dark scale-effect"
+                                    style="border-color: <?= $status_color ?> !important;">
                                     <div>
                                         <h6 class="mb-1 fw-bold"><?= htmlspecialchars($course['code']) ?></h6>
                                         <p class="text-muted small mb-0"><?= htmlspecialchars($course['title']) ?></p>
                                     </div>
-                                    <span class="badge <?= $badge_class ?> rounded-pill px-3">
+                                    <span class="badge <?= $badge_class ?> rounded-pill px-3" style="font-size:.75rem;">
                                         <?= format_syllabus_status($course['status'], $course['current_role'], $course['rejecting_role']) ?>
                                     </span>
-                                </div>
+                                </a>
                             <?php endforeach; endif; ?>
                     </div>
                 </div>
@@ -246,7 +267,7 @@ $notifications = get_notifications($user_id, 5);
                             <input type="date" id="filterDate" class="form-control">
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-outline-dark w-100" onclick="applyFilter()">Filter</button>
+                            <button class="btn btn-outline-orange w-100 rounded-pill" onclick="applyFilter()">Filter</button>
                         </div>
                     </div>
                 </div>
@@ -284,9 +305,11 @@ $notifications = get_notifications($user_id, 5);
                                         };
                                         $file_date = date('Y-m-d', strtotime($sub['submitted_at']));
                                         ?>
-                                        <tr class="submission-row" data-code="<?= strtolower($sub['course_code']) ?>"
+                                        <tr class="submission-row cursor-pointer"
+                                            data-code="<?= strtolower($sub['course_code']) ?>"
                                             data-title="<?= strtolower($sub['course_title']) ?>"
-                                            data-status="<?= $sub['status'] ?>" data-date="<?= $file_date ?>">
+                                            data-status="<?= $sub['status'] ?>" data-date="<?= $file_date ?>"
+                                            onclick="window.location='my_submissions.php#tab<?= $sub['status'] === 'Rejected' ? 'Declined' : $sub['status'] ?>'">
                                             <td><?= $i + 1 ?></td>
                                             <td>
                                                 <div class="d-flex flex-column">

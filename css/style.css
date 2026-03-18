@@ -457,11 +457,20 @@ footer {
     border: 1px solid rgba(255, 136, 0, 0.1);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .premium-card:hover {
     box-shadow: 0 15px 40px rgba(255, 136, 0, 0.1);
+}
+
+.scale-effect {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scale-effect:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card {
@@ -523,6 +532,33 @@ footer {
     font-weight: 700;
     margin-bottom: 0;
     font-size: 2.5rem;
+}
+
+.btn-orange {
+    background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
+    color: #fff !important;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 136, 0, 0.2);
+}
+
+.btn-orange:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 136, 0, 0.3);
+    color: #fff !important;
+}
+
+.btn-outline-orange {
+    border: 2px solid #ff8800;
+    color: #ff8800 !important;
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-orange:hover {
+    background: #ff8800;
+    color: #fff !important;
+    transform: translateY(-2px);
 }
 
 .sidebar-premium {

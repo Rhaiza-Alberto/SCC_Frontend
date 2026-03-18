@@ -383,7 +383,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
     $role_id = $_SESSION['role_id'];
     $role    = get_role_name($role_id);
 
-    // Update the current pending step
+    // Update the current step (either Pending or Approved)
     $stmt = $conn->prepare("
         UPDATE syllabus_workflow
         SET action      = ?,
@@ -392,11 +392,15 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
             action_at   = NOW()
         WHERE syllabus_id = ?
           AND role_id     = ?
-          AND action      = 'Pending'
+          AND (action = 'Pending' OR action = 'Approved')
     ");
     $stmt->execute([$action, $comment, $user_id, $syllabus_id, $role_id]);
 
     if ($action === 'Rejected') {
+        // If we're revoking an approval, delete any subsequent pending steps
+        $conn->prepare("DELETE FROM syllabus_workflow WHERE syllabus_id = ? AND action = 'Pending'")
+             ->execute([$syllabus_id]);
+
         $conn->prepare("UPDATE syllabus SET status = 'Rejected' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_rejection($syllabus_id, $role);

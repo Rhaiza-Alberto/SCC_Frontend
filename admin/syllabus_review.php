@@ -299,11 +299,12 @@ $notifications = get_notifications($user_id, 5);
                                     <th class="text-secondary small">STATUS</th>
                                     <th class="text-secondary small text-center">FILE</th>
                                     <th class="text-secondary small">APPROVED ON</th>
+                                    <th class="text-secondary small text-center">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($approved_rows)): ?>
-                                    <tr><td colspan="6" class="text-center text-muted py-4">No approved submissions</td></tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No approved submissions</td></tr>
                                 <?php else: foreach ($approved_rows as $i => $sub): ?>
                                     <tr>
                                         <td><?= $i + 1 ?></td>
@@ -317,6 +318,12 @@ $notifications = get_notifications($user_id, 5);
                                             </a>
                                         </td>
                                         <td class="small"><?= $sub['reviewed_at'] ? date('M d, Y', strtotime($sub['reviewed_at'])) : '—' ?></td>
+                                        <td class="text-center">
+                                            <button onclick="handleReview('reject', <?= $sub['id'] ?>, '<?= htmlspecialchars($sub['course_code']) ?>')"
+                                                    class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 scale-effect">
+                                                <i class="bi bi-x-circle me-1"></i>Reject
+                                            </button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                             </tbody>
@@ -335,12 +342,13 @@ $notifications = get_notifications($user_id, 5);
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small">STATUS</th>
                                     <th class="text-secondary small">REASON</th>
+                                    <th class="text-secondary small text-center">FILE</th>
                                     <th class="text-secondary small">DECLINED ON</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($rejected_rows)): ?>
-                                    <tr><td colspan="6" class="text-center text-muted py-4">No declined submissions</td></tr>
+                                    <tr><td colspan="7" class="text-center text-muted py-4">No declined submissions</td></tr>
                                 <?php else: foreach ($rejected_rows as $i => $sub): ?>
                                     <tr>
                                         <td><?= $i + 1 ?></td>
@@ -348,6 +356,12 @@ $notifications = get_notifications($user_id, 5);
                                         <td><span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span></td>
                                         <td><span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span></td>
                                         <td class="small"><?= htmlspecialchars($sub['comment'] ?? '—') ?></td>
+                                        <td class="text-center">
+                                            <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
+                                               target="_blank" class="btn btn-sm btn-link text-orange p-0">
+                                                <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                            </a>
+                                        </td>
                                         <td class="small"><?= $sub['reviewed_at'] ? date('M d, Y', strtotime($sub['reviewed_at'])) : '—' ?></td>
                                     </tr>
                                 <?php endforeach; endif; ?>

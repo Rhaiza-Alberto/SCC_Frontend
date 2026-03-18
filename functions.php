@@ -1,10 +1,4 @@
 <?php
-/**
- * functions.php
- * Helper + Workflow Engine
- * Workflow: faculty → dean → vpaa  (department_head step removed)
- */
-
 require_once __DIR__ . '/database.php';
 
 /* ============================
@@ -248,8 +242,7 @@ function get_faculty_submissions($user_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// FIX 1: get_shared_syllabi now returns EMPTY.
-// After VPAA approves, syllabi only appear in faculty My Submissions — not shared.
+// Shared syllabus disabled — approved syllabi only appear in My Submissions
 function get_shared_syllabi($department_id = null) {
     return [];
 }
@@ -282,7 +275,6 @@ function get_colleges() {
 
 /* ============================
    WORKFLOW RULES
-   Flow: faculty/dean upload → dean approves (step 1) → vpaa final (step 2)
 ============================ */
 
 function get_step_order($role_name) {
@@ -313,7 +305,6 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
 
     if ($is_dean) {
         $role_id = get_role_id('vpaa');
-        if (!$role_id) { error_log("init_syllabus_workflow: 'vpaa' role not found"); return; }
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
             VALUES (?, 2, ?, 'Pending')
@@ -321,7 +312,6 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
         notify_next_reviewer($syllabus_id, 'vpaa');
     } else {
         $role_id = get_role_id('dean');
-        if (!$role_id) { error_log("init_syllabus_workflow: 'dean' role not found"); return; }
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
             VALUES (?, 1, ?, 'Pending')
@@ -375,59 +365,72 @@ function notify_on_vpaa_approval($syllabus_id) {
    MAIN WORKFLOW ENGINE
 ============================ */
 
-// FIX 2: process_syllabus_action — dean approval now keeps syllabus
-// status as 'Pending' (not 'Approved') until VPAA gives final approval.
 function process_syllabus_action($syllabus_id, $action, $comment = null) {
     if (session_status() === PHP_SESSION_NONE) session_start();
 
     $conn    = get_db();
     $user_id = $_SESSION['user_id'];
 
-    $role_id = $_SESSION['role_id']
-        ?? get_role_id($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
+    // Resolve role_id — check session first, fall back to DB lookup
+    $role_id = $_SESSION['role_id'] ?? null;
+    if (!$role_id) {
+        $role_id = get_role_id($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
+    }
+    // Final fallback: look up directly from users table
+    if (!$role_id) {
+        $r = $conn->prepare("SELECT role_id FROM users WHERE id = ?");
+        $r->execute([$user_id]);
+        $role_id = $r->fetchColumn();
+    }
 
     if (!$role_id) {
-        error_log("process_syllabus_action: could not resolve role_id from session");
+        error_log("process_syllabus_action: cannot resolve role_id for user_id={$user_id}");
         return;
     }
 
     $role = get_role_name($role_id); // 'dean' or 'vpaa'
 
-    // Update the Pending workflow step for this reviewer's role
-    $upd = $conn->prepare("
-        UPDATE syllabus_workflow
-        SET action      = ?,
-            comment     = ?,
-            reviewer_id = ?,
-            action_at   = NOW()
+    // Find the specific Pending workflow row for this role
+    $find = $conn->prepare("
+        SELECT id FROM syllabus_workflow
         WHERE syllabus_id = ?
           AND role_id     = ?
           AND action      = 'Pending'
+        ORDER BY step_order DESC, id DESC 
+        LIMIT 1
     ");
-    $upd->execute([$action, $comment, $user_id, $syllabus_id, $role_id]);
+    $find->execute([$syllabus_id, $role_id]);
+    $workflow_row_id = $find->fetchColumn();
 
-    $rows_affected = $upd->rowCount();
-
-    if ($rows_affected === 0) {
-        error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Inserting completed step.");
+    if ($workflow_row_id) {
+        // Update the existing Pending row
+        $conn->prepare("
+            UPDATE syllabus_workflow
+            SET action      = ?,
+                comment     = ?,
+                reviewer_id = ?,
+                action_at   = NOW()
+            WHERE id = ?
+        ")->execute([$action, $comment, $user_id, $workflow_row_id]);
+    } else {
+        // No pending row found — insert a completed one (safety net for old data)
+        error_log("process_syllabus_action: no Pending row for syllabus_id={$syllabus_id} role={$role}. Inserting.");
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
             VALUES (?, ?, ?, ?, ?, NOW())
-            ON DUPLICATE KEY UPDATE
-                action      = VALUES(action),
-                reviewer_id = VALUES(reviewer_id),
-                action_at   = NOW()
-        ")->execute([
-            $syllabus_id,
-            get_step_order($role),
-            $role_id,
-            $action,
-            $user_id,
-        ]);
+        ")->execute([$syllabus_id, get_step_order($role), $role_id, $action, $user_id]);
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────
     if ($action === 'Rejected') {
+        // Remove any downstream Pending steps
+        $conn->prepare("
+            DELETE FROM syllabus_workflow
+            WHERE syllabus_id  = ?
+              AND action       = 'Pending'
+              AND role_id     != ?
+        ")->execute([$syllabus_id, $role_id]);
+
         $conn->prepare("UPDATE syllabus SET status = 'Rejected' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_rejection($syllabus_id, $role);
@@ -438,19 +441,18 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
     $next_role = determine_next_role($role);
 
     if ($next_role === null) {
-        // VPAA is final — only NOW mark as fully Approved
+        // VPAA final approval — mark fully Approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
         return;
     }
 
-    // Dean approved — keep syllabus as Pending until VPAA acts
-    // Do NOT set status = 'Approved' here
+    // Dean approved — keep status Pending until VPAA acts
     $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")
          ->execute([$syllabus_id]);
 
-    // Insert the next pending workflow step (skip if already exists)
+    // Insert VPAA step only if no Pending row for that role already exists
     $next_role_id = get_role_id($next_role);
     $dup = $conn->prepare("
         SELECT COUNT(*) FROM syllabus_workflow
@@ -465,6 +467,18 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
     }
 
     notify_next_reviewer($syllabus_id, $next_role);
+}
+
+/* ============================
+   STATUS BADGE HELPER
+============================ */
+
+function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null) {
+    return match ($status) {
+        'Approved' => '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved</span>',
+        'Rejected' => '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span>',
+        default    => '<span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending</span>',
+    };
 }
 
 /* ============================
@@ -497,16 +511,4 @@ function current_user() {
     if (session_status() === PHP_SESSION_NONE) session_start();
     if (!isset($_SESSION['user_id'])) return null;
     return get_user_by_id($_SESSION['user_id']);
-}
-
-/* ============================
-   STATUS BADGE HELPER
-============================ */
-
-function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null) {
-    return match ($status) {
-        'Approved' => '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved</span>',
-        'Rejected' => '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span>',
-        default    => '<span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending</span>',
-    };
 }

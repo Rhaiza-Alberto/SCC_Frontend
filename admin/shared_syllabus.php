@@ -1,7 +1,7 @@
 <?php
 /**
- * admin/shared_syllabus.php
- * Repository of all approved syllabi — for the Dean's panel.
+ * faculty/shared_syllabus.php
+ * Shared Syllabus is disabled. After VPAA approval, syllabi appear in My Submissions only.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -15,60 +15,14 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 ensure_role_in_session();
 
 $user_id      = $_SESSION['user_id'];
-$username     = $_SESSION['username'] ?? 'Dean / Admin';
-$role_display = "Dean's Panel";
+$username     = $_SESSION['username'] ?? 'User';
+$role_display = 'Faculty Panel';
 
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: shared_syllabus.php');
     exit();
 }
-
-$search      = trim($_GET['search']       ?? '');
-$type_filter = trim($_GET['subject_type'] ?? '');
-$dept_filter = isset($_GET['dept_filter']) ? (int) $_GET['dept_filter'] : null;
-
-$conn    = get_db();
-$params  = [];
-$sql = "
-    SELECT s.*,
-           COALESCE(NULLIF(s.course_code,  ''), c.course_code)  AS course_code,
-           COALESCE(NULLIF(s.course_title, ''), c.course_title) AS course_title,
-           u.first_name, u.last_name, u.email AS uploader_email,
-           d.department_name, col.college_name
-    FROM syllabus s
-    LEFT JOIN courses c     ON s.course_id      = c.id
-    LEFT JOIN users u       ON s.uploaded_by    = u.id
-    LEFT JOIN departments d ON COALESCE(c.department_id, u.department_id) = d.id
-    LEFT JOIN colleges col  ON d.college_id     = col.id
-    WHERE s.status = 'Approved'
-";
-
-if ($dept_filter) { $sql .= " AND COALESCE(c.department_id, u.department_id) = ?"; $params[] = $dept_filter; }
-if ($search !== '') {
-    $sql .= " AND (COALESCE(NULLIF(s.course_code,''), c.course_code) LIKE ?
-              OR COALESCE(NULLIF(s.course_title,''), c.course_title) LIKE ?
-              OR u.first_name LIKE ? OR u.last_name LIKE ?)";
-    $like = '%' . $search . '%';
-    $params = array_merge($params, [$like, $like, $like, $like]);
-}
-if ($type_filter !== '') { $sql .= " AND s.subject_type = ?"; $params[] = $type_filter; }
-$sql .= " ORDER BY s.submitted_at DESC";
-
-$stmt = $conn->prepare($sql);
-$stmt->execute($params);
-$shared_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$departments    = get_departments();
-
-$pending_review_count = (int) $conn->query("
-    SELECT COUNT(DISTINCT sw.syllabus_id) FROM syllabus_workflow sw
-    JOIN roles r ON sw.role_id = r.id WHERE r.role_name='dean' AND sw.action='Pending'
-")->fetchColumn();
-
-$reg_count = (int) $conn->query("
-    SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id=r.id
-    WHERE r.role_name='faculty' AND u.is_approved=0 AND u.is_deleted=0
-")->fetchColumn();
 
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
@@ -78,23 +32,20 @@ $notifications = get_notifications($user_id, 5);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shared Syllabus - Dean's Panel</title>
+    <title>Shared Syllabus - SCC-CCS Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
         .text-orange { color: #ff8800 !important; }
-        .btn-orange  { background-color: #ff8800 !important; color: #fff !important; border: none; }
-        .btn-orange:hover { background-color: #e67a00 !important; }
-        .notif-dot   { position:absolute;top:2px;right:2px;width:10px;height:10px;
-                       background:#dc3545;border-radius:50%;border:2px solid #fff; }
+        .notif-dot { position:absolute;top:2px;right:2px;width:10px;height:10px;
+                     background:#dc3545;border-radius:50%;border:2px solid #fff; }
     </style>
 </head>
 <body class="bg-light">
-<div class="d-flex">
-    <!-- Sidebar -->
-    <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
+<!-- Sidebar -->
+        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
             style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
@@ -133,12 +84,13 @@ $notifications = get_notifications($user_id, 5);
             </nav>
         </div>
 
+    <!-- Main Content -->
     <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
+
         <div class="d-flex justify-content-between align-items-center mb-5">
-            <div>
-                <h2 class="text-orange font-serif fw-bold mb-0">Shared Syllabus</h2>
-                <p class="text-muted small mb-0"><?= count($shared_syllabi) ?> approved file(s) in the repository</p>
-            </div>
+            <h2 class="text-orange font-serif fw-bold">Shared Syllabus Repository</h2>
+
+            <!-- Notification Bell -->
             <div class="dropdown">
                 <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
                     <i class="bi bi-bell fs-4 text-secondary"></i>
@@ -156,103 +108,32 @@ $notifications = get_notifications($user_id, 5);
                     <?php else: foreach ($notifications as $n): ?>
                         <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
                             <p class="mb-0 small"><?= htmlspecialchars($n['message']) ?></p>
-                            <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                            <span class="text-muted" style="font-size:.7rem;">
+                                <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                            </span>
                         </li>
                     <?php endforeach; endif; ?>
                 </ul>
             </div>
         </div>
 
-        <!-- Search -->
-        <div class="card premium-card p-4 mb-4 shadow-sm border-0">
-            <h5 class="card-title font-serif fw-bold mb-3 text-orange">Search Repository</h5>
-            <form method="GET" action="shared_syllabus.php">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" name="search" class="form-control" placeholder="Course code, title, or instructor" value="<?= htmlspecialchars($search) ?>">
-                    </div>
-                    <div class="col-md-3">
-                        <select name="subject_type" class="form-select">
-                            <option value="">All Subject Types</option>
-                            <option value="Institutional Subject"  <?= $type_filter==='Institutional Subject'  ? 'selected':'' ?>>Institutional Subject</option>
-                            <option value="General Education (GE)" <?= $type_filter==='General Education (GE)' ? 'selected':'' ?>>General Education (GE)</option>
-                            <option value="Core Subject"           <?= $type_filter==='Core Subject'           ? 'selected':'' ?>>Core Subject</option>
-                            <option value="Professional Subjects"  <?= $type_filter==='Professional Subjects'  ? 'selected':'' ?>>Professional Subjects</option>
-                            <option value="Mandatory / Elect Subject" <?= $type_filter==='Mandatory / Elect Subject' ? 'selected':'' ?>>Mandatory / Elect Subject</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="dept_filter" class="form-select">
-                            <option value="">All Departments</option>
-                            <?php foreach ($departments as $d): ?>
-                                <option value="<?= $d['id'] ?>" <?= $dept_filter===(int)$d['id'] ? 'selected':'' ?>><?= htmlspecialchars($d['department_name']) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2 d-flex gap-2">
-                        <button type="submit" class="btn btn-orange w-100"><i class="bi bi-search me-1"></i>Search</button>
-                        <?php if ($search || $type_filter || $dept_filter): ?>
-                            <a href="shared_syllabus.php" class="btn btn-outline-secondary" title="Clear"><i class="bi bi-x"></i></a>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </form>
+        <!-- Info notice -->
+        <div class="card premium-card p-5 shadow-sm border-0 text-center">
+            <i class="bi bi-folder2 text-orange fs-1 mb-3"></i>
+            <h5 class="font-serif fw-bold text-orange mb-2">Repository Unavailable</h5>
+            <p class="text-muted mb-4">
+                Approved syllabi are no longer published to the shared repository.<br>
+                You can view all of your submitted syllabi — including VPAA-approved ones — in
+                <strong>My Submissions</strong>.
+            </p>
+            <a href="my_submissions.php" class="btn btn-orange rounded-pill px-5">
+                <i class="bi bi-list-check me-2"></i>Go to My Submissions
+            </a>
         </div>
 
-        <!-- Repository Table -->
-        <div class="card premium-card p-4 shadow-sm border-0">
-            <h5 class="card-title font-serif fw-bold mb-3 text-orange">Syllabus Repository</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="text-secondary small">#</th>
-                            <th class="text-secondary small">COURSE</th>
-                            <th class="text-secondary small">TYPE</th>
-                            <th class="text-secondary small">STATUS</th>
-                            <th class="text-secondary small text-center">FILE</th>
-                            <th class="text-secondary small">INSTRUCTOR</th>
-                            <th class="text-secondary small">DEPT</th>
-                            <th class="text-secondary small">DATE</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($shared_syllabi)): ?>
-                            <tr>
-                                <td colspan="8" class="text-center text-muted py-5">
-                                    <i class="bi bi-folder2-open fs-2 opacity-25 d-block mb-2"></i>
-                                    No approved syllabi found<?= $search ? ' for "' . htmlspecialchars($search) . '"' : '' ?>
-                                </td>
-                            </tr>
-                        <?php else: foreach ($shared_syllabi as $i => $syl): ?>
-                            <tr>
-                                <td><?= $i + 1 ?></td>
-                                <td>
-                                    <span class="fw-bold small"><?= htmlspecialchars($syl['course_code']) ?></span><br>
-                                    <span class="text-muted" style="font-size:.7rem;"><?= htmlspecialchars($syl['course_title']) ?></span>
-                                </td>
-                                <td class="small"><?= htmlspecialchars($syl['subject_type'] ?? '—') ?></td>
-                                <td><span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved</span></td>
-                                <td class="text-center">
-                                    <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($syl['file_path'])) ?>"
-                                       target="_blank" class="btn btn-sm btn-link text-orange p-0">
-                                        <i class="bi bi-file-earmark-pdf fs-5"></i>
-                                    </a>
-                                </td>
-                                <td>
-                                    <span class="fw-bold small"><?= htmlspecialchars($syl['first_name'] . ' ' . $syl['last_name']) ?></span><br>
-                                    <span class="text-muted" style="font-size:.7rem;"><?= htmlspecialchars($syl['uploader_email']) ?></span>
-                                </td>
-                                <td class="small"><?= htmlspecialchars($syl['department_name'] ?? '—') ?></td>
-                                <td class="small"><?= date('M d, Y', strtotime($syl['submitted_at'])) ?></td>
-                            </tr>
-                        <?php endforeach; endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

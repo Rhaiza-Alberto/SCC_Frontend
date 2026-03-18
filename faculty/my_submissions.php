@@ -193,7 +193,9 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td>
                                             <span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3"
-                                                  style="font-size:.75rem;">Pending</span>
+                                                  style="font-size:.75rem;">
+                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
+                                            </span>
                                         </td>
                                         <td class="text-center">
                                             <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
@@ -247,7 +249,9 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td>
                                             <span class="badge bg-success text-success bg-opacity-25 border border-success rounded-pill px-3"
-                                                  style="font-size:.75rem;">Approved</span>
+                                                  style="font-size:.75rem;">
+                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
+                                            </span>
                                         </td>
                                         <td class="small"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
                                         <td class="text-center">
@@ -299,7 +303,9 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td>
                                             <span class="badge bg-danger text-danger bg-opacity-25 border border-danger rounded-pill px-3"
-                                                  style="font-size:.75rem;">Rejected</span>
+                                                  style="font-size:.75rem;">
+                                                <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
+                                            </span>
                                         </td>
                                         <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
                                         <td class="text-center">

@@ -45,6 +45,8 @@ foreach ($submissions as $sub) {
             'code' => $code,
             'title' => $sub['course_title'],
             'status' => $sub['status'],
+            'current_role' => $sub['current_stage_role'] ?? null,
+            'rejecting_role' => $sub['rejecting_role'] ?? null,
         ];
     }
 }
@@ -215,7 +217,9 @@ $notifications = get_notifications($user_id, 5);
                                         <h6 class="mb-1 fw-bold"><?= htmlspecialchars($course['code']) ?></h6>
                                         <p class="text-muted small mb-0"><?= htmlspecialchars($course['title']) ?></p>
                                     </div>
-                                    <span class="badge <?= $badge_class ?> rounded-pill px-3"><?= $badge_label ?></span>
+                                    <span class="badge <?= $badge_class ?> rounded-pill px-3">
+                                        <?= format_syllabus_status($course['status'], $course['current_role'], $course['rejecting_role']) ?>
+                                    </span>
                                 </div>
                             <?php endforeach; endif; ?>
                     </div>
@@ -299,7 +303,7 @@ $notifications = get_notifications($user_id, 5);
                                             </td>
                                             <td>
                                                 <span class="badge <?= $sc ?> rounded-pill px-3" style="font-size:.75rem;">
-                                                    <?= htmlspecialchars($sub['status']) ?>
+                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
                                                 </span>
                                             </td>
                                             <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>

@@ -335,6 +335,7 @@ function determine_next_role($current_role)
 {
     return match ($current_role) {
         'faculty' => 'dean',
+<<<<<<< Updated upstream
         'dean' => 'vpaa',
         'vpaa' => null,
         default => null
@@ -349,26 +350,62 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty')
     $exists->execute([$syllabus_id]);
     if ((int) $exists->fetchColumn() > 0)
         return;
+=======
+        'dean'    => 'vpaa',
+        'vpaa'    => null,
+        default   => null
+    };
+}
+
+/**
+ * Called immediately after inserting a new syllabus row.
+ * Decides the first workflow step based on who uploaded:
+ *   - faculty  → step 1 = dean review
+ *   - dean     → step 2 = vpaa final (dean already implicitly approved their own)
+ *
+ * @param int    $syllabus_id
+ * @param string $uploader_role  'faculty' | 'dean' (default 'faculty')
+ */
+function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
+    $conn = get_db();
+
+    // Guard: don't insert a duplicate step
+    $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ?");
+    $exists->execute([$syllabus_id]);
+    if ((int) $exists->fetchColumn() > 0) return;
+>>>>>>> Stashed changes
 
     $is_dean = in_array($uploader_role, ['dean', 'admin']);
 
     if ($is_dean) {
+<<<<<<< Updated upstream
         $role_id = get_role_id('vpaa');
         if (!$role_id) {
             error_log("init_syllabus_workflow: 'vpaa' role not found");
             return;
         }
+=======
+        // Dean's own upload → skip to VPAA (step 2)
+        $role_id = get_role_id('vpaa');
+        if (!$role_id) { error_log("init_syllabus_workflow: 'vpaa' role not found"); return; }
+>>>>>>> Stashed changes
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
             VALUES (?, 2, ?, 'Pending')
         ")->execute([$syllabus_id, $role_id]);
         notify_next_reviewer($syllabus_id, 'vpaa');
     } else {
+<<<<<<< Updated upstream
         $role_id = get_role_id('dean');
         if (!$role_id) {
             error_log("init_syllabus_workflow: 'dean' role not found");
             return;
         }
+=======
+        // Faculty upload → dean reviews first (step 1)
+        $role_id = get_role_id('dean');
+        if (!$role_id) { error_log("init_syllabus_workflow: 'dean' role not found"); return; }
+>>>>>>> Stashed changes
         $conn->prepare("
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
             VALUES (?, 1, ?, 'Pending')
@@ -393,7 +430,7 @@ function notify_next_reviewer($syllabus_id, $next_role)
     if ($user) {
         notify_user(
             $user['id'],
-            "New syllabus awaiting your approval: " . $syllabus['course_code'],
+            "📄 New syllabus awaiting your approval: " . $syllabus['course_code'],
             $syllabus_id
         );
     }
@@ -406,8 +443,13 @@ function notify_rejection($syllabus_id, $by_role)
         return;
     notify_user(
         $syllabus['uploaded_by'],
+<<<<<<< Updated upstream
         "Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
         . ucfirst(str_replace('_', ' ', $by_role)),
+=======
+        "❌ Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
+            . ucfirst(str_replace('_', ' ', $by_role)),
+>>>>>>> Stashed changes
         $syllabus_id
     );
 }
@@ -419,7 +461,7 @@ function notify_on_vpaa_approval($syllabus_id)
         return;
     notify_user(
         $syllabus['uploaded_by'],
-        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
+        "✅ Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
         $syllabus_id
     );
 }
@@ -428,16 +470,33 @@ function notify_on_vpaa_approval($syllabus_id)
    MAIN WORKFLOW ENGINE
 ============================ */
 
+<<<<<<< Updated upstream
 // FIX 2: process_syllabus_action — dean approval now keeps syllabus
 // status as 'Pending' (not 'Approved') until VPAA gives final approval.
 function process_syllabus_action($syllabus_id, $action, $comment = null)
 {
     if (session_status() === PHP_SESSION_NONE)
         session_start();
+=======
+/**
+ * Called when a dean or vpaa approves/rejects a syllabus.
+ *
+ * @param int         $syllabus_id
+ * @param string      $action   'Approved' | 'Rejected'
+ * @param string|null $comment
+ */
+function process_syllabus_action($syllabus_id, $action, $comment = null) {
+    if (session_status() === PHP_SESSION_NONE) session_start();
+>>>>>>> Stashed changes
 
     $conn = get_db();
     $user_id = $_SESSION['user_id'];
 
+<<<<<<< Updated upstream
+=======
+    // Resolve the reviewer's role_name directly from the DB — never trust
+    // session role strings alone, as role_id is the authoritative FK.
+>>>>>>> Stashed changes
     $role_id = $_SESSION['role_id']
         ?? get_role_id($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
 
@@ -446,9 +505,15 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
         return;
     }
 
+<<<<<<< Updated upstream
     $role = get_role_name($role_id); // 'dean' or 'vpaa'
 
     // Update the Pending workflow step for this reviewer's role
+=======
+    $role = get_role_name($role_id); // e.g. 'dean' or 'vpaa'
+
+    // ── Update the Pending workflow step for this reviewer's role ────────────
+>>>>>>> Stashed changes
     $upd = $conn->prepare("
         UPDATE syllabus_workflow
         SET action      = ?,
@@ -463,6 +528,11 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
 
     $rows_affected = $upd->rowCount();
 
+<<<<<<< Updated upstream
+=======
+    // Safety net: if nothing was updated the workflow row may be missing —
+    // this can happen with old data. Insert + update in that case.
+>>>>>>> Stashed changes
     if ($rows_affected === 0) {
         error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Inserting completed step.");
         $conn->prepare("
@@ -473,12 +543,21 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
                 reviewer_id = VALUES(reviewer_id),
                 action_at   = NOW()
         ")->execute([
+<<<<<<< Updated upstream
                     $syllabus_id,
                     get_step_order($role),
                     $role_id,
                     $action,
                     $user_id,
                 ]);
+=======
+            $syllabus_id,
+            get_step_order($role),
+            $role_id,
+            $action,
+            $user_id,
+        ]);
+>>>>>>> Stashed changes
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────
@@ -493,18 +572,25 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
     $next_role = determine_next_role($role);
 
     if ($next_role === null) {
+<<<<<<< Updated upstream
         // VPAA is final — only NOW mark as fully Approved
+=======
+        // VPAA is final — mark fully approved
+>>>>>>> Stashed changes
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
             ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
         return;
     }
 
+<<<<<<< Updated upstream
     // Dean approved — keep syllabus as Pending until VPAA acts
     // Do NOT set status = 'Approved' here
     $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")
         ->execute([$syllabus_id]);
 
+=======
+>>>>>>> Stashed changes
     // Insert the next pending workflow step (skip if already exists)
     $next_role_id = get_role_id($next_role);
     $dup = $conn->prepare("

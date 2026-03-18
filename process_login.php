@@ -102,7 +102,7 @@ try {
             header('Location: dept_head/dept_dashboard.php');
             break;
         case 'dean':
-            header('Location: dean/dean_dashboard.php');
+            header('Location: admin/admin_dashboard.php');
             break;
         case 'vpaa':
             header('Location: vpaa/vpaa_dashboard.php');

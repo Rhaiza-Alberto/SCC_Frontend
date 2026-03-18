@@ -534,33 +534,6 @@ footer {
     font-size: 2.5rem;
 }
 
-.btn-orange {
-    background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
-    color: #fff !important;
-    border: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 136, 0, 0.2);
-}
-
-.btn-orange:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 136, 0, 0.3);
-    color: #fff !important;
-}
-
-.btn-outline-orange {
-    border: 2px solid #ff8800;
-    color: #ff8800 !important;
-    background: transparent;
-    transition: all 0.3s ease;
-}
-
-.btn-outline-orange:hover {
-    background: #ff8800;
-    color: #fff !important;
-    transform: translateY(-2px);
-}
-
 .sidebar-premium {
     background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%) !important;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);

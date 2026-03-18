@@ -461,6 +461,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
                 action_at   = NOW()
             WHERE id = ?
         ")->execute([$action, $comment, $user_id, $workflow_row_id]);
+        return true;
     } else {
         // No pending row found — insert a completed one (safety net for old data)
         error_log("process_syllabus_action: no Pending row for syllabus_id={$syllabus_id} role={$role}. Inserting.");
@@ -468,6 +469,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
             INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
             VALUES (?, ?, ?, ?, ?, NOW())
         ")->execute([$syllabus_id, get_step_order($role), $role_id, $action, $user_id]);
+        return true;
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────

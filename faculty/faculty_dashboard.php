@@ -171,7 +171,7 @@ $notifications = get_notifications($user_id, 5);
                     ['label' => 'Pending', 'value' => $pending, 'color' => '#ffc107', 'icon' => 'bi-clock-history', 'sub' => 'Awaiting review'],
                     ['label' => 'Rejected', 'value' => $rejected, 'color' => '#dc3545', 'icon' => 'bi-x-circle', 'sub' => 'Needs revision'],
                 ];
-                foreach ($stats as $i => $s): 
+                foreach ($stats as $i => $s):
                     $target_tab = match ($s['label']) {
                         'Approved' => 'tabApproved',
                         'Pending' => 'tabPending',
@@ -179,7 +179,7 @@ $notifications = get_notifications($user_id, 5);
                         default => ''
                     };
                     $link = $target_tab ? "my_submissions.php#$target_tab" : "my_submissions.php";
-                ?>
+                    ?>
                     <div class="col-md-3">
                         <a href="<?= $link ?>" class="text-decoration-none">
                             <div class="card stat-card shadow-sm border-0 bg-white h-100"
@@ -187,7 +187,8 @@ $notifications = get_notifications($user_id, 5);
                                 <div class="stat-card-content p-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <h6 class="text-uppercase fw-bold text-muted small mb-0"><?= $s['label'] ?></h6>
-                                        <i class="bi <?= $s['icon'] ?> opacity-50 fs-4" style="color:<?= $s['color'] ?>"></i>
+                                        <i class="bi <?= $s['icon'] ?> opacity-50 fs-4"
+                                            style="color:<?= $s['color'] ?>"></i>
                                     </div>
                                     <h1 class="display-5 fw-bold text-dark mb-0"><?= $s['value'] ?></h1>
                                     <p class="text-muted small mb-0 mt-1"><?= $s['sub'] ?></p>
@@ -267,7 +268,7 @@ $notifications = get_notifications($user_id, 5);
                             <input type="date" id="filterDate" class="form-control">
                         </div>
                         <div class="col-md-2">
-                            <button class="btn btn-outline-orange w-100 rounded-pill" onclick="applyFilter()">Filter</button>
+                            <button class="btn btn-outline-dark w-100" onclick="applyFilter()">Filter</button>
                         </div>
                     </div>
                 </div>

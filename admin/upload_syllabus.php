@@ -65,7 +65,6 @@ $role_display = "Dean's Panel"
             <div class="dropdown">
                 <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
                     <i class="bi bi-bell fs-4 text-secondary"></i>
-                    <?php if ($unread_count > 0): ?><span class="notif-dot"></span><?php endif; ?>
                 </div>
                 <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;">
                     <li class="px-3 py-2 border-bottom"><strong>Notifications</strong></li>

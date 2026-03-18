@@ -305,8 +305,7 @@ function get_colleges() {
 
 /* ============================
    WORKFLOW RULES
-   New flow: faculty submits → dean approves → vpaa approves → done
-   department_head is NO LONGER part of the syllabus workflow.
+   Flow: faculty/dean upload → dean approves (step 1) → vpaa final (step 2)
 ============================ */
 
 function get_step_order($role_name) {
@@ -322,11 +321,51 @@ function get_step_order($role_name) {
  */
 function determine_next_role($current_role) {
     return match ($current_role) {
-        'faculty' => 'dean',   // on submission, first reviewer is dean
-        'dean'    => 'vpaa',   // after dean approves, goes to vpaa
-        'vpaa'    => null,     // vpaa is final
+        'faculty' => 'dean',
+        'dean'    => 'vpaa',
+        'vpaa'    => null,
         default   => null
     };
+}
+
+/**
+ * Called immediately after inserting a new syllabus row.
+ * Decides the first workflow step based on who uploaded:
+ *   - faculty  → step 1 = dean review
+ *   - dean     → step 2 = vpaa final (dean already implicitly approved their own)
+ *
+ * @param int    $syllabus_id
+ * @param string $uploader_role  'faculty' | 'dean' (default 'faculty')
+ */
+function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
+    $conn = get_db();
+
+    // Guard: don't insert a duplicate step
+    $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ?");
+    $exists->execute([$syllabus_id]);
+    if ((int) $exists->fetchColumn() > 0) return;
+
+    $is_dean = in_array($uploader_role, ['dean', 'admin']);
+
+    if ($is_dean) {
+        // Dean's own upload → skip to VPAA (step 2)
+        $role_id = get_role_id('vpaa');
+        if (!$role_id) { error_log("init_syllabus_workflow: 'vpaa' role not found"); return; }
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
+            VALUES (?, 2, ?, 'Pending')
+        ")->execute([$syllabus_id, $role_id]);
+        notify_next_reviewer($syllabus_id, 'vpaa');
+    } else {
+        // Faculty upload → dean reviews first (step 1)
+        $role_id = get_role_id('dean');
+        if (!$role_id) { error_log("init_syllabus_workflow: 'dean' role not found"); return; }
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
+            VALUES (?, 1, ?, 'Pending')
+        ")->execute([$syllabus_id, $role_id]);
+        notify_next_reviewer($syllabus_id, 'dean');
+    }
 }
 
 /* ============================
@@ -338,13 +377,12 @@ function notify_next_reviewer($syllabus_id, $next_role) {
     if (!$syllabus) return;
 
     $department_id = $syllabus['department_id'] ?? null;
-
     $user = ($next_role === 'dean') ? get_dean($department_id) : get_vpaa();
 
     if ($user) {
         notify_user(
             $user['id'],
-            "New syllabus awaiting your approval: " . $syllabus['course_code'],
+            "📄 New syllabus awaiting your approval: " . $syllabus['course_code'],
             $syllabus_id
         );
     }
@@ -355,7 +393,7 @@ function notify_rejection($syllabus_id, $by_role) {
     if (!$syllabus) return;
     notify_user(
         $syllabus['uploaded_by'],
-        "Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
+        "❌ Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
             . ucfirst(str_replace('_', ' ', $by_role)),
         $syllabus_id
     );
@@ -366,7 +404,7 @@ function notify_on_vpaa_approval($syllabus_id) {
     if (!$syllabus) return;
     notify_user(
         $syllabus['uploaded_by'],
-        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
+        "✅ Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
         $syllabus_id
     );
 }
@@ -375,16 +413,33 @@ function notify_on_vpaa_approval($syllabus_id) {
    MAIN WORKFLOW ENGINE
 ============================ */
 
+/**
+ * Called when a dean or vpaa approves/rejects a syllabus.
+ *
+ * @param int         $syllabus_id
+ * @param string      $action   'Approved' | 'Rejected'
+ * @param string|null $comment
+ */
 function process_syllabus_action($syllabus_id, $action, $comment = null) {
     if (session_status() === PHP_SESSION_NONE) session_start();
 
     $conn    = get_db();
     $user_id = $_SESSION['user_id'];
-    $role_id = $_SESSION['role_id'];
-    $role    = get_role_name($role_id);
 
-    // Update the current step (either Pending or Approved)
-    $stmt = $conn->prepare("
+    // Resolve the reviewer's role_name directly from the DB — never trust
+    // session role strings alone, as role_id is the authoritative FK.
+    $role_id = $_SESSION['role_id']
+        ?? get_role_id($_SESSION['role_name'] ?? $_SESSION['role'] ?? '');
+
+    if (!$role_id) {
+        error_log("process_syllabus_action: could not resolve role_id from session");
+        return;
+    }
+
+    $role = get_role_name($role_id); // e.g. 'dean' or 'vpaa'
+
+    // ── Update the Pending workflow step for this reviewer's role ────────────
+    $upd = $conn->prepare("
         UPDATE syllabus_workflow
         SET action      = ?,
             comment     = ?,
@@ -392,41 +447,64 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
             action_at   = NOW()
         WHERE syllabus_id = ?
           AND role_id     = ?
-          AND (action = 'Pending' OR action = 'Approved')
+          AND action      = 'Pending'
     ");
-    $stmt->execute([$action, $comment, $user_id, $syllabus_id, $role_id]);
+    $upd->execute([$action, $comment, $user_id, $syllabus_id, $role_id]);
 
+    $rows_affected = $upd->rowCount();
+
+    // Safety net: if nothing was updated the workflow row may be missing —
+    // this can happen with old data. Insert + update in that case.
+    if ($rows_affected === 0) {
+        error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Inserting completed step.");
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
+            VALUES (?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+                action      = VALUES(action),
+                reviewer_id = VALUES(reviewer_id),
+                action_at   = NOW()
+        ")->execute([
+            $syllabus_id,
+            get_step_order($role),
+            $role_id,
+            $action,
+            $user_id,
+        ]);
+    }
+
+    // ── Rejected ─────────────────────────────────────────────────────────────
     if ($action === 'Rejected') {
-        // If we're revoking an approval, delete any subsequent pending steps
-        $conn->prepare("DELETE FROM syllabus_workflow WHERE syllabus_id = ? AND action = 'Pending'")
-             ->execute([$syllabus_id]);
-
         $conn->prepare("UPDATE syllabus SET status = 'Rejected' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_rejection($syllabus_id, $role);
         return;
     }
 
-    // Approved — what comes next?
+    // ── Approved — determine next step ───────────────────────────────────────
     $next_role = determine_next_role($role);
 
     if ($next_role === null) {
-        // VPAA final approval
+        // VPAA is final — mark fully approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
              ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
         return;
     }
 
-    // Insert next workflow step
-    $conn->prepare("
-        INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
-        VALUES (?, ?, ?, 'Pending')
-    ")->execute([
-        $syllabus_id,
-        get_step_order($next_role),
-        get_role_id($next_role),
-    ]);
+    // Insert the next pending workflow step (skip if already exists)
+    $next_role_id = get_role_id($next_role);
+    $dup = $conn->prepare("
+        SELECT COUNT(*) FROM syllabus_workflow
+        WHERE syllabus_id = ? AND role_id = ? AND action = 'Pending'
+    ");
+    $dup->execute([$syllabus_id, $next_role_id]);
+    if ((int) $dup->fetchColumn() === 0) {
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
+            VALUES (?, ?, ?, 'Pending')
+        ")->execute([$syllabus_id, get_step_order($next_role), $next_role_id]);
+    }
 
     notify_next_reviewer($syllabus_id, $next_role);
 }

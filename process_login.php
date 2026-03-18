@@ -1,8 +1,4 @@
- <?php
-/**
- * process_login.php
- * Authenticates users and sets session variables.
- */
+<?php
 session_start();
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
@@ -46,9 +42,8 @@ try {
         exit();
     }
 
-    // Support both bcrypt-hashed AND legacy plain-text passwords
-    $stored        = $user['password'];
-    $is_hashed     = strlen($stored) >= 60 && str_starts_with($stored, '$2');
+    $stored         = $user['password'];
+    $is_hashed      = strlen($stored) >= 60 && str_starts_with($stored, '$2');
     $password_valid = $is_hashed
         ? password_verify($password, $stored)
         : ($password === $stored);
@@ -59,56 +54,40 @@ try {
         exit();
     }
 
-    // Block unapproved faculty
+    // Faculty must be approved by the Dean
     if ($user['role_name'] === 'faculty' && empty($user['is_approved'])) {
-        $_SESSION['error'] = 'Your account is pending approval by the Department Head.';
+        $_SESSION['error'] = 'Your account is pending approval by the Dean.';
         header('Location: login.php');
         exit();
     }
 
-    // Auto-upgrade plain-text password to bcrypt
     if (!$is_hashed) {
         $hashed = password_hash($password, PASSWORD_BCRYPT);
         $conn->prepare("UPDATE users SET password = ? WHERE id = ?")
              ->execute([$hashed, $user['id']]);
     }
 
-    // Map DB role_name → session role string
-    // 'dean' stays as 'dean' and routes to dean/dean_dashboard.php
     $role_map = [
-        'faculty'         => 'faculty',
-        'department_head' => 'dept_head',
-        'dean'            => 'dean',
-        'vpaa'            => 'vpaa',
+        'faculty' => 'faculty',
+        'dean'    => 'dean',
+        'vpaa'    => 'vpaa',
     ];
     $session_role = $role_map[$user['role_name']] ?? 'faculty';
 
-    // Populate session
     $_SESSION['logged_in']     = true;
     $_SESSION['user_id']       = (int) $user['id'];
     $_SESSION['email']         = $user['email'];
     $_SESSION['username']      = trim($user['first_name'] . ' ' . $user['last_name']);
     $_SESSION['role']          = $session_role;
-    $_SESSION['role_name']     = $user['role_name'];   // raw DB value for workflow engine
+    $_SESSION['role_name']     = $user['role_name'];
     $_SESSION['role_id']       = (int) $user['role_id'];
     $_SESSION['department_id'] = $user['department_id'] ? (int) $user['department_id'] : null;
 
-    // Route to the correct dashboard
     switch ($session_role) {
-        case 'faculty':
-            header('Location: faculty/faculty_dashboard.php');
-            break;
-        case 'dept_head':
-            header('Location: dept_head/dept_dashboard.php');
-            break;
-        case 'dean':
-            header('Location: admin/admin_dashboard.php');
-            break;
-        case 'vpaa':
-            header('Location: vpaa/vpaa_dashboard.php');
-            break;
-        default:
-            header('Location: faculty/faculty_dashboard.php');
+        case 'faculty': header('Location: faculty/faculty_dashboard.php'); break;
+        case 'dean':    header('Location: admin/admin_dashboard.php');     break;
+        case 'vpaa':    header('Location: vpaa/vpaa_dashboard.php');       break;
+        default:        header('Location: faculty/faculty_dashboard.php');
     }
     exit();
 

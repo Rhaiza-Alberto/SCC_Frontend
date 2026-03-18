@@ -1,8 +1,4 @@
- <?php
-/**
- * process_register.php
- * Handles faculty registration form submission.
- */
+<?php
 session_start();
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
@@ -22,7 +18,6 @@ $birthdate        = $_POST['birthdate']             ?? '';
 $sex              = $_POST['sex']                   ?? '';
 $department_id    = $_POST['department']            ?? '';
 
-// ── Validation ────────────────────────────────────────────────────────────────
 if (empty($first_name) || empty($last_name) || empty($email) || empty($password)
     || empty($confirm_password) || empty($birthdate) || empty($sex) || empty($department_id)) {
     $_SESSION['register_error'] = 'Please fill in all required fields.';
@@ -48,7 +43,7 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL) || !preg_match("/@gmail\.com$/i",
     exit();
 }
 
-$sex_normalized = ucfirst(strtolower($sex)); // 'male' → 'Male'
+$sex_normalized = ucfirst(strtolower($sex));
 if (!in_array($sex_normalized, ['Male', 'Female'])) {
     $_SESSION['register_error'] = 'Invalid sex value.';
     header('Location: register.php');
@@ -58,7 +53,6 @@ if (!in_array($sex_normalized, ['Male', 'Female'])) {
 try {
     $conn = get_db();
 
-    // Check if email already exists
     $check = $conn->prepare("SELECT id FROM users WHERE email = ? AND is_deleted = 0");
     $check->execute([$email]);
     if ($check->fetch()) {
@@ -67,7 +61,6 @@ try {
         exit();
     }
 
-    // Verify the department exists
     $deptCheck = $conn->prepare("SELECT id FROM departments WHERE id = ?");
     $deptCheck->execute([$department_id]);
     if (!$deptCheck->fetch()) {
@@ -76,7 +69,6 @@ try {
         exit();
     }
 
-    // Get faculty role ID
     $roleStmt = $conn->prepare("SELECT id FROM roles WHERE role_name = 'faculty'");
     $roleStmt->execute();
     $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
@@ -87,10 +79,8 @@ try {
         exit();
     }
 
-    // Hash password
     $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
-    // Insert new user (is_approved = 0, pending department head approval)
     $stmt = $conn->prepare("
         INSERT INTO users
             (first_name, middle_name, last_name, birthdate, sex,
@@ -99,22 +89,19 @@ try {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)
     ");
     $stmt->execute([
-        $first_name,
-        $middle_name,
-        $last_name,
-        $birthdate,
-        $sex_normalized,
-        $email,
-        $hashed_password,
-        $role['id'],
-        $department_id,
+        $first_name, $middle_name, $last_name, $birthdate, $sex_normalized,
+        $email, $hashed_password, $role['id'], $department_id,
     ]);
 
-    // Notify department head of the new registration request
-    $dept_head = get_department_head((int) $department_id);
-    if ($dept_head) {
+    // Notify the Dean (replaces dept head notification)
+    $dean = get_dean((int) $department_id);
+    if (!$dean) {
+        // Fall back to any dean if department-scoped dean not found
+        $dean = get_dean();
+    }
+    if ($dean) {
         notify_user(
-            $dept_head['id'],
+            $dean['id'],
             "New faculty registration request from {$first_name} {$last_name}.",
             null
         );

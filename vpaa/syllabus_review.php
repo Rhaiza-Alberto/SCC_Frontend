@@ -14,6 +14,13 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 ensure_role_in_session();
 
+// Guard: only VPAA may access this page
+$session_role = $_SESSION['role'] ?? $_SESSION['role_name'] ?? '';
+if (strtolower($session_role) !== 'vpaa') {
+    header('Location: ../login.php');
+    exit();
+}
+
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'VPAA';
 $role_display = 'VPAA';
@@ -29,10 +36,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syl
     $syllabus_id = (int) $_POST['syllabus_id'];
     $action      = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
     $comment     = trim($_POST['comment'] ?? '') ?: null;
-    process_syllabus_action($syllabus_id, $action, $comment);
-    $_SESSION['review_success'] = $action === 'Approved'
-        ? 'Syllabus fully approved.'
-        : 'Syllabus rejected. The faculty member has been notified.';
+
+    $result = process_syllabus_action($syllabus_id, $action, $comment);
+
+    if ($result) {
+        $_SESSION['review_success'] = $action === 'Approved'
+            ? 'Syllabus fully approved.'
+            : 'Syllabus rejected. The faculty member has been notified.';
+    } else {
+        $_SESSION['review_error'] = 'Action could not be completed. It may have already been processed.';
+    }
+
     header('Location: syllabus_review.php');
     exit();
 }
@@ -43,14 +57,14 @@ unset($_SESSION['review_success'], $_SESSION['review_error']);
 
 $conn = get_db();
 
-// Pending for VPAA
+// Pending for VPAA — alias s.id as syllabus_id explicitly to avoid collision with sw.id
 $stmt = $conn->prepare("
-    SELECT s.*,
+    SELECT s.id AS syllabus_id,
+           s.file_path, s.submitted_at, s.subject_type,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name, u.email AS uploader_email,
-           d.department_name,
-           sw.id AS workflow_id
+           d.department_name
     FROM syllabus_workflow sw
     JOIN syllabus s     ON sw.syllabus_id = s.id
     JOIN users u        ON s.uploaded_by  = u.id
@@ -66,7 +80,8 @@ $pending_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Approved by VPAA
 $stmt = $conn->prepare("
-    SELECT s.*,
+    SELECT s.id AS syllabus_id,
+           s.file_path,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name,
@@ -85,7 +100,8 @@ $approved_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Rejected by VPAA
 $stmt = $conn->prepare("
-    SELECT s.*,
+    SELECT s.id AS syllabus_id,
+           s.file_path,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name,
@@ -302,11 +318,11 @@ $notifications = get_notifications($user_id, 5);
                                             </td>
                                             <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                             <td class="text-center">
-                                                <button onclick="handleReview('approve', <?= $sub['id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
+                                                <button onclick="handleReview('approve', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
                                                         class="btn btn-sm btn-success rounded-pill me-1 px-3">
                                                     <i class="bi bi-check me-1"></i>Approve
                                                 </button>
-                                                <button onclick="handleReview('reject', <?= $sub['id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
+                                                <button onclick="handleReview('reject', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
                                                         class="btn btn-sm btn-danger rounded-pill px-3">
                                                     <i class="bi bi-x me-1"></i>Reject
                                                 </button>

@@ -8,28 +8,34 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
-// Initialize session-based "users" if empty
-if (!isset($_SESSION['users'])) {
-    $_SESSION['users'] = [
-        ['id' => 1, 'username' => 'Achy', 'email' => 'faculty@gmail.com', 'role' => 'faculty', 'dept' => 'CS'],
-        ['id' => 2, 'username' => 'Dr. Jane Smith', 'email' => 'dept@gmail.com', 'role' => 'dept_head', 'dept' => 'CS'],
-        ['id' => 3, 'username' => 'VPAA', 'email' => 'vpaa@gmail.com', 'role' => 'vpaa', 'dept' => 'Institutional'],
-        ['id' => 4, 'username' => 'Admin User', 'email' => 'admin@gmail.com', 'role' => 'admin', 'dept' => 'CCS'],
-    ];
-}
-
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
-$users = $_SESSION['users'];
 
-// Handle Deletion (Simulated)
+// CONNECT (PDO)
+$db = new Database();
+$conn = $db->connect();
+
+// FETCH USERS
+$query = "SELECT users.*, roles.role_name, departments.department_name 
+          FROM users
+          LEFT JOIN roles ON users.role_id = roles.id
+          LEFT JOIN departments ON users.department_id = departments.id
+          WHERE users.is_deleted = 0";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$users = $stmt->fetchAll();
+
+// DELETE USER (SOFT DELETE)
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
-    $_SESSION['users'] = array_filter($_SESSION['users'], fn($u) => $u['id'] !== $id);
+
+    $stmt = $conn->prepare("UPDATE users SET is_deleted = 1 WHERE id = ?");
+    $stmt->execute([$id]);
+
     header('Location: manage_user.php');
     exit();
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -124,29 +130,43 @@ if (isset($_GET['delete'])) {
                         <tbody>
                             <?php foreach ($users as $u): ?>
                                 <tr>
-                                    <td><?php echo $u['id']; ?></td>
-                                    <td><span class="fw-bold"><?php echo htmlspecialchars($u['username']); ?></span></td>
-                                    <td class="small"><?php echo htmlspecialchars($u['email']); ?></td>
-                                    <td>
-                                        <span
-                                            class="badge rounded-pill px-3 py-1 bg-opacity-10 
-                                        <?php echo $u['role'] == 'admin' ? 'bg-danger text-danger' :
-                                            ($u['role'] == 'dept_head' ? 'bg-warning text-warning' : 'bg-primary text-primary'); ?>">
-                                            <?php echo strtoupper($u['role']); ?>
-                                        </span>
-                                    </td>
-                                    <td class="small text-muted"><?php echo htmlspecialchars($u['dept']); ?></td>
-                                    <td class="text-center">
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary border-0"><i
-                                                    class="bi bi-pencil"></i></button>
-                                            <a href="?delete=<?php echo $u['id']; ?>"
-                                                class="btn btn-outline-danger border-0"
-                                                onclick="return confirm('Delete this user?')"><i
-                                                    class="bi bi-trash"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
+    <td><?php echo $u['id']; ?></td>
+
+    <td>
+        <span class="fw-bold">
+            <?php echo htmlspecialchars($u['first_name'] . ' ' . $u['last_name']); ?>
+        </span>
+    </td>
+
+    <td class="small"><?php echo htmlspecialchars($u['email']); ?></td>
+
+    <td>
+        <span class="badge rounded-pill px-3 py-1 bg-opacity-10 
+        <?php echo $u['role_name'] == 'dean' ? 'bg-danger text-danger' :
+            ($u['role_name'] == 'department_head' ? 'bg-warning text-warning' :
+            ($u['role_name'] == 'vpaa' ? 'bg-success text-success' : 'bg-primary text-primary')); ?>">
+            
+            <?php echo strtoupper($u['role_name']); ?>
+        </span>
+    </td>
+
+    <td class="small text-muted">
+        <?php echo htmlspecialchars($u['department_name'] ?? 'N/A'); ?>
+    </td>
+
+    <td class="text-center">
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary border-0">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <a href="?delete=<?php echo $u['id']; ?>"
+               class="btn btn-outline-danger border-0"
+               onclick="return confirm('Delete this user?')">
+               <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>

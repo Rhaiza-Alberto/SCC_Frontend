@@ -11,15 +11,7 @@ require_once __DIR__ . '/database.php';
    DATABASE HELPER
 ============================ */
 
-function get_db()
-{
-    static $conn = null;
-    if ($conn === null) {
-        $db = new Database();
-        $conn = $db->connect();
-    }
-    return $conn;
-}
+
 
 /* ============================
    NOTIFICATIONS

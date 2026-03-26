@@ -4,6 +4,8 @@
  * VPAA reviews syllabi already approved by the Dean (step 2 of workflow).
  */
 session_start();
+// DEBUG — remove after confirming
+error_log("SESSION: " . json_encode($_SESSION));
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 

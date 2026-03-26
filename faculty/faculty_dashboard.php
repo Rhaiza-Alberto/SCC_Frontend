@@ -303,7 +303,7 @@ $notifications = get_notifications($user_id, 5);
                                             </td>
                                             <td>
                                                 <span class="badge <?= $sc ?> rounded-pill px-3" style="font-size:.75rem;">
-                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'], $sub['rejecting_role']) ?>
+                                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
                                                 </span>
                                             </td>
                                             <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>

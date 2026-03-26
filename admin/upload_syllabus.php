@@ -121,6 +121,18 @@ $notifications = get_notifications($user_id, 5);
                     </select>
                 </div>
 
+                <!-- Year Level -->
+                <div class="mb-3">
+                    <label for="yearLevel" class="form-label fw-bold small">Year Level <span class="text-danger">*</span></label>
+                    <select class="form-select" id="yearLevel" name="year_level" required>
+                        <option selected disabled>-- Select Year Level --</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+
                 <div class="mb-4">
                     <label class="form-label fw-bold small">Upload File (PDF Only) <span class="text-danger">*</span></label>
                     <input type="file" class="form-control" name="pdf_file" accept=".pdf" required>

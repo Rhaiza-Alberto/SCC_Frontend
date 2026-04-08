@@ -14,23 +14,6 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     }
     exit();
 }
-
-// Load departments from DB (College of Computing Studies only)
-$departments = [];
-try {
-    $conn = get_db();
-    $stmt = $conn->prepare("
-        SELECT d.id, d.department_name 
-        FROM departments d
-        JOIN colleges c ON d.college_id = c.id
-        WHERE c.college_name = 'College of Computing Studies'
-        ORDER BY d.department_name ASC
-    ");
-    $stmt->execute();
-    $departments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    error_log("Register page DB error: " . $e->getMessage());
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -157,24 +140,11 @@ try {
                         </div>
                     </div>
 
-                    <!-- College and Department -->
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label for="college" class="form-label text-white small">College</label>
-                            <input type="text" name="college" class="form-control form-control-dark" id="college"
-                                value="College of Computing Studies" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="department" class="form-label text-white small">Department</label>
-                            <select name="department" class="form-select form-select-dark" id="department" required>
-                                <option selected disabled value="">--Select Department--</option>
-                                <?php foreach ($departments as $dept): ?>
-                                    <option value="<?php echo $dept['id']; ?>">
-                                        <?php echo htmlspecialchars($dept['department_name']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
+                
+                    <!-- College -->
+                    <div class="mb-4">
+                        <label for="college" class="form-label text-white small">College</label>
+                        <input type="text" name="college" class="form-control form-control-dark" id="college" value="College of Computing Studies" readonly>
                     </div>
 
                     <div class="d-grid">

@@ -105,32 +105,55 @@ $notifications = get_notifications($user_id, 5);
             <h3 class="text-orange font-serif fw-bold mb-0">Edit Submission</h3>
 
             <!-- Notification Bell -->
-            <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-bell fs-4 text-secondary"></i>
-                <?php if ($unread_count > 0): ?>
-                    <span class="notif-dot"></span>
-                <?php endif; ?>
-                <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;max-height:400px;overflow-y:auto;">
-                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+            <div class="dropdown">
+                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-4 text-dark"></i>
+                        <?php if ($unread_count > 0): ?>
+                        <span class="notif-dot"></span>
+                        <?php endif; ?>
+                        </div>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow"
+                        style="width:320px;max-height:400px;overflow-y:auto;">
+
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
-                            <a href="?mark_read=1&id=<?= $syllabus_id ?>" class="text-decoration-none small text-orange">Mark all read</a>
+                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
+                            Mark all read
+                        </a>
                         <?php endif; ?>
-                    </li>
-                    <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications</li>
-                    <?php else: foreach ($notifications as $n): ?>
-                        <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <p class="mb-0 small"><?= htmlspecialchars($n['message']) ?></p>
-                            <span class="text-muted" style="font-size:.7rem;">
-                                <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                            </span>
                         </li>
-                    <?php endforeach; endif; ?>
-                </ul>
-            </div>
-        </div>
 
+        <?php if (empty($notifications)): ?>
+            <li class="px-3 py-3 text-center text-muted small">
+                No notifications yet
+            </li>
+        <?php else: ?>
+
+            <?php foreach ($notifications as $n):
+                $color = get_notification_color($n['message']); ?>
+                
+                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                    <p class="mb-0 small">
+                        <span class="<?= $color['text'] ?> fw-bold me-1">
+                            <?= $color['icon'] ?>
+                        </span>
+                        <span class="<?= $color['text'] ?>">
+                            <?= htmlspecialchars($n['message']) ?>
+                        </span>
+                    </p>
+
+                    <span class="text-muted" style="font-size:.7rem;">
+                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                    </span>
+                </li>
+
+            <?php endforeach; ?>
+
+        <?php endif; ?>
+    </ul>
+</div>
         <?php if ($success_message): ?>
             <div class="alert alert-success alert-dismissible fade show mb-4">
                 <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>

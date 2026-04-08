@@ -10,8 +10,16 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'Admin User';
-$role_display = "Dean's Panel"
+$role_display = "Dean's Panel";
 
+$notifications = get_notifications($user_id, 10);
+$unread_count  = count_unread_notifications($user_id);
+
+if (isset($_GET['mark_read'])) {
+    mark_all_notifications_read($user_id);
+    header('Location: upload_syllabus.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -58,25 +66,66 @@ $role_display = "Dean's Panel"
             <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
         </nav>
     </div>
+</div>
 
     <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h3 class="text-orange font-serif fw-bold mb-0">Upload Syllabus</h3>
             <div class="dropdown">
-                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-4 text-secondary"></i>
-                </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;">
-                    <li class="px-3 py-2 border-bottom"><strong>Notifications</strong></li>
-                    <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                    <?php else: foreach ($notifications as $n): ?>
-                        <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <p class="mb-0 small"><?= htmlspecialchars($n['message']) ?></p>
+                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-4 text-dark"></i>
+                        <?php if ($unread_count > 0): ?>
+                        <span class="notif-dot"></span>
+                        <?php endif; ?>
+                        </div>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow"
+                        style="width:320px;max-height:400px;overflow-y:auto;">
+
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                        <strong>Notifications</strong>
+                        <?php if ($unread_count > 0): ?>
+                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
+                            Mark all read
+                        </a>
+                        <?php endif; ?>
                         </li>
-                    <?php endforeach; endif; ?>
-                </ul>
-            </div>
+
+        <?php if (empty($notifications)): ?>
+            <li class="px-3 py-3 text-center text-muted small">
+                No notifications yet
+            </li>
+        <?php else: ?>
+
+            <?php foreach ($notifications as $n):
+                $color = get_notification_color($n['message']); ?>
+                
+                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                    <p class="mb-0 small">
+                        <span class="<?= $color['text'] ?> fw-bold me-1">
+                            <?= $color['icon'] ?>
+                        </span>
+                        <span class="<?= $color['text'] ?>">
+                            <?= htmlspecialchars($n['message']) ?>
+                        </span>
+                    </p>
+
+                    <span class="text-muted" style="font-size:.7rem;">
+                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                    </span>
+                </li>
+
+            <?php endforeach; ?>
+
+        <?php endif; ?>
+        <li class="border-top">
+    <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+        View all notifications
+    </a>
+</li>
+    </ul>
+</div>
+</div>
         </div>
 
         <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">

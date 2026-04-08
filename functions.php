@@ -69,6 +69,58 @@ function mark_all_notifications_read($user_id) {
     $stmt->execute([$user_id]);
 }
 
+/**
+ * Returns Bootstrap color classes for a notification based on its message content.
+ *
+ * Usage in your notification template:
+ *   $colors = get_notification_color($notification['message']);
+ *   // $colors['bg']      — background class  e.g. 'bg-danger'
+ *   // $colors['text']    — text class         e.g. 'text-danger'
+ *   // $colors['border']  — border class       e.g. 'border-danger'
+ *   // $colors['icon']    — a Unicode icon     e.g. '✕'
+ */
+function get_notification_color(string $message): array {
+    $msg = strtolower($message);
+
+    // Fully approved by VPAA
+    if (str_contains($msg, 'fully approved') || str_contains($msg, 'approved by vpaa')) {
+        return [
+            'bg'     => 'bg-success',
+            'text'   => 'text-success',
+            'border' => 'border-success',
+            'icon'   => '✓',
+        ];
+    }
+
+    // Rejected
+    if (str_contains($msg, 'rejected')) {
+        return [
+            'bg'     => 'bg-danger',
+            'text'   => 'text-danger',
+            'border' => 'border-danger',
+            'icon'   => '✕',
+        ];
+    }
+
+    // Partially approved / awaiting next reviewer
+    if (str_contains($msg, 'approved') || str_contains($msg, 'awaiting')) {
+        return [
+            'bg'     => 'bg-warning',
+            'text'   => 'text-warning',
+            'border' => 'border-warning',
+            'icon'   => '◑',
+        ];
+    }
+
+    // Default / informational (e.g. new submission, registration)
+    return [
+        'bg'     => 'bg-secondary',
+        'text'   => 'text-secondary',
+        'border' => 'border-secondary',
+        'icon'   => '🔔',
+    ];
+}
+
 /* ============================
    ROLE HELPERS
 ============================ */

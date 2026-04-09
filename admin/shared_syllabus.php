@@ -27,6 +27,8 @@ if (isset($_GET['mark_read'])) {
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
+
+
 /* ── Fetch all approved syllabi with uploader info ── */
 $pdo  = get_db();
 $stmt = $pdo->prepare("
@@ -49,6 +51,22 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute();
 $approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+/* ── Sidebar badge counts ── */
+$pending_review_count = (int) $pdo->query("
+    SELECT COUNT(DISTINCT sw.syllabus_id)
+    FROM syllabus_workflow sw
+    JOIN roles r ON sw.role_id = r.id
+    WHERE r.role_name = 'dean' AND sw.action = 'Pending'
+")->fetchColumn();
+
+$reg_stmt = $pdo->prepare("
+    SELECT COUNT(*) FROM users u
+    JOIN roles r ON u.role_id = r.id
+    WHERE r.role_name = 'faculty' AND u.is_approved = 0 AND u.is_deleted = 0
+");
+$reg_stmt->execute();
+$reg_count = (int) $reg_stmt->fetchColumn();
 
 /* ── Unique filter values ── */
 $departments = array_unique(array_filter(array_column($approved_syllabi, 'department_name')));
@@ -77,31 +95,49 @@ sort($departments); sort($semesters); rsort($years);
     </style>
 </head>
 <body class="bg-light">
-<div class="d-flex">
+< class="d-flex">
 
     <!-- ── Sidebar ── -->
     <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-         style="width:260px; position:fixed; z-index:1100;">
-        <div class="text-center mb-3 mt-2">
-            <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                 style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-            <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;">
-                <?= htmlspecialchars($username) ?>
-            </p>
+            style="width:260px; position:fixed; z-index:1100;">
+            <div class="text-center mb-3 mt-2">
+                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
+                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
+                </p>
+            </div>
+            <nav class="nav flex-column gap-2 mb-auto">
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Syllabus Review
+                    <?php if ($pending_review_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                    <?php endif; ?>
+                </a>
+                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
+                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
+                <a href="shared_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">Shared Syllabus</a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
+                    Registration Requests
+                    <?php if ($reg_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                    <?php endif; ?>
+                </a>
+                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
+                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
+
+                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+            </nav>
         </div>
 
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-        <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-        <a href="syllabus_review.php"  class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-        <a href="shared_syllabus.php"  class="nav-link text-white active-nav-link p-3 rounded">Shared Syllabus</a>
-
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-        <a href="profile.php"   class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-        <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-    </div>
 
     <!-- ── Main Content ── -->
     <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">

@@ -24,6 +24,13 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
+if (isset($_GET['notif_id'])) {
+    $notif_id = (int) $_GET['notif_id'];
+    mark_single_notification_read($notif_id, $user_id);
+    header('Location: syllabus_review.php');
+    exit();
+}
+
 $success_message = $_SESSION['success_message'] ?? '';
 unset($_SESSION['success_message']);
 
@@ -96,11 +103,18 @@ $notifications = get_notifications($user_id, 5);
                     <?php if (empty($notifications)): ?>
                         <li class="px-3 py-3 text-center text-muted small">No notifications</li>
                     <?php else: foreach ($notifications as $n): ?>
-                        <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <p class="mb-0 small"><?= htmlspecialchars($n['message']) ?></p>
-                            <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                            <a href="?notif_id=<?= $n['id'] ?>" class="d-block px-3 py-2 text-decoration-none">
+                                <p class="mb-0 small text-dark"><?= htmlspecialchars($n['message']) ?></p>
+                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                            </a>
                         </li>
                     <?php endforeach; endif; ?>
+                    <li class="border-top">
+                        <a href="dept_dashboard.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+                            Back to Dashboard
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -170,7 +184,7 @@ $notifications = get_notifications($user_id, 5);
                                             <span class="text-muted text-truncate d-block" style="font-size:.7rem;max-width:150px;"><?= htmlspecialchars($sub['course_title']) ?></span>
                                         </td>
                                         <td class="d-none d-xl-table-cell small"><?= htmlspecialchars($sub['school_year'] ?? '—') ?></td>
-                                        <td><span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending</span></td>
+                                        <td><?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null) ?></td>
                                         <td class="text-center">
                                             <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
                                                target="_blank" class="btn btn-sm btn-link text-orange p-0">
@@ -264,6 +278,8 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                         <td class="text-center">
+                                            <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
+                                               class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1">Edit</a>
                                             <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
                                                class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
                                         </td>

@@ -457,11 +457,20 @@ footer {
     border: 1px solid rgba(255, 136, 0, 0.1);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease;
+    transition: all 0.3s ease;
 }
 
 .premium-card:hover {
     box-shadow: 0 15px 40px rgba(255, 136, 0, 0.1);
+}
+
+.scale-effect {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scale-effect:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card {

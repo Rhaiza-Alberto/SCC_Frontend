@@ -56,6 +56,12 @@ function mark_notification_read($notification_id) {
     $stmt->execute([$notification_id]);
 }
 
+function mark_single_notification_read($notification_id, $user_id) {
+    $conn = get_db();
+    $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
+    $stmt->execute([$notification_id, $user_id]);
+}
+
 function mark_all_notifications_read($user_id) {
     $conn = get_db();
     $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
@@ -148,6 +154,17 @@ function get_user_by_id($user_id) {
     ");
     $stmt->execute([$user_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function update_user($user_id, $first_name, $last_name, $email, $role_id, $department_id) {
+    try {
+        $conn = get_db();
+        $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
+        return $stmt->execute([$first_name, $last_name, $email, $role_id, $department_id, $user_id]);
+    } catch (PDOException $e) {
+        error_log("update_user error: " . $e->getMessage());
+        return false;
+    }
 }
 
 function get_dean($department_id = null) {
@@ -361,7 +378,7 @@ function determine_next_role($current_role) {
 function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
     $conn = get_db();
 
-    $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ?");
+    $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ? AND action = 'Pending'");
     $exists->execute([$syllabus_id]);
     if ((int) $exists->fetchColumn() > 0) return;
 
@@ -382,6 +399,19 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
         ")->execute([$syllabus_id, $role_id]);
         notify_next_reviewer($syllabus_id, 'dean');
     }
+}
+
+/**
+ * Reset syllabus workflow after edit
+ */
+function reset_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
+    $conn = get_db();
+    // Wipe all existing steps for this submission
+    $conn->prepare("DELETE FROM syllabus_workflow WHERE syllabus_id = ?")->execute([$syllabus_id]);
+    // Ensure status is Pending
+    $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")->execute([$syllabus_id]);
+    // Re-init
+    init_syllabus_workflow($syllabus_id, $uploader_role);
 }
 
 /* ============================
@@ -531,11 +561,17 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
 ============================ */
 
 function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null) {
-    return match ($status) {
-        'Approved' => '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved</span>',
-        'Rejected' => '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span>',
-        default    => '<span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending</span>',
-    };
+    if ($status === 'Approved') {
+        return '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved VPAA</span>';
+    }
+    if ($status === 'Rejected') {
+        return '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span>';
+    }
+    // Pending — show which stage
+    if ($current_stage_role === 'vpaa') {
+        return '<span class="badge bg-info bg-opacity-25 text-info border border-info rounded-pill px-3" style="font-size:.75rem;">Partially Approved – Awaiting VPAA</span>';
+    }
+    return '<span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending – Awaiting Dean</span>';
 }
 
 /* ============================

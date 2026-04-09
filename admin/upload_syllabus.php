@@ -67,7 +67,6 @@ if (isset($_GET['mark_read'])) {
             <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
         </nav>
     </div>
-</div>
 
     <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
         <div class="d-flex justify-content-between align-items-center mb-5">
@@ -101,19 +100,20 @@ if (isset($_GET['mark_read'])) {
             <?php foreach ($notifications as $n):
                 $color = get_notification_color($n['message']); ?>
                 
-                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <p class="mb-0 small">
-                        <span class="<?= $color['text'] ?> fw-bold me-1">
-                            <?= $color['icon'] ?>
+                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                        <p class="mb-0 small">
+                            <span class="<?= $color['text'] ?> fw-bold me-1">
+                                <?= $color['icon'] ?>
+                            </span>
+                            <span class="<?= $color['text'] ?>">
+                                <?= htmlspecialchars($n['message']) ?>
+                            </span>
+                        </p>
+                        <span class="text-muted" style="font-size:.7rem;">
+                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
                         </span>
-                        <span class="<?= $color['text'] ?>">
-                            <?= htmlspecialchars($n['message']) ?>
-                        </span>
-                    </p>
-
-                    <span class="text-muted" style="font-size:.7rem;">
-                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                    </span>
+                    </a>
                 </li>
 
             <?php endforeach; ?>
@@ -127,8 +127,6 @@ if (isset($_GET['mark_read'])) {
     </ul>
 </div>
 </div>
-        </div>
-
         <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
             <form action="../faculty/process_upload.php" method="POST" enctype="multipart/form-data">
                 <div class="mb-3">

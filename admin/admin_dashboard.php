@@ -70,7 +70,10 @@ $pending_syllabi_stmt = $conn->prepare("
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name, u.email AS uploader_email,
-           sw.id AS workflow_id
+           sw.id AS workflow_id,
+           -- Status tracking subqueries
+           (SELECT r2.role_name FROM syllabus_workflow sw3 JOIN roles r2 ON sw3.role_id = r2.id WHERE sw3.syllabus_id = s.id AND sw3.action = 'Pending' ORDER BY sw3.step_order ASC LIMIT 1) AS current_stage_role,
+           (SELECT r3.role_name FROM syllabus_workflow sw4 JOIN roles r3 ON sw4.role_id = r3.id WHERE sw4.syllabus_id = s.id AND sw4.action = 'Rejected' ORDER BY sw4.action_at DESC LIMIT 1) AS rejecting_role
     FROM syllabus_workflow sw
     JOIN syllabus s ON sw.syllabus_id = s.id
     JOIN users u    ON s.uploaded_by  = u.id
@@ -91,7 +94,10 @@ $all_stmt = $conn->prepare("
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name, u.email AS uploader_email,
-           d.department_name
+           d.department_name,
+           -- Status tracking subqueries
+           (SELECT r2.role_name FROM syllabus_workflow sw3 JOIN roles r2 ON sw3.role_id = r2.id WHERE sw3.syllabus_id = s.id AND sw3.action = 'Pending' ORDER BY sw3.step_order ASC LIMIT 1) AS current_stage_role,
+           (SELECT r3.role_name FROM syllabus_workflow sw4 JOIN roles r3 ON sw4.role_id = r3.id WHERE sw4.syllabus_id = s.id AND sw4.action = 'Rejected' ORDER BY sw4.action_at DESC LIMIT 1) AS rejecting_role
     FROM syllabus s
     LEFT JOIN courses c     ON s.course_id      = c.id
     LEFT JOIN users u       ON s.uploaded_by    = u.id
@@ -239,19 +245,21 @@ $notifications = get_notifications($user_id, 5);
             <?php foreach ($notifications as $n):
                 $color = get_notification_color($n['message']); ?>
                 
-                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <p class="mb-0 small">
-                        <span class="<?= $color['text'] ?> fw-bold me-1">
-                            <?= $color['icon'] ?>
-                        </span>
-                        <span class="<?= $color['text'] ?>">
-                            <?= htmlspecialchars($n['message']) ?>
-                        </span>
-                    </p>
+                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                        <p class="mb-0 small">
+                            <span class="<?= $color['text'] ?> fw-bold me-1">
+                                <?= $color['icon'] ?>
+                            </span>
+                            <span class="<?= $color['text'] ?>">
+                                <?= htmlspecialchars($n['message']) ?>
+                            </span>
+                        </p>
 
-                    <span class="text-muted" style="font-size:.7rem;">
-                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                    </span>
+                        <span class="text-muted" style="font-size:.7rem;">
+                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                        </span>
+                    </a>
                 </li>
 
             <?php endforeach; ?>
@@ -408,7 +416,7 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td class="small"><?= htmlspecialchars($s['subject_type'] ?? '—') ?></td>
                                         <td class="small"><?= htmlspecialchars($s['semester'] ?? '—') ?></td>
-                                        <td><span class="text-warning fw-bold small">Pending</span></td>
+                                        <td><?= format_syllabus_status($s['status'], $s['current_stage_role'], $s['rejecting_role']) ?></td>
                                         <td class="text-center">
                                             <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>"
                                                 target="_blank" class="btn btn-sm btn-link text-orange p-0">
@@ -416,13 +424,13 @@ $notifications = get_notifications($user_id, 5);
                                             </a>
                                         </td>
                                         <td class="text-center">
-                                            <div class="d-flex gap-1 justify-content-center">
+                                            <div class="d-flex gap-2 justify-content-center">
                                                 <button
                                                     onclick="handleReview('approve', <?= $s['id'] ?>, '<?= htmlspecialchars($s['course_code']) ?>')"
-                                                    class="btn btn-sm btn-outline-success px-2 py-0 small rounded-1">Approve</button>
+                                                    class="btn btn-sm btn-success rounded-pill px-3 shadow-sm" style="font-size:.7rem;">Approve</button>
                                                 <button
                                                     onclick="handleReview('reject', <?= $s['id'] ?>, '<?= htmlspecialchars($s['course_code']) ?>')"
-                                                    class="btn btn-sm btn-outline-danger px-2 py-0 small rounded-1">Reject</button>
+                                                    class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm" style="font-size:.7rem;">Reject</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -462,16 +470,14 @@ $notifications = get_notifications($user_id, 5);
                                         <td class="small"><?= htmlspecialchars($s['course_title']) ?></td>
                                         <td class="small"><?= htmlspecialchars($s['semester'] ?? '—') ?></td>
                                         <td>
-                                            <?php
-                                            $badge = match ($s['status']) {
-                                                'Approved' => 'bg-success',
-                                                'Rejected' => 'bg-danger',
-                                                default => 'bg-warning text-dark',
-                                            };
-                                            ?>
-                                            <span class="badge <?= $badge ?> rounded-pill px-3"><?= $s['status'] ?></span>
+                                            <?= format_syllabus_status($s['status'], $s['current_stage_role'], $s['rejecting_role']) ?>
                                         </td>
-                                        <td><a href="#" class="text-orange text-decoration-none small fw-bold">Preview</a></td>
+                                        <td class="text-center">
+                                            <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>"
+                                               target="_blank" class="btn btn-sm btn-outline-warning rounded-pill px-3" style="font-size:.7rem;">
+                                                <i class="bi bi-eye me-1"></i> Preview
+                                            </a>
+                                        </td>
                                         <td class="small text-muted"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
                                     </tr>
                                 <?php endforeach; endif; ?>
@@ -520,16 +526,14 @@ $notifications = get_notifications($user_id, 5);
                                         </td>
                                         <td class="small"><?= htmlspecialchars($s['semester'] ?? '—') ?></td>
                                         <td>
-                                            <?php
-                                            $badge = match ($s['status']) {
-                                                'Approved' => 'text-success',
-                                                'Rejected' => 'text-danger',
-                                                default => 'text-warning',
-                                            };
-                                            ?>
-                                            <span class="fw-bold small <?= $badge ?>"><?= $s['status'] ?></span>
+                                            <?= format_syllabus_status($s['status'], $s['current_stage_role'], $s['rejecting_role']) ?>
                                         </td>
-                                        <td><a href="#" class="text-orange text-decoration-none small fw-bold">Preview</a></td>
+                                        <td class="text-center">
+                                            <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>"
+                                               target="_blank" class="btn btn-sm btn-outline-warning rounded-pill px-3" style="font-size:.7rem;">
+                                                <i class="bi bi-eye me-1"></i> Preview
+                                            </a>
+                                        </td>
                                         <td class="small text-muted"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
                                     </tr>
                                 <?php endforeach; endif; ?>

@@ -142,7 +142,8 @@ sort($departments); sort($semesters); rsort($years);
                         <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
                     <?php else: foreach ($notifications as $n):
                         $color = get_notification_color($n['message']); ?>
-                        <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="d-block px-3 py-2 text-decoration-none">
                             <p class="mb-0 small">
                                 <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
                                 <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
@@ -150,6 +151,7 @@ sort($departments); sort($semesters); rsort($years);
                             <span class="text-muted" style="font-size:.7rem;">
                                 <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
                             </span>
+                            </a>
                         </li>
                     <?php endforeach; endif; ?>
                     <li class="border-top">

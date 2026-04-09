@@ -95,7 +95,7 @@ sort($departments); sort($semesters); rsort($years);
     </style>
 </head>
 <body class="bg-light">
-< class="d-flex">
+<div class="d-flex">
 
     <!-- ── Sidebar ── -->
     <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"

@@ -10,8 +10,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 ensure_role_in_session();
 
-$user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'] ?? 'Dean / Admin';
+$user_id      = $_SESSION['user_id'];
+$username     = $_SESSION['username'] ?? 'VPAA';
+$role_display = 'VPAA Institutional Hub';
 
 // Handle mark-all-read
 if (isset($_GET['mark_read'])) {
@@ -33,6 +34,7 @@ $stmt->execute([$user_id]);
 $all_notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $unread_count = count_unread_notifications($user_id);
+$vpaa_pending_count = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,30 +56,31 @@ $unread_count = count_unread_notifications($user_id);
 <body class="bg-light">
 <div class="d-flex">
 
-    <!-- Sidebar (same as dashboard) -->
+    <!-- Sidebar -->
     <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
          style="width:260px; position:fixed; z-index:1100;">
         <div class="text-center mb-3 mt-2">
             <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                  style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-            <h5 class="font-serif fw-bold text-orange mb-0">Dean's Panel</h5>
+            <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
             <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
         </div>
         <nav class="nav flex-column gap-2 mb-auto">
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+            <a href="vpaa_dashboard.php"     class="nav-link text-white active-nav-link p-3 rounded">Dashboard</a>
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
-            <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-            <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
+            <a href="syllabus_review.php"    class="nav-link text-white p-3 rounded hover-effect">
+                Syllabus Review
+                <?php if ($vpaa_pending_count > 0): ?>
+                    <span class="badge bg-danger ms-1"><?= $vpaa_pending_count ?></span>
+                <?php endif; ?>
+            </a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ANALYTICS</div>
+            <a href="compliance_reports.php" class="nav-link text-white p-3 rounded hover-effect">Compliance Reports</a>
+            <a href="syllabus_vault.php"     class="nav-link text-white p-3 rounded hover-effect">Syllabus Vault</a>
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+            <a href="profile.php"            class="nav-link text-white p-3 rounded hover-effect">Profile</a>
+            <a href="../logout.php"          class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
         </nav>
     </div>
 

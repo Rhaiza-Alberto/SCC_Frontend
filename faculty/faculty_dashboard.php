@@ -130,64 +130,73 @@ $notifications = get_notifications($user_id, 5);
         <!-- Main Content -->
         <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
 
+            <!-- ✅ FIXED: Bell + Print button now properly in one flex row -->
             <div class="d-flex justify-content-between align-items-center mb-5">
                 <h2 class="text-orange font-serif fw-bold">Welcome, <?= htmlspecialchars($username) ?>!</h2>
 
-                <!-- Notification Bell -->
-                <div class="dropdown">
+                <div class="d-flex align-items-center gap-3">
+
+                    <!-- Notification Bell -->
+                    <div class="dropdown">
                         <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
-                        <span class="notif-dot"></span>
-                        <?php endif; ?>
+                            <i class="bi bi-bell fs-4 text-dark"></i>
+                            <?php if ($unread_count > 0): ?>
+                            <span class="notif-dot"></span>
+                            <?php endif; ?>
                         </div>
 
                         <ul class="dropdown-menu dropdown-menu-end shadow"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
+                            style="width:320px;max-height:400px;overflow-y:auto;">
 
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-                        <strong>Notifications</strong>
-                        <?php if ($unread_count > 0): ?>
-                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                            Mark all read
-                        </a>
-                        <?php endif; ?>
-                        </li>
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                                <strong>Notifications</strong>
+                                <?php if ($unread_count > 0): ?>
+                                <a href="?mark_read=1" class="text-decoration-none small text-orange">
+                                    Mark all read
+                                </a>
+                                <?php endif; ?>
+                            </li>
 
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-        <?php else: ?>
+                            <?php if (empty($notifications)): ?>
+                                <li class="px-3 py-3 text-center text-muted small">
+                                    No notifications yet
+                                </li>
+                            <?php else: ?>
+                                <?php foreach ($notifications as $n):
+                                    $color = get_notification_color($n['message']); ?>
+                                    <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                        <p class="mb-0 small">
+                                            <span class="<?= $color['text'] ?> fw-bold me-1">
+                                                <?= $color['icon'] ?>
+                                            </span>
+                                            <span class="<?= $color['text'] ?>">
+                                                <?= htmlspecialchars($n['message']) ?>
+                                            </span>
+                                        </p>
+                                        <span class="text-muted" style="font-size:.7rem;">
+                                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                                        </span>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
 
-            <?php foreach ($notifications as $n):
-                $color = get_notification_color($n['message']); ?>
-                
-                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <p class="mb-0 small">
-                        <span class="<?= $color['text'] ?> fw-bold me-1">
-                            <?= $color['icon'] ?>
-                        </span>
-                        <span class="<?= $color['text'] ?>">
-                            <?= htmlspecialchars($n['message']) ?>
-                        </span>
-                    </p>
+                            <li>
+                                <a href="notifications.php"
+                                   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+                                    View all notifications
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                    <span class="text-muted" style="font-size:.7rem;">
-                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                    </span>
-                </li>
+                    <!-- Print Button -->
+                    <button class="btn btn-sm btn-white border shadow-sm rounded-1 px-3 py-1 fw-bold text-dark d-flex align-items-center"
+                            onclick="window.print()">
+                        <i class="bi bi-printer me-2"></i> PRINT
+                    </button>
 
-            <?php endforeach; ?>
-
-        <?php endif; ?>
-        <a href="notifications.php" 
-   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-    View all notifications
-</a>
-    </ul>
-</div>
-</div>
+                </div>
+            </div>
 
             <!-- Stat Cards -->
             <div class="row g-4 mb-4">
@@ -282,9 +291,6 @@ $notifications = get_notifications($user_id, 5);
                 <div class="card premium-card p-4 mb-5 border-0 shadow-sm bg-white">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="card-title font-serif fw-bold mb-0 text-orange">My Submissions</h5>
-        <button class="btn btn-sm btn-clean d-flex align-items-center" onclick="window.print()">
-            <i class="bi bi-printer me-2"></i> PRINT
-        </button>
     </div>
     
     <div class="table-responsive">
@@ -336,7 +342,7 @@ $notifications = get_notifications($user_id, 5);
                             </td>
                             <td>
                                 <span class="badge <?= $sc ?> rounded-pill px-3 py-1" style="font-size:.75rem;">
-                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null ?? null, $sub['rejecting_role'] ?? null ?? null) ?>
+                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
                                 </span>
                             </td>
                             <td class="small text-muted"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
@@ -424,30 +430,31 @@ $notifications = get_notifications($user_id, 5);
                     </div>
                 </div>
 
-            </div><!-- /main-content -->
-        </div>
+            </div><!-- /row -->
+        </div><!-- /main-content -->
+    </div><!-- /d-flex -->
 
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script>
-            function applyFilter() {
-                const search = document.getElementById('filterSearch').value.toLowerCase();
-                const status = document.getElementById('filterStatus').value;
-                const date = document.getElementById('filterDate').value;
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function applyFilter() {
+            const search = document.getElementById('filterSearch').value.toLowerCase();
+            const status = document.getElementById('filterStatus').value;
+            const date = document.getElementById('filterDate').value;
 
-                document.querySelectorAll('.submission-row').forEach(row => {
-                    const matchSearch = !search ||
-                        row.dataset.code.includes(search) ||
-                        row.dataset.title.includes(search);
-                    const matchStatus = !status || row.dataset.status === status;
-                    const matchDate = !date || row.dataset.date === date;
-                    row.style.display = (matchSearch && matchStatus && matchDate) ? '' : 'none';
-                });
-            }
+            document.querySelectorAll('.submission-row').forEach(row => {
+                const matchSearch = !search ||
+                    row.dataset.code.includes(search) ||
+                    row.dataset.title.includes(search);
+                const matchStatus = !status || row.dataset.status === status;
+                const matchDate = !date || row.dataset.date === date;
+                row.style.display = (matchSearch && matchStatus && matchDate) ? '' : 'none';
+            });
+        }
 
-            document.getElementById('filterSearch').addEventListener('keyup', applyFilter);
-            document.getElementById('filterStatus').addEventListener('change', applyFilter);
-            document.getElementById('filterDate').addEventListener('change', applyFilter);
-        </script>
+        document.getElementById('filterSearch').addEventListener('keyup', applyFilter);
+        document.getElementById('filterStatus').addEventListener('change', applyFilter);
+        document.getElementById('filterDate').addEventListener('change', applyFilter);
+    </script>
 </body>
 
 </html>

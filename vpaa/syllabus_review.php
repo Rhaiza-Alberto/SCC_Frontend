@@ -25,7 +25,7 @@ if (strtolower($session_role) !== 'vpaa') {
 
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'VPAA';
-$role_display = 'VPAA';
+$role_display = 'VPAA Institutional Hub';
 
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);

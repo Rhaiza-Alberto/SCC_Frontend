@@ -16,6 +16,6 @@ if (isset($_COOKIE[session_name()])) {
 // Destroy the session
 session_destroy();
 
-// Redirect to login
-header('Location: login.php');
+// Redirect to index.php
+header('Location: index.php');
 exit();

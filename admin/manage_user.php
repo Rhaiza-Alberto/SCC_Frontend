@@ -8,28 +8,34 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
-// Initialize session-based "users" if empty
-if (!isset($_SESSION['users'])) {
-    $_SESSION['users'] = [
-        ['id' => 1, 'username' => 'Achy', 'email' => 'faculty@gmail.com', 'role' => 'faculty', 'dept' => 'CS'],
-        ['id' => 2, 'username' => 'Dr. Jane Smith', 'email' => 'dept@gmail.com', 'role' => 'dept_head', 'dept' => 'CS'],
-        ['id' => 3, 'username' => 'VPAA', 'email' => 'vpaa@gmail.com', 'role' => 'vpaa', 'dept' => 'Institutional'],
-        ['id' => 4, 'username' => 'Admin User', 'email' => 'admin@gmail.com', 'role' => 'admin', 'dept' => 'CCS'],
-    ];
-}
-
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
-$users = $_SESSION['users'];
 
-// Handle Deletion (Simulated)
+// CONNECT (PDO)
+$db = new Database();
+$conn = $db->connect();
+
+// FETCH USERS
+$query = "SELECT users.*, roles.role_name, departments.department_name 
+          FROM users
+          LEFT JOIN roles ON users.role_id = roles.id
+          LEFT JOIN departments ON users.department_id = departments.id
+          WHERE users.is_deleted = 0";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$users = $stmt->fetchAll();
+
+// DELETE USER (SOFT DELETE)
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
-    $_SESSION['users'] = array_filter($_SESSION['users'], fn($u) => $u['id'] !== $id);
+
+    $stmt = $conn->prepare("UPDATE users SET is_deleted = 1 WHERE id = ?");
+    $stmt->execute([$id]);
+
     header('Location: manage_user.php');
     exit();
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -63,44 +69,41 @@ if (isset($_GET['delete'])) {
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width: 260px; position: fixed; z-index: 1100;">
+            style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
-                    <?php echo htmlspecialchars($username); ?>
-                </p>
+            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Dashboard
-                </a>
+                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Upload Syllabus
+                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
+            Syllabus Review
+                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                    <?php endif; ?>
                 </a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
-                    My Submissions
-                </a>
+                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
+                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
+                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded active-nav-link">
-                    Manage User
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
+            Registration Requests
+                    <?php if (isset($reg_count) && $reg_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                    <?php endif; ?>
                 </a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Add User
-                </a>
+                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
+                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none">
-                    Profile
-                </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
-                    Logout
-                </a>
+                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
             </nav>
         </div>
 
@@ -127,29 +130,43 @@ if (isset($_GET['delete'])) {
                         <tbody>
                             <?php foreach ($users as $u): ?>
                                 <tr>
-                                    <td><?php echo $u['id']; ?></td>
-                                    <td><span class="fw-bold"><?php echo htmlspecialchars($u['username']); ?></span></td>
-                                    <td class="small"><?php echo htmlspecialchars($u['email']); ?></td>
-                                    <td>
-                                        <span
-                                            class="badge rounded-pill px-3 py-1 bg-opacity-10 
-                                        <?php echo $u['role'] == 'admin' ? 'bg-danger text-danger' :
-                                            ($u['role'] == 'dept_head' ? 'bg-warning text-warning' : 'bg-primary text-primary'); ?>">
-                                            <?php echo strtoupper($u['role']); ?>
-                                        </span>
-                                    </td>
-                                    <td class="small text-muted"><?php echo htmlspecialchars($u['dept']); ?></td>
-                                    <td class="text-center">
-                                        <div class="btn-group btn-group-sm">
-                                            <button class="btn btn-outline-primary border-0"><i
-                                                    class="bi bi-pencil"></i></button>
-                                            <a href="?delete=<?php echo $u['id']; ?>"
-                                                class="btn btn-outline-danger border-0"
-                                                onclick="return confirm('Delete this user?')"><i
-                                                    class="bi bi-trash"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
+    <td><?php echo $u['id']; ?></td>
+
+    <td>
+        <span class="fw-bold">
+            <?php echo htmlspecialchars($u['first_name'] . ' ' . $u['last_name']); ?>
+        </span>
+    </td>
+
+    <td class="small"><?php echo htmlspecialchars($u['email']); ?></td>
+
+    <td>
+        <span class="badge rounded-pill px-3 py-1 bg-opacity-10 
+        <?php echo $u['role_name'] == 'dean' ? 'bg-danger text-danger' :
+            ($u['role_name'] == 'department_head' ? 'bg-warning text-warning' :
+            ($u['role_name'] == 'vpaa' ? 'bg-success text-success' : 'bg-primary text-primary')); ?>">
+            
+            <?php echo strtoupper($u['role_name']); ?>
+        </span>
+    </td>
+
+    <td class="small text-muted">
+        <?php echo htmlspecialchars($u['department_name'] ?? 'N/A'); ?>
+    </td>
+
+    <td class="text-center">
+        <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-primary border-0">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <a href="?delete=<?php echo $u['id']; ?>"
+               class="btn btn-outline-danger border-0"
+               onclick="return confirm('Delete this user?')">
+               <i class="bi bi-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>

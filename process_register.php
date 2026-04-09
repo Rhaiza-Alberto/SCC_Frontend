@@ -16,10 +16,9 @@ $password         = $_POST['password']              ?? '';
 $confirm_password = $_POST['confirmPassword']       ?? '';
 $birthdate        = $_POST['birthdate']             ?? '';
 $sex              = $_POST['sex']                   ?? '';
-$department_id    = $_POST['department']            ?? '';
 
 if (empty($first_name) || empty($last_name) || empty($email) || empty($password)
-    || empty($confirm_password) || empty($birthdate) || empty($sex) || empty($department_id)) {
+    || empty($confirm_password) || empty($birthdate) || empty($sex)) {
     $_SESSION['register_error'] = 'Please fill in all required fields.';
     header('Location: register.php');
     exit();
@@ -61,14 +60,6 @@ try {
         exit();
     }
 
-    $deptCheck = $conn->prepare("SELECT id FROM departments WHERE id = ?");
-    $deptCheck->execute([$department_id]);
-    if (!$deptCheck->fetch()) {
-        $_SESSION['register_error'] = 'Invalid department selected.';
-        header('Location: register.php');
-        exit();
-    }
-
     $roleStmt = $conn->prepare("SELECT id FROM roles WHERE role_name = 'faculty'");
     $roleStmt->execute();
     $role = $roleStmt->fetch(PDO::FETCH_ASSOC);
@@ -84,21 +75,17 @@ try {
     $stmt = $conn->prepare("
         INSERT INTO users
             (first_name, middle_name, last_name, birthdate, sex,
-             email, password, role_id, department_id,
+             email, password, role_id,
              created_at, is_deleted, is_approved, reset_requested)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)
     ");
     $stmt->execute([
         $first_name, $middle_name, $last_name, $birthdate, $sex_normalized,
-        $email, $hashed_password, $role['id'], $department_id,
+        $email, $hashed_password, $role['id'],
     ]);
 
-    // Notify the Dean (replaces dept head notification)
-    $dean = get_dean((int) $department_id);
-    if (!$dean) {
-        // Fall back to any dean if department-scoped dean not found
-        $dean = get_dean();
-    }
+    // Notify the Dean (no department scope since department was removed)
+    $dean = get_dean();
     if ($dean) {
         notify_user(
             $dean['id'],

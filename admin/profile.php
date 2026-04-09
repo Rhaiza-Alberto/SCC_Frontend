@@ -15,20 +15,51 @@ $email = $_SESSION['email'] ?? '';
 $role = $_SESSION['role'] ?? 'dept_head';
 $role_display = 'Dept Head Panel';
 
-// TODO: In a real application, fetch user profile data from database
-// For now, using demo data
+// Fetch user profile from database
+$user_id = $_SESSION['user_id'];
+
+$conn = get_db();
+$stmt = $conn->prepare("
+    SELECT 
+        u.first_name,
+        u.middle_name,
+        u.last_name,
+        u.birthdate,
+        u.sex,
+        u.email,
+        d.department_name,
+        c.college_name
+    FROM users u
+    LEFT JOIN departments d ON u.department_id = d.id
+    LEFT JOIN colleges    c ON d.college_id    = c.id
+    WHERE u.id = ? AND u.is_deleted = 0
+");
+$stmt->execute([$user_id]);
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+
 $profile = [
-    'first_name' => 'Minah',
-    'middle_name' => '',
-    'last_name' => 'Quiñal',
-    'birthdate' => '1985-06-15',
-    'sex' => 'Female',
-    'college' => 'College of Computing Studies',
-    'department' => 'Department of Information Technology',
-    'email' => $email
+    'first_name'  => $row['first_name']      ?? '',
+    'middle_name' => $row['middle_name']      ?? '',
+    'last_name'   => $row['last_name']        ?? '',
+    'birthdate'   => $row['birthdate']        ?? '',
+    'sex'         => $row['sex']              ?? '',
+    'college'     => $row['college_name']     ?? '',
+    'department'  => $row['department_name']  ?? '',
+    'email'       => $row['email']            ?? $email,
 ];
 
 $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
+
+$user_id       = $_SESSION['user_id'];
+$notifications = get_notifications($user_id, 10);
+$unread_count  = count_unread_notifications($user_id);
+
+// Handle "mark all read" action
+if (isset($_GET['mark_read'])) {
+    mark_all_notifications_read($user_id);
+    header('Location: profile.php');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -45,6 +76,8 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
         rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 </head>
 
 <body class="bg-light">
@@ -52,46 +85,41 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
     <div class="d-flex">
         <!-- Sidebar -->
         <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width: 260px; position: fixed; z-index: 1100;">
+            style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width: 80px; height: 80px; border: 2px solid rgba(255, 136, 0, 0.5); padding: 3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?php echo $role_display; ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size: 0.75rem;">
-                    <?php echo htmlspecialchars($username); ?>
-                </p>
+            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
             </div>
-
-
-<nav class="nav flex-column gap-2 mb-auto">
+            <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded">
-                    Dashboard
-                </a>
+                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Upload Syllabus
+                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
+            Syllabus Review
+                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                    <?php endif; ?>
                 </a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">
-                    My Submissions
-                </a>
+                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
+                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
+                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Manage User
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
+            Registration Requests
+                    <?php if (isset($reg_count) && $reg_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                    <?php endif; ?>
                 </a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Add User
-                </a>
+                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
+                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect text-decoration-none">
-                    Profile
-                </a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">
-                    Logout
-                </a>
+                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
             </nav>
         </div>
 
@@ -101,14 +129,60 @@ $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
                 <h3 class="text-orange font-serif fw-bold mb-0">
                     <?php echo $edit_mode ? 'Edit my Profile' : 'My Profile'; ?>
                 </h3>
-                <div class="notification-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                        class="bi bi-bell" viewBox="0 0 16 16">
-                        <path
-                            d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
-                    </svg>
-                    <span class="notification-badge-dot"></span>
-                </div>
+                <div class="dropdown">
+    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+        <i class="bi bi-bell fs-4 text-secondary"></i>
+        <?php if ($unread_count > 0): ?>
+            <span class="notif-dot"></span>
+        <?php endif; ?>
+    </div>
+
+    <ul class="dropdown-menu dropdown-menu-end shadow" 
+        style="width:320px;max-height:400px;overflow-y:auto;">
+
+        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+            <strong>Notifications</strong>
+            <?php if ($unread_count > 0): ?>
+                <a href="?mark_read=1" class="text-decoration-none small text-orange">
+                    Mark all read
+                </a>
+            <?php endif; ?>
+        </li>
+
+        <?php if (empty($notifications)): ?>
+            <li class="px-3 py-3 text-center text-muted small">
+                No notifications yet
+            </li>
+
+        <?php else: foreach ($notifications as $n): 
+            $color = get_notification_color($n['message']); ?>
+
+            <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                
+                <p class="mb-0 small">
+                    <span class="<?= $color['text'] ?> fw-bold me-1">
+                        <?= $color['icon'] ?>
+                    </span>
+
+                    <span class="<?= $color['text'] ?>">
+                        <?= htmlspecialchars($n['message']) ?>
+                    </span>
+                </p>
+
+                <span class="text-muted" style="font-size:.7rem;">
+                    <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                </span>
+
+            </li>
+
+        <?php endforeach; endif; ?>
+        <li class="border-top">
+    <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+        View all notifications
+    </a>
+</li>
+    </ul>
+</div>
             </div>
 
             <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width: 800px;">

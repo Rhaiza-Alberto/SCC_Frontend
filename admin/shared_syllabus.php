@@ -44,30 +44,47 @@ $notifications = get_notifications($user_id, 5);
     </style>
 </head>
 <body class="bg-light">
+
 <div class="d-flex">
 
     <!-- Sidebar -->
     <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-         style="width:260px; position:fixed; z-index:1100;">
+        style="width:260px; position:fixed; z-index:1100;">
         <div class="text-center mb-3 mt-2">
             <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                 style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
             <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;">
-                <?= htmlspecialchars($username) ?>
-            </p>
+            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
         </div>
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-        <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+        <nav class="nav flex-column gap-2 mb-auto">
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+            <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
 
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-        <a href="upload_syllabus.php"  class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-        <a href="my_submissions.php"   class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-        <a href="shared_syllabus.php"  class="nav-link text-white active-nav-link p-3 rounded">Shared Syllabus</a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
+                Syllabus Review
+                <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
+                    <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                <?php endif; ?>
+            </a>
+            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
+            <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
+            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
 
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-        <a href="profile.php"   class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-        <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
+            <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
+                Registration Requests
+                <?php if (isset($reg_count) && $reg_count > 0): ?>
+                    <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                <?php endif; ?>
+            </a>
+            <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
+            <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
+
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+            <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+        </nav>
     </div>
 
     <!-- Main Content -->
@@ -79,26 +96,41 @@ $notifications = get_notifications($user_id, 5);
             <!-- Notification Bell -->
             <div class="dropdown">
                 <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-4 text-secondary"></i>
-                    <?php if ($unread_count > 0): ?><span class="notif-dot"></span><?php endif; ?>
+                    <i class="bi bi-bell fs-4 text-dark"></i>
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notif-dot"></span>
+                    <?php endif; ?>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;max-height:400px;overflow-y:auto;">
+
+                <ul class="dropdown-menu dropdown-menu-end shadow"
+                    style="width:320px;max-height:400px;overflow-y:auto;">
+
                     <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
                             <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
                         <?php endif; ?>
                     </li>
+
                     <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications</li>
-                    <?php else: foreach ($notifications as $n): ?>
+                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                    <?php else: foreach ($notifications as $n):
+                        $color = get_notification_color($n['message']); ?>
                         <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <p class="mb-0 small"><?= htmlspecialchars($n['message']) ?></p>
+                            <p class="mb-0 small">
+                                <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                            </p>
                             <span class="text-muted" style="font-size:.7rem;">
                                 <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
                             </span>
                         </li>
                     <?php endforeach; endif; ?>
+                    <li class="border-top">
+    <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+        View all notifications
+    </a>
+</li>
                 </ul>
             </div>
         </div>
@@ -117,8 +149,9 @@ $notifications = get_notifications($user_id, 5);
             </a>
         </div>
 
-    </div>
-</div>
+    </div><!-- /main-content -->
+
+</div><!-- /d-flex -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

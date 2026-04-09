@@ -17,6 +17,7 @@ if (empty($email) || empty($password)) {
     exit();
 }
 
+// Restrict to @gmail.com addresses
 if (!preg_match("/@gmail\.com$/i", $email)) {
     $_SESSION['error'] = 'Invalid email. Only @gmail.com addresses are accepted.';
     header('Location: login.php');
@@ -26,6 +27,7 @@ if (!preg_match("/@gmail\.com$/i", $email)) {
 try {
     $conn = get_db();
 
+    // Fetch user and join with roles to get the role_name
     $stmt = $conn->prepare("
         SELECT u.*, r.role_name
         FROM users u
@@ -42,6 +44,7 @@ try {
         exit();
     }
 
+    // Handle both Hashed and Plaintext (for legacy/migration)
     $stored         = $user['password'];
     $is_hashed      = strlen($stored) >= 60 && str_starts_with($stored, '$2');
     $password_valid = $is_hashed
@@ -54,26 +57,34 @@ try {
         exit();
     }
 
-    // Faculty must be approved by the Dean
+    // Faculty approval check
     if ($user['role_name'] === 'faculty' && empty($user['is_approved'])) {
         $_SESSION['error'] = 'Your account is pending approval by the Dean.';
         header('Location: login.php');
         exit();
     }
 
+    // Auto-migrate plaintext passwords to Hash
     if (!$is_hashed) {
         $hashed = password_hash($password, PASSWORD_BCRYPT);
         $conn->prepare("UPDATE users SET password = ? WHERE id = ?")
              ->execute([$hashed, $user['id']]);
     }
 
+    /**
+     * ROLE MAPPING
+     * To ensure the "New Dean" has the same features as the "Old Dean",
+     * we map the 'dean' role_name to the 'dean' session role.
+     */
     $role_map = [
         'faculty' => 'faculty',
         'dean'    => 'dean',
         'vpaa'    => 'vpaa',
     ];
+    
     $session_role = $role_map[$user['role_name']] ?? 'faculty';
 
+    // Set Session Variables
     $_SESSION['logged_in']     = true;
     $_SESSION['user_id']       = (int) $user['id'];
     $_SESSION['email']         = $user['email'];
@@ -83,11 +94,22 @@ try {
     $_SESSION['role_id']       = (int) $user['role_id'];
     $_SESSION['department_id'] = $user['department_id'] ? (int) $user['department_id'] : null;
 
+    /**
+     * REDIRECT LOGIC
+     * 'dean' is directed to the admin_dashboard where the Dean's tools are located.
+     */
     switch ($session_role) {
-        case 'faculty': header('Location: faculty/faculty_dashboard.php'); break;
-        case 'dean':    header('Location: admin/admin_dashboard.php');     break;
-        case 'vpaa':    header('Location: vpaa/vpaa_dashboard.php');       break;
-        default:        header('Location: faculty/faculty_dashboard.php');
+        case 'faculty': 
+            header('Location: faculty/faculty_dashboard.php');   
+            break;
+        case 'dean':    
+            header('Location: admin/admin_dashboard.php');       
+            break;
+        case 'vpaa':    
+            header('Location: vpaa/vpaa_dashboard.php');         
+            break;
+        default:        
+            header('Location: faculty/faculty_dashboard.php');
     }
     exit();
 

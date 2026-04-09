@@ -8,25 +8,26 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
-$username = $_SESSION['username'] ?? 'Dean / Admin';
+$username     = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
 
 // CONNECT (PDO)
-$db = new Database();
+$db   = new Database();
 $conn = $db->connect();
 
-// FETCH USERS
-$query = "SELECT users.*, roles.role_name, departments.department_name 
-          FROM users
-          LEFT JOIN roles ON users.role_id = roles.id
-          LEFT JOIN departments ON users.department_id = departments.id
-          WHERE users.is_deleted = 0";
+// Check if current user is dean
+$stmt = $conn->prepare("SELECT users.*, roles.role_name FROM users
+                        LEFT JOIN roles ON users.role_id = roles.id
+                        WHERE users.id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$current_user = $stmt->fetch();
+$is_dean      = ($current_user['role_name'] === 'dean');
 
-$stmt = $conn->prepare($query);
-$stmt->execute();
-$users = $stmt->fetchAll();
+// ── Initialise badge counters so isset() checks are never needed ──────────────
+$pending_review_count = 0;
+$reg_count            = 0;
 
-// DELETE USER (SOFT DELETE)
+// DELETE USER (SOFT DELETE) — must run BEFORE fetching users
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
 
@@ -36,6 +37,17 @@ if (isset($_GET['delete'])) {
     header('Location: manage_user.php');
     exit();
 }
+
+// FETCH USERS (after possible delete so the list is current)
+$query = "SELECT users.*, roles.role_name, departments.department_name
+          FROM users
+          LEFT JOIN roles       ON users.role_id       = roles.id
+          LEFT JOIN departments ON users.department_id = departments.id
+          WHERE users.is_deleted = 0";
+
+$stmt = $conn->prepare($query);
+$stmt->execute();
+$users = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +84,7 @@ if (isset($_GET['delete'])) {
             style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
                 <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
             </div>
@@ -82,9 +94,9 @@ if (isset($_GET['delete'])) {
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
                 <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Syllabus Review
-                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                    Syllabus Review
+                    <?php if ($pending_review_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= (int) $pending_review_count ?></span>
                     <?php endif; ?>
                 </a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
@@ -93,9 +105,9 @@ if (isset($_GET['delete'])) {
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
                 <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Registration Requests
-                    <?php if (isset($reg_count) && $reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                    Registration Requests
+                    <?php if ($reg_count > 0): ?>
+                        <span class="badge bg-danger ms-1"><?= (int) $reg_count ?></span>
                     <?php endif; ?>
                 </a>
                 <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
@@ -103,6 +115,11 @@ if (isset($_GET['delete'])) {
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+                <?php if ($is_dean): ?>
+                <a href="transfer_dean_role.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'transfer_dean_role.php' ? 'active-nav-link' : 'hover-effect' ?>">
+                    <i class="bi bi-arrow-left-right me-2"></i>Transfer Role
+                </a>
+                <?php endif; ?>
                 <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
             </nav>
         </div>
@@ -110,8 +127,16 @@ if (isset($_GET['delete'])) {
         <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="text-orange font-serif fw-bold">Manage Users</h2>
-                <a href="add_user.php" class="btn btn-orange rounded-pill px-4 shadow-sm"><i
-                        class="bi bi-person-plus me-2"></i> Add New User</a>
+                <div>
+                    <?php if ($is_dean): ?>
+                    <a href="transfer_dean_role.php" class="btn btn-outline-warning rounded-pill px-4 me-2 shadow-sm">
+                        <i class="bi bi-arrow-left-right me-2"></i> Transfer Dean Role
+                    </a>
+                    <?php endif; ?>
+                    <a href="add_user.php" class="btn btn-orange rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-person-plus me-2"></i> Add New User
+                    </a>
+                </div>
             </div>
 
             <div class="card premium-card p-4 shadow-sm border-0 bg-white">
@@ -130,43 +155,45 @@ if (isset($_GET['delete'])) {
                         <tbody>
                             <?php foreach ($users as $u): ?>
                                 <tr>
-    <td><?php echo $u['id']; ?></td>
+                                    <td><?= (int) $u['id'] ?></td>
 
-    <td>
-        <span class="fw-bold">
-            <?php echo htmlspecialchars($u['first_name'] . ' ' . $u['last_name']); ?>
-        </span>
-    </td>
+                                    <td>
+                                        <span class="fw-bold">
+                                            <?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>
+                                        </span>
+                                    </td>
 
-    <td class="small"><?php echo htmlspecialchars($u['email']); ?></td>
+                                    <td class="small"><?= htmlspecialchars($u['email']) ?></td>
 
-    <td>
-        <span class="badge rounded-pill px-3 py-1 bg-opacity-10 
-        <?php echo $u['role_name'] == 'dean' ? 'bg-danger text-danger' :
-            ($u['role_name'] == 'department_head' ? 'bg-warning text-warning' :
-            ($u['role_name'] == 'vpaa' ? 'bg-success text-success' : 'bg-primary text-primary')); ?>">
-            
-            <?php echo strtoupper($u['role_name']); ?>
-        </span>
-    </td>
+                                    <td>
+                                        <span class="badge rounded-pill px-3 py-1 bg-opacity-10
+                                            <?= $u['role_name'] == 'dean'            ? 'bg-danger text-danger'   :
+                                               ($u['role_name'] == 'department_head' ? 'bg-warning text-warning' :
+                                               ($u['role_name'] == 'vpaa'            ? 'bg-success text-success' : 'bg-primary text-primary')) ?>">
+                                            <?= htmlspecialchars(strtoupper($u['role_name'])) ?>
+                                        </span>
+                                    </td>
 
-    <td class="small text-muted">
-        <?php echo htmlspecialchars($u['department_name'] ?? 'N/A'); ?>
-    </td>
+                                    <td class="small text-muted">
+                                        <?= htmlspecialchars($u['department_name'] ?? 'N/A') ?>
+                                    </td>
 
-    <td class="text-center">
-        <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary border-0">
-                <i class="bi bi-pencil"></i>
-            </button>
-            <a href="?delete=<?php echo $u['id']; ?>"
-               class="btn btn-outline-danger border-0"
-               onclick="return confirm('Delete this user?')">
-               <i class="bi bi-trash"></i>
-            </a>
-        </div>
-    </td>
-</tr>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="edit_user.php?id=<?= (int) $u['id'] ?>"
+                                               class="btn btn-outline-primary border-0"
+                                               title="Edit User">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="?delete=<?= (int) $u['id'] ?>"
+                                               class="btn btn-outline-danger border-0"
+                                               onclick="return confirm('Delete this user?')"
+                                               title="Delete User">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
@@ -174,6 +201,8 @@ if (isset($_GET['delete'])) {
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

@@ -92,7 +92,7 @@ sort($departments); sort($semesters); rsort($years);
         </div>
 
         <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-        <a href="dean_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+        <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
 
         <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
         <a href="syllabus_review.php"  class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>

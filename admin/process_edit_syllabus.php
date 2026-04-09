@@ -1,7 +1,7 @@
 <?php
 /**
- * process_edit_syllabus.php
- * Handles editing a pending syllabus submission.
+ * admin/process_edit_syllabus.php
+ * Handles editing a pending/rejected syllabus submission for deans.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -27,7 +27,7 @@ if (!$syllabus_id) {
     exit();
 }
 
-// Verify ownership + status
+// Verify ownership + status (allow Pending or Rejected)
 $conn = get_db();
 $stmt = $conn->prepare("SELECT * FROM syllabus WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')");
 $stmt->execute([$syllabus_id, $user_id]);
@@ -113,6 +113,9 @@ try {
             status       = 'Pending'
         WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')
     ");
+    // Since Dean is the first reviewer for faculty, but Dean's own upload usually goes straight to VPAA for review.
+    // Setting stage to 'vpaa'.
+    
     $upd->execute([
         $course_id,
         $course_code,
@@ -125,8 +128,8 @@ try {
         $user_id,
     ]);
 
-    // Reset workflow so it restarts (from faculty -> dean)
-    reset_syllabus_workflow($syllabus_id, 'faculty');
+    // Reset workflow so it restarts (from dean -> vpaa)
+    reset_syllabus_workflow($syllabus_id, 'dean');
 
     // Delete old file if replaced
     if ($old_dest_path && file_exists($old_dest_path)) {

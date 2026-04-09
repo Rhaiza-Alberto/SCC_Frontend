@@ -156,9 +156,9 @@ if (isset($_GET['delete'])) {
 
     <td class="text-center">
         <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary border-0">
+            <a href="edit_user.php?id=<?php echo $u['id']; ?>" class="btn btn-outline-primary border-0">
                 <i class="bi bi-pencil"></i>
-            </button>
+            </a>
             <a href="?delete=<?php echo $u['id']; ?>"
                class="btn btn-outline-danger border-0"
                onclick="return confirm('Delete this user?')">

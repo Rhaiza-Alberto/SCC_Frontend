@@ -20,6 +20,14 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
+// Handle single notification click (mark read + redirect)
+if (isset($_GET['notif_id'])) {
+    $notif_id = (int) $_GET['notif_id'];
+    mark_single_notification_read($notif_id, $user_id);
+    header('Location: syllabus_review.php');
+    exit();
+}
+
 // Fetch ALL notifications (no limit)
 $conn = get_db();
 $stmt = $conn->prepare("
@@ -112,6 +120,7 @@ $unread_count = count_unread_notifications($user_id);
                     $color = get_notification_color($n['message']);
                     $rowClass = $n['is_read'] ? 'notif-read' : 'notif-unread';
                 ?>
+                <a href="?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block">
                 <div class="notif-row px-4 py-3 border-bottom <?= $rowClass ?> <?= !$n['is_read'] ? 'bg-white' : 'bg-light bg-opacity-50' ?>">
                     <div class="d-flex align-items-start gap-3">
                         <span class="<?= $color['text'] ?> fs-5 mt-1"><?= $color['icon'] ?></span>
@@ -129,6 +138,7 @@ $unread_count = count_unread_notifications($user_id);
                         <?php endif; ?>
                     </div>
                 </div>
+                </a>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>

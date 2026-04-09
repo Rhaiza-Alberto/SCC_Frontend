@@ -21,6 +21,14 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
+// Handle single notification click (mark read + redirect)
+if (isset($_GET['notif_id'])) {
+    $notif_id = (int) $_GET['notif_id'];
+    mark_single_notification_read($notif_id, $user_id);
+    header('Location: syllabus_review.php');
+    exit();
+}
+
 // Fetch ALL notifications (no limit)
 $conn = get_db();
 $stmt = $conn->prepare("
@@ -67,7 +75,7 @@ $vpaa_pending_count = 0;
         </div>
         <nav class="nav flex-column gap-2 mb-auto">
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="vpaa_dashboard.php"     class="nav-link text-white active-nav-link p-3 rounded">Dashboard</a>
+            <a href="vpaa_dashboard.php"     class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
             <a href="syllabus_review.php"    class="nav-link text-white p-3 rounded hover-effect">
                 Syllabus Review
@@ -115,6 +123,7 @@ $vpaa_pending_count = 0;
                     $color = get_notification_color($n['message']);
                     $rowClass = $n['is_read'] ? 'notif-read' : 'notif-unread';
                 ?>
+                <a href="?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block">
                 <div class="notif-row px-4 py-3 border-bottom <?= $rowClass ?> <?= !$n['is_read'] ? 'bg-white' : 'bg-light bg-opacity-50' ?>">
                     <div class="d-flex align-items-start gap-3">
                         <span class="<?= $color['text'] ?> fs-5 mt-1"><?= $color['icon'] ?></span>
@@ -132,6 +141,7 @@ $vpaa_pending_count = 0;
                         <?php endif; ?>
                     </div>
                 </div>
+                </a>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>

@@ -1,7 +1,7 @@
 <?php
 /**
- * edit_syllabus.php
- * Allows faculty to edit a pending syllabus submission (replace the PDF and/or update fields).
+ * admin/edit_syllabus.php
+ * Allows deans/admins to edit their OWN pending or rejected syllabus submission.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -16,7 +16,7 @@ ensure_role_in_session();
 
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'User';
-$role_display = 'Faculty Panel';
+$role_display = "Dean's Panel";
 
 $syllabus_id = (int) ($_GET['id'] ?? 0);
 if (!$syllabus_id) {
@@ -31,7 +31,7 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
-// Fetch the syllabus — must belong to this user and be Pending
+// Fetch the syllabus — must belong to this user and be Pending or Rejected
 $conn = get_db();
 $stmt = $conn->prepare("
     SELECT s.*, c.course_code AS matched_code, c.course_title AS matched_title
@@ -60,7 +60,7 @@ $notifications = get_notifications($user_id, 5);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Submission - SCC-CCS Syllabus Portal</title>
+    <title>Edit Submission - SCC-CCS Dean's Panel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
@@ -81,21 +81,27 @@ $notifications = get_notifications($user_id, 5);
             <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                  style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
             <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;">
-                <?= htmlspecialchars($username) ?>
-            </p>
+            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
         </div>
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-        <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+        <nav class="nav flex-column gap-2 mb-auto">
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
+            <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
 
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-        <a href="upload_syllabus.php"  class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-        <a href="my_submissions.php"   class="nav-link text-white active-nav-link p-3 rounded">My Submissions</a>
-        <a href="shared_syllabus.php"  class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
+            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
+            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
+            <a href="my_submissions.php" class="nav-link text-white active-nav-link p-3 rounded">My Submissions</a>
+            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
-        <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-        <a href="profile.php"   class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-        <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
+            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
+            <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
+            <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
+
+            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
+            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
+            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+        </nav>
     </div>
 
     <!-- Main Content -->
@@ -106,54 +112,46 @@ $notifications = get_notifications($user_id, 5);
 
             <!-- Notification Bell -->
             <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
+                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell fs-4 text-dark"></i>
+                    <?php if ($unread_count > 0): ?>
                         <span class="notif-dot"></span>
-                        <?php endif; ?>
-                        </div>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
-
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                    <?php endif; ?>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;max-height:400px;overflow-y:auto;">
+                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
-                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                            Mark all read
-                        </a>
+                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
                         <?php endif; ?>
-                        </li>
+                    </li>
+                    <?php if (empty($notifications)): ?>
+                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                    <?php else: ?>
+                        <?php foreach ($notifications as $n):
+                            $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="d-block px-3 py-2 text-decoration-none">
+                                <p class="mb-0 small">
+                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                </p>
+                                <span class="text-muted" style="font-size:.7rem;">
+                                    <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                                </span>
+                                </a>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <li class="border-top">
+                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
+                            View all notifications
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
 
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-        <?php else: ?>
-
-            <?php foreach ($notifications as $n):
-                $color = get_notification_color($n['message']); ?>
-                
-                <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <p class="mb-0 small">
-                        <span class="<?= $color['text'] ?> fw-bold me-1">
-                            <?= $color['icon'] ?>
-                        </span>
-                        <span class="<?= $color['text'] ?>">
-                            <?= htmlspecialchars($n['message']) ?>
-                        </span>
-                    </p>
-
-                    <span class="text-muted" style="font-size:.7rem;">
-                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                    </span>
-                </li>
-
-            <?php endforeach; ?>
-
-        <?php endif; ?>
-    </ul>
-</div>
         <?php if ($success_message): ?>
             <div class="alert alert-success alert-dismissible fade show mb-4">
                 <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
@@ -169,7 +167,7 @@ $notifications = get_notifications($user_id, 5);
 
         <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
             <p class="text-muted small mb-4">
-                Update your syllabus details below. Only pending submissions can be edited.
+                Update your syllabus details below.
             </p>
 
             <form action="process_edit_syllabus.php" method="POST" enctype="multipart/form-data">
@@ -265,10 +263,10 @@ $notifications = get_notifications($user_id, 5);
 
                 <!-- Buttons -->
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-login btn-lg fw-bold">
+                    <button type="submit" class="btn btn-orange btn-lg fw-bold rounded-pill">
                         <i class="bi bi-save me-2"></i>Save Changes
                     </button>
-                    <a href="my_submissions.php" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                    <a href="my_submissions.php" class="btn btn-outline-secondary btn-lg rounded-pill">Cancel</a>
                 </div>
             </form>
         </div>

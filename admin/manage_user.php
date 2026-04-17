@@ -116,9 +116,6 @@ $users = $stmt->fetchAll();
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
                 <?php if ($is_dean): ?>
-                <a href="transfer_dean_role.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'transfer_dean_role.php' ? 'active-nav-link' : 'hover-effect' ?>">
-                    <i class="bi bi-arrow-left-right me-2"></i>Transfer Role
-                </a>
                 <?php endif; ?>
                 <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
             </nav>

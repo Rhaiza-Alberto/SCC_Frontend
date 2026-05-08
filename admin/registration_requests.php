@@ -49,11 +49,11 @@ $stmt = $conn->prepare("
     SELECT u.id, u.first_name, u.middle_name, u.last_name,
            u.email, u.created_at, d.department_name
     FROM users u
-    JOIN departments d ON u.department_id = d.id
+    LEFT JOIN departments d ON u.department_id = d.id
     JOIN roles r       ON u.role_id        = r.id
-    WHERE r.role_name   = 'faculty'
-      AND u.is_approved = 0
-      AND u.is_deleted  = 0
+    WHERE LOWER(r.role_name) = 'faculty'
+      AND (u.is_approved = 0 OR u.is_approved IS NULL)
+      AND (u.is_deleted  = 0 OR u.is_deleted  IS NULL)
     ORDER BY u.created_at DESC
 ");
 $stmt->execute();

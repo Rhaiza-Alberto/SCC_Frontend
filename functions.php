@@ -205,6 +205,7 @@ function update_user($user_id, $first_name, $last_name, $email, $role_id, $depar
 function get_dean($department_id = null)
 {
     $conn = get_db();
+    // If department_id is provided, try to find the dean for that specific dept first
     if ($department_id) {
         $stmt = $conn->prepare("
             SELECT u.* FROM users u
@@ -215,16 +216,20 @@ function get_dean($department_id = null)
             LIMIT 1
         ");
         $stmt->execute([$department_id]);
-    } else {
-        $stmt = $conn->prepare("
-            SELECT u.* FROM users u
-            JOIN roles r ON u.role_id = r.id
-            WHERE r.role_name = 'dean'
-              AND u.is_deleted = 0
-            LIMIT 1
-        ");
-        $stmt->execute();
-    }
+        $res = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($res) return $res;
+    } 
+    
+    // Fallback: Find any active user with the 'dean' role
+    $stmt = $conn->prepare("
+        SELECT u.* FROM users u
+        JOIN roles r ON u.role_id = r.id
+        WHERE r.role_name = 'dean'
+          AND u.is_deleted = 0
+        ORDER BY u.id ASC
+        LIMIT 1
+    ");
+    $stmt->execute();
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -688,8 +693,11 @@ function get_current_school_year()
 
 function ensure_role_in_session()
 {
-    if (session_status() === PHP_SESSION_NONE)
+    if (session_status() === PHP_SESSION_NONE) {
         session_start();
+    }
+    
+    // Check if role_id is missing but role name exists in session
     if (!isset($_SESSION['role_id']) && isset($_SESSION['role'])) {
         $_SESSION['role_id'] = get_role_id($_SESSION['role']);
     }

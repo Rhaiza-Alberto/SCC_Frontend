@@ -23,8 +23,22 @@ if (isset($_GET['mark_read'])) {
 // Handle single notification click (mark read + redirect)
 if (isset($_GET['notif_id'])) {
     $notif_id = (int) $_GET['notif_id'];
+    $user_id = $_SESSION['user_id'];
+    
+    // Mark as read
     mark_single_notification_read($notif_id, $user_id);
-    header('Location: syllabus_review.php');
+    
+    // Determine redirect based on message content
+    $conn = get_db();
+    $stmt = $conn->prepare("SELECT message FROM notifications WHERE id = ?");
+    $stmt->execute([$notif_id]);
+    $notif = $stmt->fetch();
+
+    if ($notif && strpos($notif['message'], 'registration') !== false) {
+        header('Location: registration_requests.php');
+    } else {
+        header('Location: syllabus_review.php');
+    }
     exit();
 }
 

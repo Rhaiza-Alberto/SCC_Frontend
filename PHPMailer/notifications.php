@@ -55,7 +55,7 @@ function mark_all_notifications_read($user_id) {
 }
 
 // Send email notification using PHPMailer
-function send_email_notification($to_email, $to_name, $subject, $message, $from_name = 'CSM Laboratory System') {
+function send_email_notification($to_email, $to_name, $subject, $message, $from_name = 'SCC-CCS Syllabus Portal') {
     // Check if PHPMailer is available
     if (file_exists('phpmailer/PHPMailer.php')) {
         require_once 'phpmailer/PHPMailer.php';
@@ -96,7 +96,7 @@ function send_email_notification($to_email, $to_name, $subject, $message, $from_
             <body>
                 <div class='container'>
                     <div class='header'>
-                        <h2>CSM Apparatus Borrowing System</h2>
+                        <h2>SCC-CCS Syllabus Portal</h2>
                     </div>
                     <div class='content'>
                         <p>Hello, $to_name!</p>

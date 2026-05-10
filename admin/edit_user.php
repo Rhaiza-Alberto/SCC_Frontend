@@ -94,26 +94,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$error) {
                 // Update user
-            $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
-            $stmt->execute([$first_name, $last_name, $email, $role_id, $department_id, $user_id]);
-            
-            // If password is provided, update it
-            if (!empty($_POST['password'])) {
-                $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
-                $stmt->execute([$hashed_password, $user_id]);
+                $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
+                $stmt->execute([$first_name, $last_name, $email, $role_id, $department_id, $user_id]);
+                
+                // If password is provided, update it
+                if (!empty($_POST['password'])) {
+                    $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+                    $stmt->execute([$hashed_password, $user_id]);
+                }
+                
+                $success = 'User updated successfully!';
+                
+                // Refresh user data
+                $stmt = $conn->prepare("SELECT users.*, roles.role_name, departments.department_name 
+                                        FROM users
+                                        LEFT JOIN roles ON users.role_id = roles.id
+                                        LEFT JOIN departments ON users.department_id = departments.id
+                                        WHERE users.id = ? AND users.is_deleted = 0");
+                $stmt->execute([$user_id]);
+                $user = $stmt->fetch();
             }
-            
-            $success = 'User updated successfully!';
-            
-            // Refresh user data
-            $stmt = $conn->prepare("SELECT users.*, roles.role_name, departments.department_name 
-                                    FROM users
-                                    LEFT JOIN roles ON users.role_id = roles.id
-                                    LEFT JOIN departments ON users.department_id = departments.id
-                                    WHERE users.id = ? AND users.is_deleted = 0");
-            $stmt->execute([$user_id]);
-            $user = $stmt->fetch();
         }
     }
 }
@@ -143,12 +144,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #e67a00 !important;
             color: white !important;
         }
+        .notif-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #ff8800;
+            border-radius: 50%;
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            right: 0;
+        }
     </style>
 </head>
 
 <body class="bg-light">
     <div class="d-flex">
-        <!-- Sidebar -->
         <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
             style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">

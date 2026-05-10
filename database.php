@@ -35,4 +35,10 @@ if (!function_exists('get_db')) {
         return $conn;
     }
 }
+
+define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_USER', 'eggvelasco@gmail.com'); 
+define('SMTP_PASS', 'xgbx sljs uuqn fwxm');
+define('SMTP_PORT', 587);
+
 ?>

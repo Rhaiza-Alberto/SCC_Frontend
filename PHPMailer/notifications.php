@@ -67,10 +67,10 @@ function send_email_notification($to_email, $to_name, $subject, $message, $from_
         try {
             // SMTP Configuration - UPDATE THESE WITH YOUR SETTINGS
             $mail->isSMTP();
-            $mail->Host       = 'smtp.gmail.com';  // Your SMTP server
+            $mail->Host       = 'smtp.gmail.com';  
             $mail->SMTPAuth   = true;
-            $mail->Username   = 'your-email@gmail.com';  // Your email
-            $mail->Password   = 'your-app-password';     // Your app password
+            $mail->Username   = 'eggvelasco@gmail.com';  // Your email
+            $mail->Password   = 'xgbx sljs uuqn fwxm';   
             $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
             

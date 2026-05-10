@@ -186,58 +186,39 @@ $notifications = get_notifications($user_id, 5);
                     <i class="bi bi-exclamation-circle me-1"></i><?= $pending_count ?> Pending
                 </span>
                 <div class="dropdown">
-    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-        <i class="bi bi-bell fs-4 text-secondary"></i>
-        <?php if ($unread_count > 0): ?>
-            <span class="notif-dot"></span>
-        <?php endif; ?>
-    </div>
+                    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-4 text-dark"></i>
+                        <?php if ($unread_count > 0): ?>
+                            <span class="notif-dot"></span>
+                        <?php endif; ?>
+                    </div>
 
-    <ul class="dropdown-menu dropdown-menu-end shadow" 
-        style="width:320px;max-height:400px;overflow-y:auto;">
-
-        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-            <strong>Notifications</strong>
-            <?php if ($unread_count > 0): ?>
-                <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                    Mark all read
-                </a>
-            <?php endif; ?>
-        </li>
-
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-
-        <?php else: foreach ($notifications as $n): 
-            $color = get_notification_color($n['message']); ?>
-
-            <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                
-                <p class="mb-0 small">
-                    <span class="<?= $color['text'] ?> fw-bold me-1">
-                        <?= $color['icon'] ?>
-                    </span>
-
-                    <span class="<?= $color['text'] ?>">
-                        <?= htmlspecialchars($n['message']) ?>
-                    </span>
-                </p>
-
-                <span class="text-muted" style="font-size:.7rem;">
-                    <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                </span>
-
-            </li>
-
-        <?php endforeach; endif; ?>
-        <a href="notifications.php" 
-   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-    View all notifications
-</a>
-    </ul>
-</div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                            <strong>Notifications</strong>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                        <?php else: foreach ($notifications as $n): 
+                            $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                    <p class="mb-0 small">
+                                        <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                        <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                    </p>
+                                    <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li class="dropdown-menu-sticky-footer">
+                            <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -279,7 +260,7 @@ $notifications = get_notifications($user_id, 5);
         <div class="card premium-card p-4 mb-5 shadow-sm border-0">
             <ul class="nav nav-tabs nav-fill mb-4 border-bottom" role="tablist">
                 <li class="nav-item">
-                    <button class="nav-link active font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
+                    <button class="nav-link <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'active' : '' ?> font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
                         Pending Final Approval
                         <?php if ($pending_count > 0): ?>
                             <span class="badge bg-warning text-dark ms-1"><?= $pending_count ?></span>
@@ -287,7 +268,7 @@ $notifications = get_notifications($user_id, 5);
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
+                    <button class="nav-link <?= (isset($_GET['status']) && $_GET['status'] === 'Approved') ? 'active' : '' ?> font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
                         Fully Approved
                         <?php if (count($approved_rows) > 0): ?>
                             <span class="badge bg-success ms-1"><?= count($approved_rows) ?></span>
@@ -295,7 +276,7 @@ $notifications = get_notifications($user_id, 5);
                     </button>
                 </li>
                 <li class="nav-item">
-                    <button class="nav-link font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
+                    <button class="nav-link <?= (isset($_GET['status']) && $_GET['status'] === 'Rejected') ? 'active' : '' ?> font-serif fw-bold text-orange" data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
                         Declined
                         <?php if (count($rejected_rows) > 0): ?>
                             <span class="badge bg-danger ms-1"><?= count($rejected_rows) ?></span>
@@ -307,12 +288,12 @@ $notifications = get_notifications($user_id, 5);
             <div class="tab-content">
 
                 <!-- Pending Tab -->
-                <div class="tab-pane fade show active" id="tabPending">
+                <div class="tab-pane fade <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'show active' : '' ?>" id="tabPending">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">INSTRUCTOR</th>
                                     <th class="text-secondary small">DEPARTMENT</th>
                                     <th class="text-secondary small">COURSE</th>
@@ -330,7 +311,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($pending_rows as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['syllabus_id'] ?></td>
                                             <td>
                                                 <div class="fw-bold small"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
                                                 <div class="text-muted" style="font-size:.7rem;"><?= htmlspecialchars($sub['uploader_email']) ?></div>
@@ -349,14 +330,16 @@ $notifications = get_notifications($user_id, 5);
                                             </td>
                                             <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                             <td class="text-center">
-                                                <button onclick="handleReview('approve', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
-                                                        class="btn btn-sm btn-success rounded-pill me-1 px-3">
-                                                    <i class="bi bi-check me-1"></i>Approve
-                                                </button>
-                                                <button onclick="handleReview('reject', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
-                                                        class="btn btn-sm btn-danger rounded-pill px-3">
-                                                    <i class="bi bi-x me-1"></i>Reject
-                                                </button>
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <button onclick="handleReview('approve', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
+                                                            class="btn btn-sm btn-success rounded-pill px-3 shadow-sm d-flex align-items-center">
+                                                        <i class="bi bi-check-circle me-1"></i> Approve
+                                                    </button>
+                                                    <button onclick="handleReview('reject', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
+                                                            class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm d-flex align-items-center">
+                                                        <i class="bi bi-x-circle me-1"></i> Reject
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -367,12 +350,12 @@ $notifications = get_notifications($user_id, 5);
                 </div>
 
                 <!-- Approved Tab -->
-                <div class="tab-pane fade" id="tabApproved">
+                <div class="tab-pane fade <?= (isset($_GET['status']) && $_GET['status'] === 'Approved') ? 'show active' : '' ?>" id="tabApproved">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">INSTRUCTOR</th>
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small">STATUS</th>
@@ -388,7 +371,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($approved_rows as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['syllabus_id'] ?></td>
                                             <td class="small fw-bold"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></td>
                                             <td class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></td>
                                             <td><span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Fully Approved</span></td>
@@ -408,12 +391,12 @@ $notifications = get_notifications($user_id, 5);
                 </div>
 
                 <!-- Declined Tab -->
-                <div class="tab-pane fade" id="tabDeclined">
+                <div class="tab-pane fade <?= (isset($_GET['status']) && $_GET['status'] === 'Rejected') ? 'show active' : '' ?>" id="tabDeclined">
                     <div class="table-responsive">
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">INSTRUCTOR</th>
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small">STATUS</th>
@@ -430,7 +413,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($rejected_rows as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['syllabus_id'] ?></td>
                                             <td class="small fw-bold"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></td>
                                             <td class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></td>
                                             <td><span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span></td>

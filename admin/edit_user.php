@@ -10,6 +10,17 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
+$user_id_session = $_SESSION['user_id'];
+
+if (isset($_GET['mark_read'])) {
+    mark_all_notifications_read($user_id_session);
+    $current_id = (int)($_GET['id'] ?? 0);
+    header('Location: edit_user.php?id=' . $current_id);
+    exit();
+}
+
+$unread_count  = count_unread_notifications($user_id_session);
+$notifications = get_notifications($user_id_session, 5);
 
 // CONNECT (PDO)
 $db = new Database();
@@ -37,8 +48,8 @@ if (!$user) {
     exit();
 }
 
-// Fetch all roles
-$stmt = $conn->prepare("SELECT * FROM roles ORDER BY role_name");
+// Fetch all roles except department_head
+$stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head' ORDER BY role_name");
 $stmt->execute();
 $roles = $stmt->fetchAll();
 
@@ -68,7 +79,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             $error = 'Email already exists.';
         } else {
-            // Update user
+            // Check if role is Dean/Admin and if one already exists (excluding current user)
+            $stmt = $conn->prepare("SELECT role_name FROM roles WHERE id = ?");
+            $stmt->execute([$role_id]);
+            $target_role = $stmt->fetchColumn();
+
+            if ($target_role === 'dean' || $target_role === 'admin') {
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE (r.role_name = 'dean' OR r.role_name = 'admin') AND u.id != ? AND u.is_deleted = 0");
+                $stmt->execute([$user_id]);
+                if ($stmt->fetchColumn() > 0) {
+                    $error = "A Dean/Admin account already exists. Only one is allowed.";
+                }
+            }
+
+            if (!$error) {
+                // Update user
             $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
             $stmt->execute([$first_name, $last_name, $email, $role_id, $department_id, $user_id]);
             
@@ -155,8 +180,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-orange font-serif fw-bold">Edit User</h2>
-                <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-arrow-left me-2"></i> Back to Users</a>
+                <div>
+                    <h2 class="text-orange font-serif fw-bold mb-0">Edit User</h2>
+                    <p class="text-muted small">Update member details or change account roles.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dropdown">
+                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell fs-4 text-dark"></i>
+                            <?php if ($unread_count > 0): ?>
+                                <span class="notif-dot"></span>
+                            <?php endif; ?>
+                        </div>
+
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                                <strong>Notifications</strong>
+                                <?php if ($unread_count > 0): ?>
+                                    <a href="?id=<?= $user_id ?>&mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                                <?php endif; ?>
+                            </li>
+                            <?php if (empty($notifications)): ?>
+                                <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                            <?php else: foreach ($notifications as $n): 
+                                $color = get_notification_color($n['message']); ?>
+                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                        <p class="mb-0 small">
+                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                        </p>
+                                        <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                    </a>
+                                </li>
+                            <?php endforeach; endif; ?>
+                            <li class="dropdown-menu-sticky-footer">
+                                <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4"><i class="bi bi-arrow-left me-2"></i> Back to Users</a>
+                </div>
             </div>
 
             <?php if ($error): ?>

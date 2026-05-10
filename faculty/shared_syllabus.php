@@ -27,28 +27,8 @@ if (isset($_GET['mark_read'])) {
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-/* ── Fetch all approved syllabi with uploader info ── */
-$pdo  = get_db();
-$stmt = $pdo->prepare("
-    SELECT
-        s.id,
-        s.course_code,
-        s.course_title,
-        s.subject_type,
-        s.semester,
-        s.school_year,
-        s.file_path,
-        s.submitted_at,
-        CONCAT(u.first_name, ' ', u.last_name) AS faculty_name,
-        d.department_name
-    FROM syllabus s
-    JOIN users       u ON u.id = s.uploaded_by
-    LEFT JOIN departments d ON d.id = u.department_id
-    WHERE s.status = 'Approved'
-    ORDER BY s.submitted_at DESC
-");
-$stmt->execute();
-$approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
+/* ── Fetch approved syllabi for the department ── */
+$approved_syllabi = get_shared_syllabi($_SESSION['department_id'] ?? null);
 
 /* ── Unique filter values ── */
 $departments = array_unique(array_filter(array_column($approved_syllabi, 'department_name')));
@@ -131,8 +111,9 @@ sort($departments); sort($semesters); rsort($years);
                         <span class="notif-dot"></span>
                     <?php endif; ?>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow" style="width:320px;max-height:400px;overflow-y:auto;">
-                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
                             <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
@@ -140,25 +121,20 @@ sort($departments); sort($semesters); rsort($years);
                     </li>
                     <?php if (empty($notifications)): ?>
                         <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                    <?php else: foreach ($notifications as $n):
+                    <?php else: foreach ($notifications as $n): 
                         $color = get_notification_color($n['message']); ?>
                         <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="d-block px-3 py-2 text-decoration-none">
-                            <p class="mb-0 small">
-                                <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                            </p>
-                            <span class="text-muted" style="font-size:.7rem;">
-                                <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                            </span>
+                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                <p class="mb-0 small">
+                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                </p>
+                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
                             </a>
                         </li>
                     <?php endforeach; endif; ?>
-                    <li class="border-top">
-                        <a href="notifications.php"
-                           class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-                            View all notifications
-                        </a>
+                    <li class="dropdown-menu-sticky-footer">
+                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
                     </li>
                 </ul>
             </div>

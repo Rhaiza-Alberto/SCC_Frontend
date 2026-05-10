@@ -123,62 +123,43 @@ $pending_review_count = (int) $conn->query("
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="text-orange font-serif fw-bold">Registration Requests</h2>
             <div class="d-flex align-items-center gap-3">
-                <span class="badge rounded-pill px-3 py-1 shadow-sm <?= $reg_count > 0 ? 'bg-warning text-dark' : 'bg-secondary opacity-50' ?>">
-                    <i class="bi bi-person-plus-fill me-1"></i><?= $reg_count ?> New
+                <span class="badge bg-<?= $reg_count > 0 ? 'warning text-dark' : 'secondary opacity-50' ?> rounded-pill px-3 py-1 shadow-sm">
+                    <i class="bi bi-person-plus me-1"></i><?= $reg_count ?> Pending
                 </span>
                 <div class="dropdown">
-    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-        <i class="bi bi-bell fs-4 text-secondary"></i>
-        <?php if ($unread_count > 0): ?>
-            <span class="notif-dot"></span>
-        <?php endif; ?>
-    </div>
+                    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-4 text-dark"></i>
+                        <?php if ($unread_count > 0): ?>
+                            <span class="notif-dot"></span>
+                        <?php endif; ?>
+                    </div>
 
-    <ul class="dropdown-menu dropdown-menu-end shadow" 
-        style="width:320px;max-height:400px;overflow-y:auto;">
-
-        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-            <strong>Notifications</strong>
-            <?php if ($unread_count > 0): ?>
-                <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                    Mark all read
-                </a>
-            <?php endif; ?>
-        </li>
-
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-
-        <?php else: foreach ($notifications as $n): 
-            $color = get_notification_color($n['message']); ?>
-
-            <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                
-                <p class="mb-0 small">
-                    <span class="<?= $color['text'] ?> fw-bold me-1">
-                        <?= $color['icon'] ?>
-                    </span>
-
-                    <span class="<?= $color['text'] ?>">
-                        <?= htmlspecialchars($n['message']) ?>
-                    </span>
-                </p>
-
-                <span class="text-muted" style="font-size:.7rem;">
-                    <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                </span>
-
-            </li>
-
-        <?php endforeach; endif; ?>
-        <a href="notifications.php" 
-   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-    View all notifications
-</a>
-    </ul>
-</div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                            <strong>Notifications</strong>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                        <?php else: foreach ($notifications as $n): 
+                            $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                    <p class="mb-0 small">
+                                        <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                        <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                    </p>
+                                    <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li class="dropdown-menu-sticky-footer">
+                            <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
 

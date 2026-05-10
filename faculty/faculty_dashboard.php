@@ -141,52 +141,33 @@ $notifications = get_notifications($user_id, 5);
                         <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-4 text-dark"></i>
                             <?php if ($unread_count > 0): ?>
-                            <span class="notif-dot"></span>
+                                <span class="notif-dot"></span>
                             <?php endif; ?>
                         </div>
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow"
-                            style="width:320px;max-height:400px;overflow-y:auto;">
-
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
                                 <strong>Notifications</strong>
                                 <?php if ($unread_count > 0): ?>
-                                <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                                    Mark all read
-                                </a>
+                                    <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
                                 <?php endif; ?>
                             </li>
-
                             <?php if (empty($notifications)): ?>
-                                <li class="px-3 py-3 text-center text-muted small">
-                                    No notifications yet
+                                <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                            <?php else: foreach ($notifications as $n): 
+                                $color = get_notification_color($n['message']); ?>
+                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                        <p class="mb-0 small">
+                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                        </p>
+                                        <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                    </a>
                                 </li>
-                            <?php else: ?>
-                                <?php foreach ($notifications as $n):
-                                    $color = get_notification_color($n['message']); ?>
-                                    <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                        <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                            <p class="mb-0 small">
-                                                <span class="<?= $color['text'] ?> fw-bold me-1">
-                                                    <?= $color['icon'] ?>
-                                                </span>
-                                                <span class="<?= $color['text'] ?>">
-                                                    <?= htmlspecialchars($n['message']) ?>
-                                                </span>
-                                            </p>
-                                            <span class="text-muted" style="font-size:.7rem;">
-                                                <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                                            </span>
-                                        </a>
-                                    </li>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-
-                            <li>
-                                <a href="notifications.php"
-                                   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-                                    View all notifications
-                                </a>
+                            <?php endforeach; endif; ?>
+                            <li class="dropdown-menu-sticky-footer">
+                                <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
                             </li>
                         </ul>
                     </div>
@@ -204,15 +185,16 @@ $notifications = get_notifications($user_id, 5);
             <div class="row g-4 mb-4">
                 <?php
                 $stats = [
-                    ['label' => 'Total Submissions', 'value' => $total, 'color' => '#ff8800', 'icon' => 'bi-files', 'sub' => 'All uploaded syllabi'],
-                    ['label' => 'Approved', 'value' => $approved, 'color' => '#28a745', 'icon' => 'bi-check-circle', 'sub' => 'Validated content'],
-                    ['label' => 'Pending', 'value' => $pending, 'color' => '#ffc107', 'icon' => 'bi-clock-history', 'sub' => 'Awaiting review'],
-                    ['label' => 'Rejected', 'value' => $rejected, 'color' => '#dc3545', 'icon' => 'bi-x-circle', 'sub' => 'Needs revision'],
+                    ['label' => 'Total Submissions', 'value' => $total, 'color' => '#ff8800', 'icon' => 'bi-files', 'sub' => 'All uploaded syllabi', 'link' => 'my_submissions.php'],
+                    ['label' => 'Approved', 'value' => $approved, 'color' => '#28a745', 'icon' => 'bi-check-circle', 'sub' => 'Validated content', 'link' => 'my_submissions.php'],
+                    ['label' => 'Pending', 'value' => $pending, 'color' => '#ffc107', 'icon' => 'bi-clock-history', 'sub' => 'Awaiting review', 'link' => 'my_submissions.php'],
+                    ['label' => 'Rejected', 'value' => $rejected, 'color' => '#dc3545', 'icon' => 'bi-x-circle', 'sub' => 'Needs revision', 'link' => 'my_submissions.php'],
                 ];
                 foreach ($stats as $s): ?>
                     <div class="col-md-3">
-                        <div class="card stat-card shadow-sm border-0 bg-white"
-                            style="border-left:5px solid <?= $s['color'] ?> !important;">
+                        <div class="card stat-card shadow-sm border-0 bg-white cursor-pointer"
+                             onclick="location.href='<?= $s['link'] ?>'"
+                            style="border-left:5px solid <?= $s['color'] ?> !important; cursor:pointer;">
                             <div class="stat-card-content p-3">
                                 <div class="d-flex justify-content-between align-items-center mb-1">
                                     <h6 class="text-uppercase fw-bold text-muted small mb-0"><?= $s['label'] ?></h6>
@@ -256,7 +238,7 @@ $notifications = get_notifications($user_id, 5);
                                         <p class="text-muted small mb-0"><?= htmlspecialchars($course['title']) ?></p>
                                     </div>
                                     <span class="badge <?= $badge_class ?> rounded-pill px-3">
-                                        <?= format_syllabus_status($course['status'], $course['current_role'], $course['rejecting_role']) ?>
+                                        <?= format_syllabus_status($course['status'], $course['current_role'], $course['rejecting_role'], $course['rejecting_name'] ?? null) ?>
                                     </span>
                                 </div>
                             <?php endforeach; endif; ?>
@@ -342,11 +324,11 @@ $notifications = get_notifications($user_id, 5);
                             <td class="d-none d-xl-table-cell small text-secondary">
                                 <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
                             </td>
-                            <td>
-                                <span class="badge <?= $sc ?> rounded-pill px-3 py-1" style="font-size:.75rem;">
-                                    <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null) ?>
-                                </span>
-                            </td>
+                                <td>
+                                    <span class="badge <?= $sc ?> rounded-pill px-3 py-1" style="font-size:.75rem;">
+                                        <?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?>
+                                    </span>
+                                </td>
                             <td class="small text-muted"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
                             <td class="text-center">
                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
@@ -371,7 +353,7 @@ $notifications = get_notifications($user_id, 5);
                         </a>
                     </div>
                     <?php
-                    $shared = array_slice(get_shared_syllabi(), 0, 5);
+                    $shared = array_slice(get_shared_syllabi($_SESSION['department_id'] ?? null), 0, 5);
                     ?>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle table-premium">

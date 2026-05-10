@@ -115,59 +115,44 @@ $notifications = get_notifications($user_id, 5);
                 <h2 class="text-orange font-serif fw-bold mb-0">Departmental Compliance Reports</h2>
                 <p class="text-muted small mb-0">Academic year <?= get_current_school_year() ?></p>
             </div>
-            <div class="dropdown">
-    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-        <i class="bi bi-bell fs-4 text-secondary"></i>
-        <?php if ($unread_count > 0): ?>
-            <span class="notif-dot"></span>
-        <?php endif; ?>
-    </div>
-
-    <ul class="dropdown-menu dropdown-menu-end shadow" 
-        style="width:320px;max-height:400px;overflow-y:auto;">
-
-        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-            <strong>Notifications</strong>
-            <?php if ($unread_count > 0): ?>
-                <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                    Mark all read
-                </a>
-            <?php endif; ?>
-        </li>
-
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-
-        <?php else: foreach ($notifications as $n): 
-            $color = get_notification_color($n['message']); ?>
-
-            <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                
-                <p class="mb-0 small">
-                    <span class="<?= $color['text'] ?> fw-bold me-1">
-                        <?= $color['icon'] ?>
-                    </span>
-
-                    <span class="<?= $color['text'] ?>">
-                        <?= htmlspecialchars($n['message']) ?>
-                    </span>
-                </p>
-
-                <span class="text-muted" style="font-size:.7rem;">
-                    <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                </span>
-
-            </li>
-
-        <?php endforeach; endif; ?>
-        <a href="notifications.php" 
-   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-    View all notifications
-</a>
-    </ul>
-</div>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-white border shadow-sm rounded-1 px-3 py-1 fw-bold text-dark d-flex align-items-center" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i> PRINT
+                </button>
+                <div class="dropdown">
+                    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-4 text-dark"></i>
+                        <?php if ($unread_count > 0): ?>
+                            <span class="notif-dot"></span>
+                        <?php endif; ?>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                            <strong>Notifications</strong>
+                            <?php if ($unread_count > 0): ?>
+                                <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                            <?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                        <?php else: foreach ($notifications as $n): 
+                            $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                    <p class="mb-0 small">
+                                        <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                        <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                    </p>
+                                    <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li class="dropdown-menu-sticky-footer">
+                            <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
 
         <!-- Department Cards -->
@@ -189,9 +174,9 @@ $notifications = get_notifications($user_id, 5);
                         <div class="progress-bar <?= $bar_class ?> fw-bold" style="width:<?= $pct ?>%"><?= $pct ?>%</div>
                     </div>
                     <div class="d-flex justify-content-between small text-muted mb-3">
-                        <span>✔ Approved: <?= $dept['approved'] ?></span>
-                        <span>⏳ Pending: <?= $dept['pending'] ?></span>
-                        <span>✗ Rejected: <?= $dept['rejected'] ?></span>
+                        <span><i class="bi bi-check-circle-fill text-success me-1"></i> Approved: <?= $dept['approved'] ?></span>
+                        <span><i class="bi bi-clock-fill text-warning me-1"></i> Pending: <?= $dept['pending'] ?></span>
+                        <span><i class="bi bi-x-circle-fill text-danger me-1"></i> Rejected: <?= $dept['rejected'] ?></span>
                     </div>
                     <p class="text-muted small mb-3">Total Submissions: <strong><?= $dept['total'] ?></strong></p>
                     <span class="badge <?= $badge_class ?> rounded-pill px-3"><?= $badge_label ?></span>

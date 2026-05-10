@@ -127,85 +127,67 @@ $notifications = get_notifications($user_id, 5);
 
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h2 class="text-orange font-serif fw-bold">Welcome, <?= htmlspecialchars($username) ?>!</h2>
-            <!-- Notification Bell -->
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm btn-white border shadow-sm rounded-1 px-3 py-1 fw-bold text-dark d-flex align-items-center" onclick="window.print()">
+                    <i class="bi bi-printer me-2"></i> PRINT
+                </button>
             <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
+                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell fs-4 text-dark"></i>
+                    <?php if ($unread_count > 0): ?>
                         <span class="notif-dot"></span>
-                        <?php endif; ?>
-                        </div>
+                    <?php endif; ?>
+                </div>
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
-
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
-                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                            Mark all read
-                        </a>
+                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
                         <?php endif; ?>
+                    </li>
+                    <?php if (empty($notifications)): ?>
+                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                    <?php else: foreach ($notifications as $n): 
+                        $color = get_notification_color($n['message']); ?>
+                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                <p class="mb-0 small">
+                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                </p>
+                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                            </a>
                         </li>
-
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-        <?php else: ?>
-
-            <?php foreach ($notifications as $n):
-                $color = get_notification_color($n['message']); ?>
-                
-                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                        <p class="mb-0 small">
-                            <span class="<?= $color['text'] ?> fw-bold me-1">
-                                <?= $color['icon'] ?>
-                            </span>
-                            <span class="<?= $color['text'] ?>">
-                                <?= htmlspecialchars($n['message']) ?>
-                            </span>
-                        </p>
-
-                        <span class="text-muted" style="font-size:.7rem;">
-                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                        </span>
-                    </a>
-                </li>
-
-            <?php endforeach; ?>
-
-        <?php endif; ?>
-        <a href="notifications.php" 
-   class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-    View all notifications
-</a>
-    </ul>
-</div>
+                    <?php endforeach; endif; ?>
+                    <li class="dropdown-menu-sticky-footer">
+                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                    </li>
+                </ul>
             </div>
-        <!-- Stat Cards -->
+            </div> <!-- Close align-items-center gap-3 -->
+        </div> <!-- Close justify-content-between mb-5 -->
         <div class="row g-4 mb-4">
             <div class="col-md-3">
-                <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-orange border-4" style="--bs-border-opacity:.99;">
+                <div onclick="location.href='syllabus_vault.php'" class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-orange border-4" style="--bs-border-opacity:.99; cursor:pointer;">
                     <h6 class="text-uppercase fw-bold text-muted small mb-3">Total Submissions</h6>
                     <h1 class="display-4 fw-bold text-dark mb-0"><?= $total_count ?></h1>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-success border-4">
+                <div onclick="location.href='syllabus_review.php?status=Approved'" class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-success border-4" style="cursor:pointer;">
                     <h6 class="text-uppercase fw-bold text-success small mb-3">Fully Approved</h6>
                     <h1 class="display-4 fw-bold text-success mb-0"><?= $approved_count ?></h1>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-warning border-4">
-                    <h6 class="text-uppercase fw-bold text-warning small mb-3">Pending</h6>
-                    <h1 class="display-4 fw-bold text-warning mb-0"><?= $pending_count ?></h1>
+                <div onclick="location.href='syllabus_review.php'" class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-warning border-4" style="cursor:pointer;">
+                    <h6 class="text-uppercase fw-bold text-warning small mb-3">Pending Review</h6>
+                    <h1 class="display-4 fw-bold text-warning mb-0"><?= $vpaa_pending_count ?></h1>
                 </div>
             </div>
             <div class="col-md-3">
-                <div class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-danger border-4">
+                <div onclick="location.href='syllabus_review.php?status=Rejected'" class="card stat-card shadow-sm border-0 bg-white p-4 text-center border-start border-danger border-4" style="cursor:pointer;">
                     <h6 class="text-uppercase fw-bold text-danger small mb-3">Rejected</h6>
                     <h1 class="display-4 fw-bold text-danger mb-0"><?= $rejected_count ?></h1>
                 </div>
@@ -373,7 +355,7 @@ $notifications = get_notifications($user_id, 5);
                                     <div class="fw-bold small"><?= htmlspecialchars($s['course_code']) ?></div>
                                     <div class="text-muted" style="font-size:.7rem;"><?= htmlspecialchars($s['course_title']) ?></div>
                                 </td>
-                                <td><span class="badge <?= $badge ?> rounded-pill px-3"><?= $s['status'] ?></span></td>
+                                <td><?= format_syllabus_status($s['status'], null, null, null) ?></td>
                                 <td class="small"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
                             </tr>
                         <?php endforeach; endif; ?>

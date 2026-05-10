@@ -574,6 +574,201 @@ footer {
 }
 
 .table-premium tbody td {
+.hover-effect:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid rgba(255, 136, 0, 0.5);
+    padding-left: 1.5rem !important;
+}
+
+/* Premium Cancel Button */
+.btn-cancel {
+    background: transparent;
+    color: #666;
+    border: 2px solid #ddd;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.btn-cancel:hover {
+    background-color: #f8f9fa;
+    color: #333;
+    border-color: #bbb;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Cards */
+.card h1 {
+    margin-bottom: 0;
+}
+
+/* Table Styles */
+.bg-light-gray {
+    background-color: #f8f9fa;
+    /* Light gray for table rows like in image */
+}
+
+/* Badge Styles Override if needed */
+.badge.bg-warning {
+    color: #856404 !important;
+    background-color: #ffeeba !important;
+}
+
+.badge.bg-success {
+    color: #155724 !important;
+    background-color: #d4edda !important;
+}
+
+.badge.bg-danger {
+    color: #721c24 !important;
+    background-color: #f8d7da !important;
+}
+
+/* Premium Action Buttons in Tables */
+.btn-outline-success,
+.btn-outline-danger {
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.btn-outline-success:hover {
+    box-shadow: 0 3px 8px rgba(25, 135, 84, 0.2);
+}
+
+.btn-outline-danger:hover {
+    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+}
+
+.bg-light-gray td {
+    background-color: #f2f2f2 !important;
+    /* Slightly darker gray for specific rows */
+    border-bottom-width: 0;
+}
+
+/* --- Premium Dashboard Additions (Final) --- */
+.premium-card {
+    background: #ffffff;
+    border: 1px solid rgba(255, 136, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.premium-card:hover {
+    box-shadow: 0 15px 40px rgba(255, 136, 0, 0.1);
+}
+
+.scale-effect {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.scale-effect:hover {
+    transform: scale(1.02);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    background: #ffffff;
+    border: 2px solid #eee;
+    border-radius: 16px;
+    padding: 1.5rem;
+    height: 100%;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
+
+/* Removed stat-card circle accent for cleaner look */
+
+.stat-card-total {
+    border: 2px solid #ff8800 !important;
+    color: #ff8800 !important;
+    background: #fff !important;
+}
+
+.stat-card-approved {
+    border: 2px solid #28a745 !important;
+    color: #28a745 !important;
+    background: #fff !important;
+}
+
+.stat-card-pending {
+    border: 2px solid #ffc107 !important;
+    color: #ffc107 !important;
+    background: #fff !important;
+}
+
+.stat-card-rejected {
+    border: 2px solid #dc3545 !important;
+    color: #dc3545 !important;
+    background: #fff !important;
+}
+
+.stat-card h6 {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stat-card .display-4 {
+    font-weight: 700;
+    margin-bottom: 0;
+    font-size: 2.5rem;
+}
+
+.sidebar-premium {
+    background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%) !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid rgba(255, 136, 0, 0.1) !important;
+    overflow-y: auto;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 136, 0, 0.3) transparent;
+}
+
+.sidebar-premium::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar-premium::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar-premium::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 136, 0, 0.3);
+    border-radius: 20px;
+}
+
+.sidebar-premium::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 136, 0, 0.5);
+}
+
+.table-premium thead th {
+    background-color: #fcfcfc !important;
+    color: #495057 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    font-size: 0.7rem !important;
+    padding: 1.25rem 1rem !important;
+}
+
+.table-premium tbody td {
     padding: 1.25rem 1rem !important;
     font-size: 0.9rem;
     border-bottom: 1px solid #f8f9fa;
@@ -588,4 +783,13 @@ footer {
     background-color: #ff8800;
     border-radius: 50%;
     border: 2px solid white;
+}
+
+/* Sticky Notification Footer */
+.dropdown-menu-sticky-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    border-top: 1px solid #eee;
+    z-index: 10;
 }

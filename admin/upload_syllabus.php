@@ -20,6 +20,16 @@ if (isset($_GET['mark_read'])) {
     header('Location: upload_syllabus.php');
     exit();
 }
+
+$conn = get_db();
+$pending_review_count = (int) $conn->query("
+    SELECT COUNT(DISTINCT sw.syllabus_id)
+    FROM syllabus_workflow sw
+    JOIN roles r ON sw.role_id = r.id
+    WHERE r.role_name = 'dean' AND sw.action = 'Pending'
+")->fetchColumn();
+
+$reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 0 AND is_deleted = 0")->fetchColumn();
 ?>
 
 <!DOCTYPE html>
@@ -52,13 +62,23 @@ if (isset($_GET['mark_read'])) {
             <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
 
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
+            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
+                Syllabus Review
+                <?php if ($pending_review_count > 0): ?>
+                    <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                <?php endif; ?>
+            </a>
             <a href="upload_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">Upload Syllabus</a>
             <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
             <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
+            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
+                Registration Requests
+                <?php if ($reg_count > 0): ?>
+                    <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                <?php endif; ?>
+            </a>
             <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
             <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
 
@@ -72,60 +92,39 @@ if (isset($_GET['mark_read'])) {
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h3 class="text-orange font-serif fw-bold mb-0">Upload Syllabus</h3>
             <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
+                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell fs-4 text-dark"></i>
+                    <?php if ($unread_count > 0): ?>
                         <span class="notif-dot"></span>
-                        <?php endif; ?>
-                        </div>
+                    <?php endif; ?>
+                </div>
 
-                        <ul class="dropdown-menu dropdown-menu-end shadow"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
-
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
                         <strong>Notifications</strong>
                         <?php if ($unread_count > 0): ?>
-                        <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                            Mark all read
-                        </a>
+                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
                         <?php endif; ?>
+                    </li>
+                    <?php if (empty($notifications)): ?>
+                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                    <?php else: foreach ($notifications as $n): 
+                        $color = get_notification_color($n['message']); ?>
+                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                <p class="mb-0 small">
+                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                </p>
+                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                            </a>
                         </li>
-
-        <?php if (empty($notifications)): ?>
-            <li class="px-3 py-3 text-center text-muted small">
-                No notifications yet
-            </li>
-        <?php else: ?>
-
-            <?php foreach ($notifications as $n):
-                $color = get_notification_color($n['message']); ?>
-                
-                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                        <p class="mb-0 small">
-                            <span class="<?= $color['text'] ?> fw-bold me-1">
-                                <?= $color['icon'] ?>
-                            </span>
-                            <span class="<?= $color['text'] ?>">
-                                <?= htmlspecialchars($n['message']) ?>
-                            </span>
-                        </p>
-                        <span class="text-muted" style="font-size:.7rem;">
-                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                        </span>
-                    </a>
-                </li>
-
-            <?php endforeach; ?>
-
-        <?php endif; ?>
-        <li class="border-top">
-    <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">
-        View all notifications
-    </a>
-</li>
-    </ul>
-</div>
+                    <?php endforeach; endif; ?>
+                    <li class="dropdown-menu-sticky-footer">
+                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                    </li>
+                </ul>
+            </div>
 </div>
         <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
             <form action="../faculty/process_upload.php" method="POST" enctype="multipart/form-data">

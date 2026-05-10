@@ -11,7 +11,8 @@ require_once __DIR__ . '/database.php';
    NOTIFICATIONS
 ============================ */
 
-function notify_user($user_id, $message, $syllabus_id = null) {
+function notify_user($user_id, $message, $syllabus_id = null)
+{
     try {
         $conn = get_db();
         $stmt = $conn->prepare("
@@ -19,6 +20,30 @@ function notify_user($user_id, $message, $syllabus_id = null) {
             VALUES (?, ?, ?, 0, NOW())
         ");
         $stmt->execute([$user_id, $syllabus_id, $message]);
+
+        // PHPMailer Integration
+        // Get user email
+        $userStmt = $conn->prepare("SELECT email, first_name, last_name FROM users WHERE id = ?");
+        $userStmt->execute([$user_id]);
+        $user = $userStmt->fetch();
+
+        if ($user && !empty($user['email'])) {
+            $to_name = trim($user['first_name'] . ' ' . $user['last_name']);
+            $subject = "Syllabus Management System Notification";
+
+            // Call the notification system email function if available
+            // Assuming PHPMailer/notification_system.php is required somewhere or we can just include it
+            $notif_sys_path = __DIR__ . '/PHPMailer/notification_system.php';
+            if (file_exists($notif_sys_path)) {
+                require_once $notif_sys_path;
+                // Note: notify_user might be called multiple times, require_once is safe
+                // We need to ensure send_notification_email is defined in that file
+                if (function_exists('send_notification_email')) {
+                    send_notification_email($user['email'], $to_name, $subject, $message);
+                }
+            }
+        }
+
         return true;
     } catch (PDOException $e) {
         error_log("Notify Error: " . $e->getMessage());
@@ -26,10 +51,11 @@ function notify_user($user_id, $message, $syllabus_id = null) {
     }
 }
 
-function get_notifications($user_id, $limit = 10) {
-    $conn  = get_db();
+function get_notifications($user_id, $limit = 10)
+{
+    $conn = get_db();
     $limit = (int) $limit;
-    $stmt  = $conn->prepare("
+    $stmt = $conn->prepare("
         SELECT n.*, s.file_path
         FROM notifications n
         LEFT JOIN syllabus s ON n.syllabus_id = s.id
@@ -41,7 +67,8 @@ function get_notifications($user_id, $limit = 10) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function count_unread_notifications($user_id) {
+function count_unread_notifications($user_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0
@@ -50,19 +77,22 @@ function count_unread_notifications($user_id) {
     return (int) $stmt->fetchColumn();
 }
 
-function mark_notification_read($notification_id) {
+function mark_notification_read($notification_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ?");
     $stmt->execute([$notification_id]);
 }
 
-function mark_single_notification_read($notification_id, $user_id) {
+function mark_single_notification_read($notification_id, $user_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?");
     $stmt->execute([$notification_id, $user_id]);
 }
 
-function mark_all_notifications_read($user_id) {
+function mark_all_notifications_read($user_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("UPDATE notifications SET is_read = 1 WHERE user_id = ?");
     $stmt->execute([$user_id]);
@@ -78,45 +108,46 @@ function mark_all_notifications_read($user_id) {
  *   // $colors['border']  — border class       e.g. 'border-danger'
  *   // $colors['icon']    — a Unicode icon     e.g. '✕'
  */
-function get_notification_color(string $message): array {
+function get_notification_color(string $message): array
+{
     $msg = strtolower($message);
 
     // Fully approved by VPAA
     if (str_contains($msg, 'fully approved') || str_contains($msg, 'approved by vpaa')) {
         return [
-            'bg'     => 'bg-success',
-            'text'   => 'text-success',
+            'bg' => 'bg-success',
+            'text' => 'text-success',
             'border' => 'border-success',
-            'icon'   => '✓',
+            'icon' => '<i class="bi bi-check-circle-fill"></i>',
         ];
     }
 
     // Rejected
     if (str_contains($msg, 'rejected')) {
         return [
-            'bg'     => 'bg-danger',
-            'text'   => 'text-danger',
+            'bg' => 'bg-danger',
+            'text' => 'text-danger',
             'border' => 'border-danger',
-            'icon'   => '✕',
+            'icon' => '<i class="bi bi-x-circle-fill"></i>',
         ];
     }
 
     // Partially approved / awaiting next reviewer
     if (str_contains($msg, 'approved') || str_contains($msg, 'awaiting')) {
         return [
-            'bg'     => 'bg-warning',
-            'text'   => 'text-warning',
+            'bg' => 'bg-warning',
+            'text' => 'text-warning',
             'border' => 'border-warning',
-            'icon'   => '◑',
+            'icon' => '<i class="bi bi-clock-history"></i>',
         ];
     }
 
     // Default / informational (e.g. new submission, registration)
     return [
-        'bg'     => 'bg-secondary',
-        'text'   => 'text-secondary',
+        'bg' => 'bg-secondary',
+        'text' => 'text-secondary',
         'border' => 'border-secondary',
-        'icon'   => '🔔',
+        'icon' => '<i class="bi bi-bell-fill"></i>',
     ];
 }
 
@@ -124,14 +155,16 @@ function get_notification_color(string $message): array {
    ROLE HELPERS
 ============================ */
 
-function get_role_name($role_id) {
+function get_role_name($role_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("SELECT role_name FROM roles WHERE id = ?");
     $stmt->execute([$role_id]);
     return $stmt->fetchColumn();
 }
 
-function get_role_id($role_name) {
+function get_role_id($role_name)
+{
     $conn = get_db();
     $stmt = $conn->prepare("SELECT id FROM roles WHERE role_name = ?");
     $stmt->execute([$role_name]);
@@ -142,7 +175,8 @@ function get_role_id($role_name) {
    USER FETCHERS
 ============================ */
 
-function get_user_by_id($user_id) {
+function get_user_by_id($user_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT u.*, r.role_name, d.department_name, c.college_name
@@ -156,7 +190,8 @@ function get_user_by_id($user_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function update_user($user_id, $first_name, $last_name, $email, $role_id, $department_id) {
+function update_user($user_id, $first_name, $last_name, $email, $role_id, $department_id)
+{
     try {
         $conn = get_db();
         $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
@@ -167,7 +202,8 @@ function update_user($user_id, $first_name, $last_name, $email, $role_id, $depar
     }
 }
 
-function get_dean($department_id = null) {
+function get_dean($department_id = null)
+{
     $conn = get_db();
     if ($department_id) {
         $stmt = $conn->prepare("
@@ -192,7 +228,8 @@ function get_dean($department_id = null) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function get_vpaa() {
+function get_vpaa()
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT u.* FROM users u
@@ -209,7 +246,8 @@ function get_vpaa() {
    SYLLABUS FETCHERS
 ============================ */
 
-function get_syllabus_details($syllabus_id) {
+function get_syllabus_details($syllabus_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT s.*,
@@ -232,7 +270,8 @@ function get_syllabus_details($syllabus_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function get_syllabus_details_with_dept($syllabus_id) {
+function get_syllabus_details_with_dept($syllabus_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT s.*,
@@ -255,7 +294,8 @@ function get_syllabus_details_with_dept($syllabus_id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function get_workflow_history($syllabus_id) {
+function get_workflow_history($syllabus_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT sw.*, r.role_name, u.first_name, u.last_name
@@ -269,7 +309,8 @@ function get_workflow_history($syllabus_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_faculty_submissions($user_id) {
+function get_faculty_submissions($user_id)
+{
     $conn = get_db();
     $stmt = $conn->prepare("
         SELECT s.*,
@@ -310,7 +351,16 @@ function get_faculty_submissions($user_id) {
                      AND sw4.action      = 'Rejected'
                    ORDER BY sw4.action_at DESC
                    LIMIT 1
-               ) AS rejecting_role
+               ) AS rejecting_role,
+               (
+                   SELECT CONCAT(u3.first_name, ' ', u3.last_name)
+                   FROM syllabus_workflow sw5
+                   JOIN users u3 ON sw5.reviewer_id = u3.id
+                   WHERE sw5.syllabus_id = s.id
+                     AND sw5.action      = 'Rejected'
+                   ORDER BY sw5.action_at DESC
+                   LIMIT 1
+               ) AS rejecting_name
         FROM syllabus s
         LEFT JOIN courses c     ON s.course_id      = c.id
         LEFT JOIN users u       ON s.uploaded_by    = u.id
@@ -322,13 +372,41 @@ function get_faculty_submissions($user_id) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// FIX 1: get_shared_syllabi now returns EMPTY.
-// After VPAA approves, syllabi only appear in faculty My Submissions — not shared.
-function get_shared_syllabi($department_id = null) {
-    return [];
+function get_shared_syllabi($department_id = null)
+{
+    $pdo  = get_db();
+    $sql = "
+        SELECT
+            s.id,
+            s.course_code,
+            s.course_title,
+            s.subject_type,
+            s.semester,
+            s.school_year,
+            s.file_path,
+            s.submitted_at,
+            CONCAT(u.first_name, ' ', u.last_name) AS faculty_name,
+            u.email AS uploader_email,
+            d.department_name
+        FROM syllabus s
+        JOIN users       u ON u.id = s.uploaded_by
+        LEFT JOIN departments d ON d.id = u.department_id
+        WHERE s.status = 'Approved'
+    ";
+    $params = [];
+    if ($department_id) {
+        $sql .= " AND u.department_id = ?";
+        $params[] = $department_id;
+    }
+    $sql .= " ORDER BY s.submitted_at DESC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_courses($department_id = null) {
+function get_courses($department_id = null)
+{
     $conn = get_db();
     if ($department_id) {
         $stmt = $conn->prepare("SELECT * FROM courses WHERE department_id = ? ORDER BY course_code");
@@ -340,14 +418,16 @@ function get_courses($department_id = null) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_departments() {
+function get_departments()
+{
     $conn = get_db();
     $stmt = $conn->prepare("SELECT * FROM departments ORDER BY department_name");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_colleges() {
+function get_colleges()
+{
     $conn = get_db();
     $stmt = $conn->prepare("SELECT * FROM colleges ORDER BY college_name");
     $stmt->execute();
@@ -358,7 +438,8 @@ function get_colleges() {
    WORKFLOW RULES
 ============================ */
 
-function get_step_order($role_name) {
+function get_step_order($role_name)
+{
     return match ($role_name) {
         'dean' => 1,
         'vpaa' => 2,
@@ -366,21 +447,24 @@ function get_step_order($role_name) {
     };
 }
 
-function determine_next_role($current_role) {
+function determine_next_role($current_role)
+{
     return match ($current_role) {
         'faculty' => 'dean',
-        'dean'    => 'vpaa',
-        'vpaa'    => null,
-        default   => null
+        'dean' => 'vpaa',
+        'vpaa' => null,
+        default => null
     };
 }
 
-function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
+function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty')
+{
     $conn = get_db();
 
     $exists = $conn->prepare("SELECT COUNT(*) FROM syllabus_workflow WHERE syllabus_id = ? AND action = 'Pending'");
     $exists->execute([$syllabus_id]);
-    if ((int) $exists->fetchColumn() > 0) return;
+    if ((int) $exists->fetchColumn() > 0)
+        return;
 
     $is_dean = in_array($uploader_role, ['dean', 'admin']);
 
@@ -404,7 +488,8 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
 /**
  * Reset syllabus workflow after edit
  */
-function reset_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
+function reset_syllabus_workflow($syllabus_id, $uploader_role = 'faculty')
+{
     $conn = get_db();
     // Wipe all existing steps for this submission
     $conn->prepare("DELETE FROM syllabus_workflow WHERE syllabus_id = ?")->execute([$syllabus_id]);
@@ -418,9 +503,11 @@ function reset_syllabus_workflow($syllabus_id, $uploader_role = 'faculty') {
    WORKFLOW NOTIFICATIONS
 ============================ */
 
-function notify_next_reviewer($syllabus_id, $next_role) {
+function notify_next_reviewer($syllabus_id, $next_role)
+{
     $syllabus = get_syllabus_details_with_dept($syllabus_id);
-    if (!$syllabus) return;
+    if (!$syllabus)
+        return;
 
     $department_id = $syllabus['department_id'] ?? null;
     $user = ($next_role === 'dean') ? get_dean($department_id) : get_vpaa();
@@ -434,20 +521,24 @@ function notify_next_reviewer($syllabus_id, $next_role) {
     }
 }
 
-function notify_rejection($syllabus_id, $by_role) {
+function notify_rejection($syllabus_id, $role)
+{
     $syllabus = get_syllabus_details_with_dept($syllabus_id);
-    if (!$syllabus) return;
+    if (!$syllabus)
+        return;
     notify_user(
         $syllabus['uploaded_by'],
         "Your syllabus (" . $syllabus['course_code'] . ") was rejected by the "
-            . ucfirst(str_replace('_', ' ', $by_role)),
+        . ucfirst(str_replace('_', ' ', $role)),
         $syllabus_id
     );
 }
 
-function notify_on_vpaa_approval($syllabus_id) {
+function notify_on_vpaa_approval($syllabus_id)
+{
     $syllabus = get_syllabus_details_with_dept($syllabus_id);
-    if (!$syllabus) return;
+    if (!$syllabus)
+        return;
     notify_user(
         $syllabus['uploaded_by'],
         "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
@@ -461,10 +552,12 @@ function notify_on_vpaa_approval($syllabus_id) {
    Dean approval keeps status 'Pending' until VPAA gives final approval.
 ============================ */
 
-function process_syllabus_action($syllabus_id, $action, $comment = null) {
-    if (session_status() === PHP_SESSION_NONE) session_start();
+function process_syllabus_action($syllabus_id, $action, $comment = null)
+{
+    if (session_status() === PHP_SESSION_NONE)
+        session_start();
 
-    $conn    = get_db();
+    $conn = get_db();
     $user_id = $_SESSION['user_id'];
 
     $role_id = $_SESSION['role_id']
@@ -507,29 +600,29 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
                 reviewer_id = VALUES(reviewer_id),
                 action_at   = NOW()
         ")->execute([
-            $syllabus_id,
-            get_step_order($role),
-            $role_id,
-            $action,
-            $user_id,
-        ]);
+                    $syllabus_id,
+                    get_step_order($role),
+                    $role_id,
+                    $action,
+                    $user_id,
+                ]);
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────
     if ($action === 'Rejected') {
         $conn->prepare("UPDATE syllabus SET status = 'Rejected' WHERE id = ?")
-             ->execute([$syllabus_id]);
+            ->execute([$syllabus_id]);
         notify_rejection($syllabus_id, $role);
         return;
     }
 
-        // STEP 2: Determine next role in the chain
-        $next_role = determine_next_role($role);
+    // STEP 2: Determine next role in the chain
+    $next_role = determine_next_role($role);
 
     if ($next_role === null) {
         // VPAA is final — only NOW mark as fully Approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
-             ->execute([$syllabus_id]);
+            ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
         return;
     }
@@ -537,7 +630,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
     // Dean approved — keep syllabus as Pending until VPAA acts
     // Do NOT set status = 'Approved' here
     $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")
-         ->execute([$syllabus_id]);
+        ->execute([$syllabus_id]);
 
     // Insert the next pending workflow step (skip if already exists)
     $next_role_id = get_role_id($next_role);
@@ -560,12 +653,15 @@ function process_syllabus_action($syllabus_id, $action, $comment = null) {
    STATUS BADGE HELPER
 ============================ */
 
-function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null) {
+function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null, $rejecting_name = null)
+{
     if ($status === 'Approved') {
         return '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved VPAA</span>';
     }
     if ($status === 'Rejected') {
-        return '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected</span>';
+        $role_text = $rejecting_role ? strtoupper($rejecting_role) : 'REJECTED';
+        $name_text = $rejecting_name ? " ($rejecting_name)" : "";
+        return '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected ' . $role_text . '</span>';
     }
     // Pending — show which stage
     if ($current_stage_role === 'vpaa') {
@@ -578,8 +674,9 @@ function format_syllabus_status($status, $current_stage_role = null, $rejecting_
    SCHOOL YEAR HELPER
 ============================ */
 
-function get_current_school_year() {
-    $year  = (int) date('Y');
+function get_current_school_year()
+{
+    $year = (int) date('Y');
     $month = (int) date('n');
     $start = ($month < 6) ? $year - 1 : $year;
     return $start . '–' . ($start + 1);
@@ -589,8 +686,10 @@ function get_current_school_year() {
    SESSION SAFETY HELPER
 ============================ */
 
-function ensure_role_in_session() {
-    if (session_status() === PHP_SESSION_NONE) session_start();
+function ensure_role_in_session()
+{
+    if (session_status() === PHP_SESSION_NONE)
+        session_start();
     if (!isset($_SESSION['role_id']) && isset($_SESSION['role'])) {
         $_SESSION['role_id'] = get_role_id($_SESSION['role']);
     }
@@ -600,8 +699,11 @@ function ensure_role_in_session() {
    CURRENT USER HELPER
 ============================ */
 
-function current_user() {
-    if (session_status() === PHP_SESSION_NONE) session_start();
-    if (!isset($_SESSION['user_id'])) return null;
+function current_user()
+{
+    if (session_status() === PHP_SESSION_NONE)
+        session_start();
+    if (!isset($_SESSION['user_id']))
+        return null;
     return get_user_by_id($_SESSION['user_id']);
 }

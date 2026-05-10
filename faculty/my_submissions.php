@@ -88,6 +88,40 @@ $notifications = get_notifications($user_id, 5);
 
         <div class="d-flex justify-content-between align-items-center mb-5">
             <h3 class="text-orange font-serif fw-bold mb-0">My Syllabus Submissions</h3>
+            <div class="dropdown">
+                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
+                    <i class="bi bi-bell fs-4 text-dark"></i>
+                    <?php if ($unread_count > 0): ?>
+                        <span class="notif-dot"></span>
+                    <?php endif; ?>
+                </div>
+
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
+                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                        <strong>Notifications</strong>
+                        <?php if ($unread_count > 0): ?>
+                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
+                        <?php endif; ?>
+                    </li>
+                    <?php if (empty($notifications)): ?>
+                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
+                    <?php else: foreach ($notifications as $n): 
+                        $color = get_notification_color($n['message']); ?>
+                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
+                                <p class="mb-0 small">
+                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                </p>
+                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                            </a>
+                        </li>
+                    <?php endforeach; endif; ?>
+                    <li class="dropdown-menu-sticky-footer">
+                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <?php if ($success_message): ?>
@@ -137,7 +171,7 @@ $notifications = get_notifications($user_id, 5);
                         <table class="table table-hover align-middle table-premium">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
@@ -152,7 +186,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($pending as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
                                             <td>
                                                 <div class="d-flex flex-column">
                                                     <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
@@ -164,7 +198,7 @@ $notifications = get_notifications($user_id, 5);
                                             <td class="d-none d-xl-table-cell small">
                                                 <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
                                             </td>
-                                            <td><?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null) ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
                                             <td class="text-center">
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
                                                    target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
@@ -190,7 +224,7 @@ $notifications = get_notifications($user_id, 5);
                         <table class="table table-hover align-middle table-premium">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
@@ -205,7 +239,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($approved as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
                                             <td>
                                                 <div class="d-flex flex-column">
                                                     <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
@@ -217,7 +251,7 @@ $notifications = get_notifications($user_id, 5);
                                             <td class="d-none d-xl-table-cell small">
                                                 <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
                                             </td>
-                                            <td><?= format_syllabus_status($sub['status']) ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
                                             <td class="small"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
                                             <td class="text-center">
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
@@ -240,7 +274,7 @@ $notifications = get_notifications($user_id, 5);
                         <table class="table table-hover align-middle table-premium">
                             <thead class="table-light">
                                 <tr>
-                                    <th class="text-secondary small">#</th>
+                                    <th class="text-secondary small">ID</th>
                                     <th class="text-secondary small">COURSE</th>
                                     <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
                                     <th class="text-secondary small">STATUS</th>
@@ -256,7 +290,7 @@ $notifications = get_notifications($user_id, 5);
                                 <?php else: ?>
                                     <?php foreach ($rejected as $i => $sub): ?>
                                         <tr>
-                                            <td><?= $i + 1 ?></td>
+                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
                                             <td>
                                                 <div class="d-flex flex-column">
                                                     <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
@@ -268,7 +302,7 @@ $notifications = get_notifications($user_id, 5);
                                             <td class="d-none d-xl-table-cell small">
                                                 <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
                                             </td>
-                                            <td><?= format_syllabus_status($sub['status']) ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
                                             <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
                                             <td class="text-center">
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
@@ -278,10 +312,12 @@ $notifications = get_notifications($user_id, 5);
                                             </td>
                                             <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                             <td class="text-center">
-                                                <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
-                                                   class="btn btn-sm btn-outline-warning rounded-pill px-3 me-1">Edit</a>
-                                                <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
-                                                   class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
+                                                <div class="d-flex flex-column gap-2">
+                                                    <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
+                                                       class="btn btn-sm btn-outline-warning rounded-pill px-3">Edit</a>
+                                                    <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
+                                                       class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
+                                                </div>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

@@ -14,6 +14,9 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 ensure_role_in_session();
 
+// Initialize the database connection early so $pdo is available for all queries
+$pdo = get_db();
+
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'User';
 $role_display = 'Dean Panel';
@@ -27,12 +30,8 @@ if (isset($_GET['mark_read'])) {
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-
-
-/* ── Fetch approved syllabi for the department ── */
-$approved_syllabi = get_shared_syllabi($_SESSION['department_id'] ?? null);
-
 /* ── Sidebar badge counts ── */
+// This now works because $pdo is defined above
 $pending_review_count = (int) $pdo->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -47,6 +46,29 @@ $reg_stmt = $pdo->prepare("
 ");
 $reg_stmt->execute();
 $reg_count = (int) $reg_stmt->fetchColumn();
+
+/* ── Fetch all approved syllabi with uploader info ── */
+// Use the already established $pdo connection
+$stmt = $pdo->prepare("
+    SELECT
+        s.id,
+        s.course_code,
+        s.course_title,
+        s.subject_type,
+        s.semester,
+        s.school_year,
+        s.file_path,
+        s.submitted_at,
+        CONCAT(u.first_name, ' ', u.last_name) AS faculty_name,
+        d.department_name
+    FROM syllabus s
+    JOIN users       u ON u.id = s.uploaded_by
+    LEFT JOIN departments d ON d.id = u.department_id
+    WHERE s.status = 'Approved'
+    ORDER BY s.submitted_at DESC
+");
+$stmt->execute();
+$approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* ── Unique filter values ── */
 $departments = array_unique(array_filter(array_column($approved_syllabi, 'department_name')));

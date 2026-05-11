@@ -8,12 +8,7 @@ session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header('Location: ../login.php');
-    exit();
-}
-
-ensure_role_in_session();
+restrict_to_role('dean');
 
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'Dean / Admin';
@@ -49,10 +44,12 @@ $stmt = $conn->prepare("
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
            u.first_name, u.last_name, u.email AS uploader_email,
+           r2.role_name AS uploader_role,
            sw.id AS workflow_id
     FROM syllabus_workflow sw
     JOIN syllabus s ON sw.syllabus_id = s.id
     JOIN users u    ON s.uploaded_by  = u.id
+    JOIN roles r2   ON u.role_id      = r2.id
     LEFT JOIN courses c ON s.course_id = c.id
     JOIN roles r    ON sw.role_id     = r.id
     WHERE r.role_name = 'dean' AND sw.action = 'Pending'
@@ -66,11 +63,13 @@ $stmt = $conn->prepare("
     SELECT s.*,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
-           u.first_name, u.last_name,
+           u.first_name, u.last_name, u.email AS uploader_email,
+           r2.role_name AS uploader_role,
            sw.action_at AS reviewed_at, sw.comment
     FROM syllabus_workflow sw
     JOIN syllabus s ON sw.syllabus_id = s.id
     JOIN users u    ON s.uploaded_by  = u.id
+    JOIN roles r2   ON u.role_id      = r2.id
     LEFT JOIN courses c ON s.course_id = c.id
     JOIN roles r    ON sw.role_id     = r.id
     WHERE r.role_name = 'dean' AND sw.action = 'Approved'
@@ -84,11 +83,13 @@ $stmt = $conn->prepare("
     SELECT s.*,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
            COALESCE(NULLIF(s.course_title,''), c.course_title) AS course_title,
-           u.first_name, u.last_name,
+           u.first_name, u.last_name, u.email AS uploader_email,
+           r2.role_name AS uploader_role,
            sw.action_at AS reviewed_at, sw.comment
     FROM syllabus_workflow sw
     JOIN syllabus s ON sw.syllabus_id = s.id
     JOIN users u    ON s.uploaded_by  = u.id
+    JOIN roles r2   ON u.role_id      = r2.id
     LEFT JOIN courses c ON s.course_id = c.id
     JOIN roles r    ON sw.role_id     = r.id
     WHERE r.role_name = 'dean' AND sw.action = 'Rejected'
@@ -115,6 +116,7 @@ $notifications = get_notifications($user_id, 5);
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/common.js"></script>
     <style>
         .text-orange {
             color: #ff8800 !important;
@@ -158,6 +160,7 @@ $notifications = get_notifications($user_id, 5);
                 <a href="syllabus_review.php" class="nav-link text-white active-nav-link p-3 rounded">Syllabus
                     Review</a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
+                <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
@@ -167,7 +170,7 @@ $notifications = get_notifications($user_id, 5);
                 <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 
@@ -307,8 +310,9 @@ $notifications = get_notifications($user_id, 5);
                                                     <div class="fw-bold small">
                                                         <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?>
                                                     </div>
-                                                    <div class="text-muted" style="font-size:.7rem;">
-                                                        <?= htmlspecialchars($sub['uploader_email']) ?></div>
+                                                    <div class="text-muted small" style="font-size:.7rem;">
+                                                        <?= ucfirst(htmlspecialchars($sub['uploader_role'])) ?>
+                                                    </div>
                                                 </td>
                                                 <td>
                                                     <div class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?>
@@ -370,8 +374,12 @@ $notifications = get_notifications($user_id, 5);
                                         foreach ($approved_rows as $i => $sub): ?>
                                             <tr>
                                                 <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
-                                                <td class="small fw-bold">
-                                                    <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></td>
+                                                <td class="small">
+                                                    <div class="fw-bold"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
+                                                    <div class="text-muted small" style="font-size:.7rem;">
+                                                        <?= ucfirst(htmlspecialchars($sub['uploader_role'])) ?>
+                                                    </div>
+                                                </td>
                                                 <td><span
                                                         class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
                                                 </td>
@@ -418,8 +426,12 @@ $notifications = get_notifications($user_id, 5);
                                         foreach ($rejected_rows as $i => $sub): ?>
                                             <tr>
                                                 <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
-                                                <td class="small fw-bold">
-                                                    <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></td>
+                                                <td class="small">
+                                                    <div class="fw-bold"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
+                                                    <div class="text-muted small" style="font-size:.7rem;">
+                                                        <?= ucfirst(htmlspecialchars($sub['uploader_role'])) ?>
+                                                    </div>
+                                                </td>
                                                 <td><span
                                                         class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
                                                 </td>

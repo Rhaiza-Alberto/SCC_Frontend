@@ -7,12 +7,7 @@ session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header('Location: ../login.php');
-    exit();
-}
-
-ensure_role_in_session();
+restrict_to_role('faculty');
 
 $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'User';
@@ -80,7 +75,7 @@ $notifications = get_notifications($user_id, 5);
 
         <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
         <a href="profile.php"   class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-        <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+        <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
     </div>
 
     <!-- Main Content -->
@@ -332,6 +327,8 @@ $notifications = get_notifications($user_id, 5);
     </div><!-- /main-content -->
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

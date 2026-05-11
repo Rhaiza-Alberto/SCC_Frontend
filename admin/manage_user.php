@@ -3,16 +3,13 @@ session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header('Location: ../login.php');
-    exit();
-}
+restrict_to_role('dean');
 
-$username     = $_SESSION['username'] ?? 'Dean / Admin';
+$username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
 
 // CONNECT (PDO)
-$db   = new Database();
+$db = new Database();
 $conn = $db->connect();
 
 // Check if current user is dean
@@ -21,11 +18,11 @@ $stmt = $conn->prepare("SELECT users.*, roles.role_name FROM users
                         WHERE users.id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $current_user = $stmt->fetch();
-$is_dean      = ($current_user['role_name'] === 'dean');
+$is_dean = ($current_user['role_name'] === 'dean');
 
 // ── Initialise badge counters so isset() checks are never needed ──────────────
 $pending_review_count = 0;
-$reg_count            = 0;
+$reg_count = 0;
 
 // DELETE USER (SOFT DELETE) — must run BEFORE fetching users
 if (isset($_GET['delete'])) {
@@ -39,16 +36,16 @@ if (isset($_GET['delete'])) {
 }
 
 // FETCH USERS (after possible delete so the list is current)
-$query = "SELECT users.*, roles.role_name, departments.department_name
+$query = "SELECT users.*, roles.role_name, colleges.college_name
           FROM users
           LEFT JOIN roles       ON users.role_id       = roles.id
-          LEFT JOIN departments ON users.department_id = departments.id
+          LEFT JOIN colleges    ON users.college_id    = colleges.id
           WHERE users.is_deleted = 0";
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $users = $stmt->fetchAll();
-$unread_count  = count_unread_notifications($_SESSION['user_id']);
+$unread_count = count_unread_notifications($_SESSION['user_id']);
 $notifications = get_notifications($_SESSION['user_id'], 5);
 
 if (isset($_GET['mark_read'])) {
@@ -67,6 +64,8 @@ if (isset($_GET['mark_read'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/common.js"></script>
     <style>
         .text-orange {
             color: #ff8800 !important;
@@ -94,38 +93,53 @@ if (isset($_GET['mark_read'])) {
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                     style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
+                </p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
+                <a href="admin_dashboard.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
+                <a href="syllabus_review.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
                     Syllabus Review
                     <?php if ($pending_review_count > 0): ?>
                         <span class="badge bg-danger ms-1"><?= (int) $pending_review_count ?></span>
                     <?php endif; ?>
                 </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
+                <a href="upload_syllabus.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload
+                    Syllabus</a>
+                <a href="manage_courses.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_courses.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Courses</a>
+                <a href="my_submissions.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My
+                    Submissions</a>
+                <a href="shared_syllabus.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared
+                    Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
+                <a href="registration_requests.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
                     Registration Requests
                     <?php if ($reg_count > 0): ?>
                         <span class="badge bg-danger ms-1"><?= (int) $reg_count ?></span>
                     <?php endif; ?>
                 </a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
+                <a href="manage_user.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage
+                    Users</a>
+                <a href="add_user.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add
+                    User</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
-                <?php if ($is_dean): ?>
-                <?php endif; ?>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+                <a href="profile.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 
@@ -134,14 +148,14 @@ if (isset($_GET['mark_read'])) {
                 <h2 class="text-orange font-serif fw-bold">Manage Users</h2>
                 <div class="d-flex align-items-center gap-3">
                     <?php if ($is_dean): ?>
-                    <a href="transfer_dean_role.php" class="btn btn-outline-warning rounded-pill px-4 me-2 shadow-sm">
-                        <i class="bi bi-arrow-left-right me-2"></i> Transfer Dean Role
-                    </a>
+                        <a href="transfer_dean_role.php" class="btn btn-outline-warning rounded-pill px-4 me-2 shadow-sm">
+                            <i class="bi bi-arrow-left-right me-2"></i> Transfer Dean Role
+                        </a>
                     <?php endif; ?>
                     <a href="add_user.php" class="btn btn-orange rounded-pill px-4 shadow-sm">
                         <i class="bi bi-person-plus me-2"></i> Add New User
                     </a>
-                    
+
                     <div class="dropdown">
                         <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-4 text-dark"></i>
@@ -149,8 +163,10 @@ if (isset($_GET['mark_read'])) {
                                 <span class="notif-dot"></span>
                             <?php endif; ?>
                         </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                            style="width:320px;max-height:400px;overflow-y:auto;">
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
+                                style="z-index:11;">
                                 <strong>Notifications</strong>
                                 <?php if ($unread_count > 0): ?>
                                     <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
@@ -158,20 +174,26 @@ if (isset($_GET['mark_read'])) {
                             </li>
                             <?php if (empty($notifications)): ?>
                                 <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                            <?php else: foreach ($notifications as $n): 
-                                $color = get_notification_color($n['message']); ?>
-                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                        <p class="mb-0 small">
-                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                        </p>
-                                        <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                    </a>
-                                </li>
-                            <?php endforeach; endif; ?>
+                            <?php else:
+                                foreach ($notifications as $n):
+                                    $color = get_notification_color($n['message']); ?>
+                                    <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                        <a href="notifications.php?notif_id=<?= $n['id'] ?>"
+                                            class="text-decoration-none text-dark d-block px-3 py-2">
+                                            <p class="mb-0 small">
+                                                <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                                <span
+                                                    class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                            </p>
+                                            <span class="text-muted"
+                                                style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                        </a>
+                                    </li>
+                                <?php endforeach; endif; ?>
                             <li class="dropdown-menu-sticky-footer">
-                                <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                                <a href="notifications.php"
+                                    class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View
+                                    all notifications</a>
                             </li>
                         </ul>
                     </div>
@@ -187,7 +209,7 @@ if (isset($_GET['mark_read'])) {
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Role</th>
-                                <th>Department</th>
+                                <th>College</th>
                                 <th class="text-center">Action</th>
                             </tr>
                         </thead>
@@ -205,28 +227,26 @@ if (isset($_GET['mark_read'])) {
                                     <td class="small"><?= htmlspecialchars($u['email']) ?></td>
 
                                     <td>
-                                        <span class="badge rounded-pill px-3 py-1 bg-opacity-10
-                                            <?= $u['role_name'] == 'dean'            ? 'bg-danger text-danger'   :
-                                               ($u['role_name'] == 'vpaa'            ? 'bg-success text-success' : 'bg-primary text-primary') ?>">
+                                        <span
+                                            class="badge rounded-pill px-3 py-1 bg-opacity-10
+                                            <?= $u['role_name'] == 'dean' ? 'bg-danger text-danger' :
+                                                ($u['role_name'] == 'vpaa' ? 'bg-success text-success' : 'bg-primary text-primary') ?>">
                                             <?= htmlspecialchars(strtoupper($u['role_name'])) ?>
                                         </span>
                                     </td>
 
                                     <td class="small text-muted">
-                                        <?= htmlspecialchars($u['department_name'] ?? 'N/A') ?>
+                                        <?= htmlspecialchars($u['college_name'] ?? 'N/A') ?>
                                     </td>
 
                                     <td class="text-center">
                                         <div class="btn-group btn-group-sm">
                                             <a href="edit_user.php?id=<?= (int) $u['id'] ?>"
-                                               class="btn btn-outline-primary border-0"
-                                               title="Edit User">
+                                                class="btn btn-outline-primary border-0" title="Edit User">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="?delete=<?= (int) $u['id'] ?>"
-                                               class="btn btn-outline-danger border-0"
-                                               onclick="return confirm('Delete this user?')"
-                                               title="Delete User">
+                                            <a href="#" class="btn btn-outline-danger border-0"
+                                                onclick="confirmDelete(<?= (int) $u['id'] ?>, '<?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>')" title="Delete User">
                                                 <i class="bi bi-trash"></i>
                                             </a>
                                         </div>
@@ -241,6 +261,23 @@ if (isset($_GET['mark_read'])) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmDelete(userId, userName) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: `You are about to delete user ${userName}. This cannot be undone.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = `?delete=${userId}`;
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>

@@ -109,7 +109,7 @@ try {
             course_name  = ?,
             subject_type = ?,
             semester     = ?,
-            year_level   = ?,
+            school_year   = ?,
             file_path    = ?,
             status       = 'Pending'
         WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')

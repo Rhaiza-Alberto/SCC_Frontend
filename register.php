@@ -54,7 +54,7 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
 
                 <div class="bg-dark bg-opacity-50 p-4 rounded-3 text-start mb-4 border border-secondary">
                     <h6 class="text-warning fw-bold mb-2"> Important:</h6>
-                    <p class="small mb-2">Your registration will be reviewed by the Department Head.</p>
+                    <p class="small mb-2">Your registration will be reviewed by the Dean.</p>
                     <p class="small mb-0">You will receive an email once your account is approved.</p>
                 </div>
 
@@ -140,11 +140,12 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
                         </div>
                     </div>
 
-                
+
                     <!-- College -->
                     <div class="mb-4">
                         <label for="college" class="form-label text-white small">College</label>
-                        <input type="text" name="college" class="form-control form-control-dark" id="college" value="College of Computing Studies" readonly>
+                        <input type="text" name="college" class="form-control form-control-dark" id="college"
+                            value="College of Computing Studies" readonly>
                     </div>
 
                     <div class="d-grid">

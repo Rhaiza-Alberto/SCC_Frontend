@@ -8,17 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$first_name       = trim($_POST['firstName']       ?? '');
-$middle_name      = trim($_POST['middleName']       ?? '') ?: null;
-$last_name        = trim($_POST['lastName']         ?? '');
-$email            = trim($_POST['email']            ?? '');
-$password         = $_POST['password']              ?? '';
-$confirm_password = $_POST['confirmPassword']       ?? '';
-$birthdate        = $_POST['birthdate']             ?? '';
-$sex              = $_POST['sex']                   ?? '';
+$first_name = trim($_POST['firstName'] ?? '');
+$middle_name = trim($_POST['middleName'] ?? '') ?: null;
+$last_name = trim($_POST['lastName'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
+$confirm_password = $_POST['confirmPassword'] ?? '';
+$birthdate = $_POST['birthdate'] ?? '';
+$sex = $_POST['sex'] ?? '';
 
-if (empty($first_name) || empty($last_name) || empty($email) || empty($password)
-    || empty($confirm_password) || empty($birthdate) || empty($sex)) {
+if (
+    empty($first_name) || empty($last_name) || empty($email) || empty($password)
+    || empty($confirm_password) || empty($birthdate) || empty($sex)
+) {
     $_SESSION['register_error'] = 'Please fill in all required fields.';
     header('Location: register.php');
     exit();
@@ -75,13 +77,20 @@ try {
     $stmt = $conn->prepare("
         INSERT INTO users
             (first_name, middle_name, last_name, birthdate, sex,
-             email, password, role_id,
+             email, password, role_id, college_id,
              created_at, is_deleted, is_approved, reset_requested)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 0, 0, 0)
     ");
     $stmt->execute([
-        $first_name, $middle_name, $last_name, $birthdate, $sex_normalized,
-        $email, $hashed_password, $role['id'],
+        $first_name,
+        $middle_name,
+        $last_name,
+        $birthdate,
+        $sex_normalized,
+        $email,
+        $hashed_password,
+        $role['id'],
+        1 // College of Computing Studies ID
     ]);
 
     // Notify the Dean (no department scope since department was removed)

@@ -3,17 +3,11 @@ session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header('Location: ../login.php');
-    exit();
-}
+restrict_to_role('dean');
 
-// Get user information from session
-$username = $_SESSION['username'] ?? 'Dr. Jane Smith';
+$username = $_SESSION['username'] ?? 'Dean';
 $email = $_SESSION['email'] ?? '';
-$role = $_SESSION['role'] ?? 'dept_head';
-$role_display = 'Dept Head Panel';
+$role_display = "Dean's Panel";
 
 // Fetch user profile from database
 $user_id = $_SESSION['user_id'];
@@ -27,25 +21,22 @@ $stmt = $conn->prepare("
         u.birthdate,
         u.sex,
         u.email,
-        d.department_name,
         c.college_name
     FROM users u
-    LEFT JOIN departments d ON u.department_id = d.id
-    LEFT JOIN colleges    c ON d.college_id    = c.id
+    LEFT JOIN colleges c ON u.college_id = c.id
     WHERE u.id = ? AND u.is_deleted = 0
 ");
 $stmt->execute([$user_id]);
 $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $profile = [
-    'first_name'  => $row['first_name']      ?? '',
-    'middle_name' => $row['middle_name']      ?? '',
-    'last_name'   => $row['last_name']        ?? '',
-    'birthdate'   => $row['birthdate']        ?? '',
-    'sex'         => $row['sex']              ?? '',
-    'college'     => $row['college_name']     ?? '',
-    'department'  => $row['department_name']  ?? '',
-    'email'       => $row['email']            ?? $email,
+    'first_name'  => $row['first_name']  ?? '',
+    'middle_name' => $row['middle_name'] ?? '',
+    'last_name'   => $row['last_name']   ?? '',
+    'birthdate'   => $row['birthdate']   ?? '',
+    'sex'         => $row['sex']         ?? '',
+    'college'     => $row['college_name'] ?? '',
+    'email'       => $row['email']       ?? $email,
 ];
 
 $edit_mode = isset($_GET['edit']) && $_GET['edit'] == 'true';
@@ -78,6 +69,8 @@ if (isset($_GET['mark_read'])) {
     <link rel="stylesheet" href="../css/style.css">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="../js/common.js"></script>
 </head>
 
 <body class="bg-light">
@@ -119,7 +112,7 @@ if (isset($_GET['mark_read'])) {
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 
@@ -210,20 +203,11 @@ if (isset($_GET['mark_read'])) {
                         </div>
                     </div>
 
-                    <!-- College and Department -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="college" class="form-label fw-bold small">College</label>
-                            <input type="text" class="form-control" id="college" name="college" 
-                                   value="<?php echo htmlspecialchars($profile['college']); ?>" 
-                                   <?php echo !$edit_mode ? 'readonly' : ''; ?>>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="department" class="form-label fw-bold small">Department</label>
-                            <input type="text" class="form-control" id="department" name="department" 
-                                   value="<?php echo htmlspecialchars($profile['department']); ?>" 
-                                   <?php echo !$edit_mode ? 'readonly' : ''; ?>>
-                        </div>
+                    <!-- College -->
+                    <div class="mb-3">
+                        <label for="college" class="form-label fw-bold small">College</label>
+                        <input type="text" class="form-control" id="college" readonly
+                               value="<?php echo htmlspecialchars($profile['college']); ?>">
                     </div>
 
                     <!-- Email -->

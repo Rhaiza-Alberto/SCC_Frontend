@@ -27,10 +27,10 @@ $username     = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
 
 // Fetch all eligible users (exclude current dean and other deans)
-$stmt = $conn->prepare("SELECT users.*, roles.role_name, departments.department_name
+$stmt = $conn->prepare("SELECT users.*, roles.role_name, colleges.college_name
                         FROM users
                         LEFT JOIN roles       ON users.role_id       = roles.id
-                        LEFT JOIN departments ON users.department_id = departments.id
+                        LEFT JOIN colleges    ON users.college_id    = colleges.id
                         WHERE users.is_deleted = 0
                         AND users.id != ?
                         AND roles.role_name != 'dean'
@@ -201,8 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="<?= (int) $user['id'] ?>">
                                     <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
                                     - <?= htmlspecialchars(ucfirst($user['role_name'])) ?>
-                                    <?php if ($user['department_name']): ?>
-                                        (<?= htmlspecialchars($user['department_name']) ?>)
+                                    <?php if ($user['college_name']): ?>
+                                        (<?= htmlspecialchars($user['college_name']) ?>)
                                     <?php endif; ?>
                                 </option>
                             <?php endforeach; ?>

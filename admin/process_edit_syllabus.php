@@ -109,6 +109,7 @@ try {
             course_name  = ?,
             subject_type = ?,
             semester     = ?,
+            school_year   = ?,
             file_path    = ?,
             status       = 'Pending'
         WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')
@@ -123,6 +124,7 @@ try {
         $course_name ?: null,
         $subject_type,
         $semester,
+        $year_level,
         $new_file_path,
         $syllabus_id,
         $user_id,

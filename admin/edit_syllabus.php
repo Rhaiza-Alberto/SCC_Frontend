@@ -250,7 +250,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                         <?php
                         $levels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
                         foreach ($levels as $lvl): ?>
-                            <option value="<?= $lvl ?>" <?= ($syllabus['year_level'] ?? '') === $lvl ? 'selected' : '' ?>>
+                            <option value="<?= $lvl ?>" <?= ($syllabus['school_year'] ?? '') === $lvl ? 'selected' : '' ?>>
                                 <?= $lvl ?>
                             </option>
                         <?php endforeach; ?>

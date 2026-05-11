@@ -84,8 +84,12 @@ require_once __DIR__ . '/functions.php';
     <section class="about-section text-center py-5">
         <div class="container">
             <h2 class="fw-bold font-serif mb-4">About the Portal</h2>
-            <p class="text-muted mb-5">This system helps SCC - CCS instructors and administrators manage course syllabi
-                efficiently.</p>
+            <p class="text-muted mb-5 mx-auto" style="max-width: 900px; line-height: 1.8;">
+                This system helps SCC - CCS instructors and administrators manage course syllabi efficiently,
+                ensuring a structured and organized workflow for submission, review, approval, and revision.
+                It is designed to improve transparency, reduce manual processing, and support a centralized
+                academic management process within the College of Computing Studies.
+            </p>
 
             <div class="row g-4 mt-4 pb-5">
                 <!-- Card 1 -->
@@ -121,8 +125,8 @@ require_once __DIR__ . '/functions.php';
     </section>
 
     <!-- Footer -->
-    <footer class="bg-black text-white py-5 mt-5">
-        <div class="container">
+    <footer class="bg-black text-white mt-5">
+        <div class="container" style="max-width: 1100px;">
             <div class="row g-4">
                 <!-- About Section -->
                 <div class="col-lg-4 col-md-6">

@@ -179,47 +179,47 @@ function get_user_by_id($user_id)
 {
     $conn = get_db();
     $stmt = $conn->prepare("
-        SELECT u.*, r.role_name, d.department_name, c.college_name
+        SELECT u.*, r.role_name, c.college_name
         FROM users u
-        LEFT JOIN roles r       ON u.role_id       = r.id
-        LEFT JOIN departments d ON u.department_id = d.id
-        LEFT JOIN colleges c    ON d.college_id    = c.id
+        LEFT JOIN roles r       ON u.role_id    = r.id
+        LEFT JOIN colleges c    ON u.college_id = c.id
         WHERE u.id = ? AND u.is_deleted = 0
     ");
     $stmt->execute([$user_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function update_user($user_id, $first_name, $last_name, $email, $role_id, $department_id)
+function update_user($user_id, $first_name, $last_name, $email, $role_id, $college_id)
 {
     try {
         $conn = get_db();
-        $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, department_id = ? WHERE id = ?");
-        return $stmt->execute([$first_name, $last_name, $email, $role_id, $department_id, $user_id]);
+        $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, college_id = ? WHERE id = ?");
+        return $stmt->execute([$first_name, $last_name, $email, $role_id, $college_id, $user_id]);
     } catch (PDOException $e) {
         error_log("update_user error: " . $e->getMessage());
         return false;
     }
 }
 
-function get_dean($department_id = null)
+function get_dean($college_id = null)
 {
     $conn = get_db();
-    // If department_id is provided, try to find the dean for that specific dept first
-    if ($department_id) {
+    // If college_id is provided, try to find the dean for that specific college first
+    if ($college_id) {
         $stmt = $conn->prepare("
             SELECT u.* FROM users u
             JOIN roles r ON u.role_id = r.id
             WHERE r.role_name = 'dean'
-              AND u.department_id = ?
+              AND u.college_id = ?
               AND u.is_deleted = 0
             LIMIT 1
         ");
-        $stmt->execute([$department_id]);
+        $stmt->execute([$college_id]);
         $res = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($res) return $res;
-    } 
-    
+        if ($res)
+            return $res;
+    }
+
     // Fallback: Find any active user with the 'dean' role
     $stmt = $conn->prepare("
         SELECT u.* FROM users u
@@ -260,15 +260,13 @@ function get_syllabus_details($syllabus_id)
                r.role_name AS uploader_role,
                COALESCE(NULLIF(s.course_code,  ''), c.course_code)  AS course_code,
                COALESCE(NULLIF(s.course_title, ''), c.course_title) AS course_title,
-               c.department_id,
-               d.department_name,
+               COALESCE(u.college_id, c.college_id) AS college_id,
                col.college_name
         FROM syllabus s
-        LEFT JOIN users u       ON s.uploaded_by  = u.id
+        LEFT JOIN users u       ON s.uploaded_by   = u.id
         LEFT JOIN roles r       ON u.role_id       = r.id
         LEFT JOIN courses c     ON s.course_id     = c.id
-        LEFT JOIN departments d ON c.department_id = d.id
-        LEFT JOIN colleges col  ON d.college_id    = col.id
+        LEFT JOIN colleges col  ON COALESCE(u.college_id, c.college_id) = col.id
         WHERE s.id = ?
     ");
     $stmt->execute([$syllabus_id]);
@@ -277,26 +275,8 @@ function get_syllabus_details($syllabus_id)
 
 function get_syllabus_details_with_dept($syllabus_id)
 {
-    $conn = get_db();
-    $stmt = $conn->prepare("
-        SELECT s.*,
-               u.first_name, u.last_name, u.email,
-               r.role_name AS uploader_role,
-               COALESCE(NULLIF(s.course_code,  ''), c.course_code)  AS course_code,
-               COALESCE(NULLIF(s.course_title, ''), c.course_title) AS course_title,
-               COALESCE(c.department_id, u.department_id)            AS department_id,
-               d.department_name,
-               col.college_name
-        FROM syllabus s
-        LEFT JOIN users u       ON s.uploaded_by                     = u.id
-        LEFT JOIN roles r       ON u.role_id                         = r.id
-        LEFT JOIN courses c     ON s.course_id                       = c.id
-        LEFT JOIN departments d ON COALESCE(c.department_id, u.department_id) = d.id
-        LEFT JOIN colleges col  ON d.college_id                      = col.id
-        WHERE s.id = ?
-    ");
-    $stmt->execute([$syllabus_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    // Alias for get_syllabus_details since departments are removed
+    return get_syllabus_details($syllabus_id);
 }
 
 function get_workflow_history($syllabus_id)
@@ -321,7 +301,7 @@ function get_faculty_submissions($user_id)
         SELECT s.*,
                COALESCE(NULLIF(s.course_code,  ''), c.course_code)  AS course_code,
                COALESCE(NULLIF(s.course_title, ''), c.course_title) AS course_title,
-               d.department_name,
+               col.college_name,
                (
                    SELECT sw.comment
                    FROM syllabus_workflow sw
@@ -369,7 +349,7 @@ function get_faculty_submissions($user_id)
         FROM syllabus s
         LEFT JOIN courses c     ON s.course_id      = c.id
         LEFT JOIN users u       ON s.uploaded_by    = u.id
-        LEFT JOIN departments d ON COALESCE(c.department_id, u.department_id) = d.id
+        LEFT JOIN colleges col ON COALESCE(c.college_id, u.college_id) = col.id
         WHERE s.uploaded_by = ?
         ORDER BY s.submitted_at DESC
     ");
@@ -377,9 +357,9 @@ function get_faculty_submissions($user_id)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_shared_syllabi($department_id = null)
+function get_shared_syllabi($college_id = null)
 {
-    $pdo  = get_db();
+    $pdo = get_db();
     $sql = "
         SELECT
             s.id,
@@ -391,17 +371,18 @@ function get_shared_syllabi($department_id = null)
             s.file_path,
             s.submitted_at,
             CONCAT(u.first_name, ' ', u.last_name) AS faculty_name,
+            u.first_name, u.last_name,
             u.email AS uploader_email,
-            d.department_name
+            col.college_name
         FROM syllabus s
-        JOIN users       u ON u.id = s.uploaded_by
-        LEFT JOIN departments d ON d.id = u.department_id
+        JOIN users u           ON u.id        = s.uploaded_by
+        LEFT JOIN colleges col ON col.id      = u.college_id
         WHERE s.status = 'Approved'
     ";
     $params = [];
-    if ($department_id) {
-        $sql .= " AND u.department_id = ?";
-        $params[] = $department_id;
+    if ($college_id) {
+        $sql .= " AND u.college_id = ?";
+        $params[] = $college_id;
     }
     $sql .= " ORDER BY s.submitted_at DESC";
 
@@ -410,24 +391,16 @@ function get_shared_syllabi($department_id = null)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function get_courses($department_id = null)
+function get_courses($college_id = null)
 {
     $conn = get_db();
-    if ($department_id) {
-        $stmt = $conn->prepare("SELECT * FROM courses WHERE department_id = ? ORDER BY course_code");
-        $stmt->execute([$department_id]);
+    if ($college_id) {
+        $stmt = $conn->prepare("SELECT * FROM courses WHERE college_id = ? ORDER BY course_code");
+        $stmt->execute([$college_id]);
     } else {
         $stmt = $conn->prepare("SELECT * FROM courses ORDER BY course_code");
         $stmt->execute();
     }
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-function get_departments()
-{
-    $conn = get_db();
-    $stmt = $conn->prepare("SELECT * FROM departments ORDER BY department_name");
-    $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -514,8 +487,8 @@ function notify_next_reviewer($syllabus_id, $next_role)
     if (!$syllabus)
         return;
 
-    $department_id = $syllabus['department_id'] ?? null;
-    $user = ($next_role === 'dean') ? get_dean($department_id) : get_vpaa();
+    $college_id = $syllabus['college_id'] ?? null;
+    $user = ($next_role === 'dean') ? get_dean($college_id) : get_vpaa();
 
     if ($user) {
         notify_user(
@@ -618,7 +591,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
         $conn->prepare("UPDATE syllabus SET status = 'Rejected' WHERE id = ?")
             ->execute([$syllabus_id]);
         notify_rejection($syllabus_id, $role);
-        return;
+        return true;
     }
 
     // STEP 2: Determine next role in the chain
@@ -629,7 +602,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
             ->execute([$syllabus_id]);
         notify_on_vpaa_approval($syllabus_id);
-        return;
+        return true;
     }
 
     // Dean approved — keep syllabus as Pending until VPAA acts
@@ -652,6 +625,7 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
     }
 
     notify_next_reviewer($syllabus_id, $next_role);
+    return true;
 }
 
 /* ============================
@@ -696,10 +670,51 @@ function ensure_role_in_session()
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
     }
-    
+
+    if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
+        header('Location: ../login.php');
+        exit();
+    }
+
     // Check if role_id is missing but role name exists in session
     if (!isset($_SESSION['role_id']) && isset($_SESSION['role'])) {
         $_SESSION['role_id'] = get_role_id($_SESSION['role']);
+    }
+}
+
+/**
+ * Restrict access to a specific role.
+ * Uses SESSION role as the primary source of truth.
+ */
+function restrict_to_role($allowed_role)
+{
+    ensure_role_in_session();
+    
+    $current_role = $_SESSION['role'] ?? '';
+    
+    if (strtolower($current_role) !== strtolower($allowed_role)) {
+        // Log the unauthorized attempt
+        error_log("Unauthorized access attempt by user ID " . ($_SESSION['user_id'] ?? 'unknown') . " (Role: $current_role) to $allowed_role restricted area.");
+        
+        // Redirect to appropriate dashboard based on their ACTUAL role
+        switch (strtolower($current_role)) {
+            case 'vpaa':
+                header('Location: ../vpaa/vpaa_dashboard.php');
+                break;
+            case 'dean':
+                header('Location: ../admin/admin_dashboard.php');
+                break;
+            case 'department_head':
+                header('Location: ../dept_head/dept_dashboard.php');
+                break;
+            case 'faculty':
+                header('Location: ../faculty/faculty_dashboard.php');
+                break;
+            default:
+                header('Location: ../login.php');
+                break;
+        }
+        exit();
     }
 }
 
@@ -723,17 +738,18 @@ require_once __DIR__ . '/phpmailer/Exception.php';
 require_once __DIR__ . '/phpmailer/PHPMailer.php';
 require_once __DIR__ . '/phpmailer/SMTP.php';
 
-function send_system_email($to_email, $subject, $body) {
+function send_system_email($to_email, $subject, $body)
+{
     $mail = new PHPMailer(true);
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = SMTP_HOST;
-        $mail->SMTPAuth   = true;
-        $mail->Username   = SMTP_USER;
-        $mail->Password   = SMTP_PASS;
+        $mail->Host = SMTP_HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = SMTP_USER;
+        $mail->Password = SMTP_PASS;
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = SMTP_PORT;
+        $mail->Port = SMTP_PORT;
 
         // Recipients
         $mail->setFrom(SMTP_USER, 'SCC Syllabus Portal');
@@ -742,7 +758,7 @@ function send_system_email($to_email, $subject, $body) {
         // Content
         $mail->isHTML(true);
         $mail->Subject = $subject;
-        $mail->Body    = $body;
+        $mail->Body = $body;
 
         $mail->send();
         return true;

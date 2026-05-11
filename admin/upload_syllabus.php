@@ -139,7 +139,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold small">Course / Department</label>
+                    <label class="form-label fw-bold small">Course / College</label>
                     <input type="text" class="form-control" name="course" placeholder="E.G., Computer Science">
                 </div>
 
@@ -179,7 +179,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 
                 <div class="mb-4">
                     <label class="form-label fw-bold small">Upload File (PDF Only) <span class="text-danger">*</span></label>
-                    <input type="file" class="form-control" name="pdf_file" accept=".pdf" required>
+                    <input type="file" class="form-control" name="pdf_file" id="pdfFile" accept=".pdf" required>
                 </div>
 
                 <div class="d-grid">
@@ -191,5 +191,41 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: 'Confirm Submission',
+            text: "Are you sure you want to submit this syllabus for review?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ff8800',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, submit it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+
+    function confirmLogout() {
+        Swal.fire({
+            title: 'Sign Out?',
+            text: "Are you sure you want to end your current session?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ff8800',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Logout',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '../logout.php';
+            }
+        });
+    }
+</script>
 </body>
 </html>

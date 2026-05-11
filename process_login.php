@@ -8,8 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
-$email    = trim($_POST['email']    ?? '');
-$password = $_POST['password']      ?? '';
+$email = trim($_POST['email'] ?? '');
+$password = $_POST['password'] ?? '';
 
 if (empty($email) || empty($password)) {
     $_SESSION['error'] = 'Please fill in all fields.';
@@ -45,8 +45,8 @@ try {
     }
 
     // Handle both Hashed and Plaintext (for legacy/migration)
-    $stored         = $user['password'];
-    $is_hashed      = strlen($stored) >= 60 && str_starts_with($stored, '$2');
+    $stored = $user['password'];
+    $is_hashed = strlen($stored) >= 60 && str_starts_with($stored, '$2');
     $password_valid = $is_hashed
         ? password_verify($password, $stored)
         : ($password === $stored);
@@ -68,7 +68,7 @@ try {
     if (!$is_hashed) {
         $hashed = password_hash($password, PASSWORD_BCRYPT);
         $conn->prepare("UPDATE users SET password = ? WHERE id = ?")
-             ->execute([$hashed, $user['id']]);
+            ->execute([$hashed, $user['id']]);
     }
 
     /**
@@ -77,38 +77,42 @@ try {
      * we map the 'dean' role_name to the 'dean' session role.
      */
     $role_map = [
-        'faculty' => 'faculty',
-        'dean'    => 'dean',
-        'vpaa'    => 'vpaa',
+        'faculty'         => 'faculty',
+        'dean'            => 'dean',
+        'vpaa'            => 'vpaa',
+        'department_head' => 'department_head',
     ];
-    
+
     $session_role = $role_map[$user['role_name']] ?? 'faculty';
 
     // Set Session Variables
-    $_SESSION['logged_in']     = true;
-    $_SESSION['user_id']       = (int) $user['id'];
-    $_SESSION['email']         = $user['email'];
-    $_SESSION['username']      = trim($user['first_name'] . ' ' . $user['last_name']);
-    $_SESSION['role']          = $session_role;
-    $_SESSION['role_name']     = $user['role_name'];
-    $_SESSION['role_id']       = (int) $user['role_id'];
-    $_SESSION['department_id'] = $user['department_id'] ? (int) $user['department_id'] : null;
+    $_SESSION['logged_in'] = true;
+    $_SESSION['user_id'] = (int) $user['id'];
+    $_SESSION['email'] = $user['email'];
+    $_SESSION['username'] = trim($user['first_name'] . ' ' . $user['last_name']);
+    $_SESSION['role'] = $session_role;
+    $_SESSION['role_name'] = $user['role_name'];
+    $_SESSION['role_id'] = (int) $user['role_id'];
+    $_SESSION['college_id'] = $user['college_id'] ? (int) $user['college_id'] : null;
 
     /**
      * REDIRECT LOGIC
      * 'dean' is directed to the admin_dashboard where the Dean's tools are located.
      */
     switch ($session_role) {
-        case 'faculty': 
-            header('Location: faculty/faculty_dashboard.php');   
+        case 'faculty':
+            header('Location: faculty/faculty_dashboard.php');
             break;
-        case 'dean':    
-            header('Location: admin/admin_dashboard.php');       
+        case 'dean':
+            header('Location: admin/admin_dashboard.php');
             break;
-        case 'vpaa':    
-            header('Location: vpaa/vpaa_dashboard.php');         
+        case 'vpaa':
+            header('Location: vpaa/vpaa_dashboard.php');
             break;
-        default:        
+        case 'department_head':
+            header('Location: dept_head/dept_dashboard.php');
+            break;
+        default:
             header('Location: faculty/faculty_dashboard.php');
     }
     exit();

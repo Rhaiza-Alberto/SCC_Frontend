@@ -18,7 +18,7 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
-$unread_count  = count_unread_notifications($user_id);
+$unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
 $db = new Database();
@@ -29,10 +29,10 @@ $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head'
 $stmt->execute();
 $roles = $stmt->fetchAll();
 
-// Fetch all departments
-$stmt = $conn->prepare("SELECT * FROM departments ORDER BY department_name");
+// Fetch all colleges
+$stmt = $conn->prepare("SELECT * FROM colleges ORDER BY college_name");
 $stmt->execute();
-$departments = $stmt->fetchAll();
+$colleges = $stmt->fetchAll();
 
 // Handle Form Submission
 $success = "";
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
     $role_id = (int) $_POST['role_id'];
-    $department_id = !empty($_POST['department_id']) ? (int) $_POST['department_id'] : null;
+    $college_id = !empty($_POST['college_id']) ? (int) $_POST['college_id'] : null;
 
     if (empty($first_name) || empty($last_name) || empty($email) || empty($password) || empty($role_id)) {
         $error = "Please fill in all required fields.";
@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $error = "Email already registered.";
             } else {
                 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, password, role_id, department_id, is_approved, is_deleted, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 0, NOW())");
-                $stmt->execute([$first_name, $last_name, $email, $hashed_password, $role_id, $department_id]);
+                $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, password, role_id, college_id, is_approved, is_deleted, created_at) VALUES (?, ?, ?, ?, ?, ?, 1, 0, NOW())");
+                $stmt->execute([$first_name, $last_name, $email, $hashed_password, $role_id, $college_id]);
                 $success = "User created successfully!";
             }
         }
@@ -89,9 +89,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <style>
-        .text-orange { color: #ff8800 !important; }
-        .btn-orange { background-color: #ff8800 !important; color: white !important; border: none; }
-        .btn-orange:hover { background-color: #e67a00 !important; color: white !important; }
+        .text-orange {
+            color: #ff8800 !important;
+        }
+
+        .btn-orange {
+            background-color: #ff8800 !important;
+            color: white !important;
+            border: none;
+        }
+
+        .btn-orange:hover {
+            background-color: #e67a00 !important;
+            color: white !important;
+        }
     </style>
 </head>
 
@@ -102,9 +113,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             style="width:260px; position:fixed; z-index:1100;">
             <div class="text-center mb-3 mt-2">
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
+                </p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
@@ -117,13 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
+                    Requests</a>
                 <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
                 <a href="add_user.php" class="nav-link text-white active-nav-link p-3 rounded">Add User</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 
@@ -141,8 +154,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php endif; ?>
                     </div>
 
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0"
+                        style="width:320px;max-height:400px;overflow-y:auto;">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
+                            style="z-index:11;">
                             <strong>Notifications</strong>
                             <?php if ($unread_count > 0): ?>
                                 <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
@@ -150,20 +165,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </li>
                         <?php if (empty($notifications)): ?>
                             <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                        <?php else: foreach ($notifications as $n): 
-                            $color = get_notification_color($n['message']); ?>
-                            <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                    <p class="mb-0 small">
-                                        <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                        <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                    </p>
-                                    <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                </a>
-                            </li>
-                        <?php endforeach; endif; ?>
+                        <?php else:
+                            foreach ($notifications as $n):
+                                $color = get_notification_color($n['message']); ?>
+                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
+                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>"
+                                        class="text-decoration-none text-dark d-block px-3 py-2">
+                                        <p class="mb-0 small">
+                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
+                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                        </p>
+                                        <span class="text-muted"
+                                            style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                    </a>
+                                </li>
+                            <?php endforeach; endif; ?>
                         <li class="dropdown-menu-sticky-footer">
-                            <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
+                            <a href="notifications.php"
+                                class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all
+                                notifications</a>
                         </li>
                     </ul>
                 </div>
@@ -189,15 +209,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">FIRST NAME</label>
-                                <input type="text" class="form-control" name="first_name" placeholder="E.g. John" required>
+                                <input type="text" class="form-control" name="first_name" placeholder="E.g. John"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">LAST NAME</label>
-                                <input type="text" class="form-control" name="last_name" placeholder="E.g. Doe" required>
+                                <input type="text" class="form-control" name="last_name" placeholder="E.g. Doe"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">GMAIL ADDRESS</label>
-                                <input type="email" class="form-control" name="email" placeholder="user@gmail.com" required>
+                                <input type="email" class="form-control" name="email" placeholder="user@gmail.com"
+                                    required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-bold small text-muted">PASSWORD</label>
@@ -213,11 +236,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">DEPARTMENT</label>
-                                <select class="form-select" name="department_id">
+                                <label class="form-label fw-bold small text-muted">COLLEGE</label>
+                                <select class="form-select" name="college_id">
                                     <option value="">N/A</option>
-                                    <?php foreach ($departments as $dept): ?>
-                                        <option value="<?= $dept['id'] ?>"><?= htmlspecialchars($dept['department_name']) ?></option>
+                                    <?php foreach ($colleges as $col): ?>
+                                        <option value="<?= $col['id'] ?>"><?= htmlspecialchars($col['college_name']) ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -233,4 +257,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

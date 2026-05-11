@@ -48,8 +48,8 @@ if (!$user) {
     exit();
 }
 
-// Fetch all roles except department_head
-$stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head' ORDER BY role_name");
+// Fetch only faculty and vpaa roles (dean and department_head managed via Transfer Role)
+$stmt = $conn->prepare("SELECT * FROM roles WHERE role_name NOT IN ('dean', 'department_head') ORDER BY role_name");
 $stmt->execute();
 $roles = $stmt->fetchAll();
 
@@ -59,36 +59,48 @@ $stmt->execute();
 $colleges = $stmt->fetchAll();
 
 // Handle form submission
-$error = '';
+$error   = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name']);
-    $last_name = trim($_POST['last_name']);
-    $email = trim($_POST['email']);
-    $role_id = (int) $_POST['role_id'];
+    $last_name  = trim($_POST['last_name']);
+    $email      = trim($_POST['email']);
+    $role_id    = (int) $_POST['role_id'];
     $college_id = !empty($_POST['college_id']) ? (int) $_POST['college_id'] : null;
 
-    // Validate
+    // Validate required fields
     if (empty($first_name) || empty($last_name) || empty($email) || empty($role_id)) {
         $error = 'Please fill in all required fields.';
     } else {
-        // Check if email already exists for another user
+        // Check duplicate email
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ? AND is_deleted = 0");
         $stmt->execute([$email, $user_id]);
         if ($stmt->fetch()) {
             $error = 'Email already exists.';
         } else {
-            // Check if role is Dean/Admin and if one already exists (excluding current user)
+            // Get target role name
             $stmt = $conn->prepare("SELECT role_name FROM roles WHERE id = ?");
             $stmt->execute([$role_id]);
             $target_role = $stmt->fetchColumn();
 
-            if ($target_role === 'dean' || $target_role === 'admin') {
-                $stmt = $conn->prepare("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE (r.role_name = 'dean' OR r.role_name = 'admin') AND u.id != ? AND u.is_deleted = 0");
+            // Block assigning dean or department_head via this form
+            if (in_array($target_role, ['dean', 'department_head'])) {
+                $error = 'Dean and Department Head roles cannot be assigned here. Use the Transfer Role feature.';
+            }
+
+            // Block duplicate VPAA
+            if (!$error && $target_role === 'vpaa') {
+                $stmt = $conn->prepare("
+                    SELECT COUNT(*) FROM users u
+                    JOIN roles r ON u.role_id = r.id
+                    WHERE r.role_name = 'vpaa'
+                      AND u.id != ?
+                      AND u.is_deleted = 0
+                ");
                 $stmt->execute([$user_id]);
                 if ($stmt->fetchColumn() > 0) {
-                    $error = "A Dean/Admin account already exists. Only one is allowed.";
+                    $error = 'A VPAA account already exists. Only one is allowed.';
                 }
             }
 
@@ -97,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("UPDATE users SET first_name = ?, last_name = ?, email = ?, role_id = ?, college_id = ? WHERE id = ?");
                 $stmt->execute([$first_name, $last_name, $email, $role_id, $college_id, $user_id]);
 
-                // If password is provided, update it
+                // Update password if provided
                 if (!empty($_POST['password'])) {
                     $hashed_password = password_hash($_POST['password'], PASSWORD_DEFAULT);
                     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
@@ -166,8 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                     style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
@@ -180,8 +191,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
-                    Requests</a>
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
                 <a href="manage_user.php" class="nav-link text-white p-3 rounded active-nav-link">Manage Users</a>
                 <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
 
@@ -198,6 +208,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <p class="text-muted small">Update member details or change account roles.</p>
                 </div>
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Notification Bell -->
                     <div class="dropdown">
                         <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-4 text-dark"></i>
@@ -205,7 +216,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="notif-dot"></span>
                             <?php endif; ?>
                         </div>
-
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0"
                             style="width:320px;max-height:400px;overflow-y:auto;">
                             <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
@@ -226,23 +236,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             class="text-decoration-none text-dark d-block px-3 py-2">
                                             <p class="mb-0 small">
                                                 <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                                <span
-                                                    class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
+                                                <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
                                             </p>
-                                            <span class="text-muted"
-                                                style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                            <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
                                         </a>
                                     </li>
                                 <?php endforeach; endif; ?>
                             <li class="dropdown-menu-sticky-footer">
                                 <a href="notifications.php"
-                                    class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View
-                                    all notifications</a>
+                                    class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
                             </li>
                         </ul>
                     </div>
-                    <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4"><i
-                            class="bi bi-arrow-left me-2"></i> Back to Users</a>
+                    <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-arrow-left me-2"></i> Back to Users
+                    </a>
                 </div>
             </div>
 
@@ -283,14 +291,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
-                            <select name="role_id" class="form-select" required>
-                                <option value="">Select Role</option>
-                                <?php foreach ($roles as $role): ?>
-                                    <option value="<?= $role['id'] ?>" <?= $role['id'] == $user['role_id'] ? 'selected' : '' ?>>
-                                        <?= ucfirst($role['role_name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
+                            <?php if (in_array($user['role_name'], ['dean', 'department_head'])): ?>
+                                <!-- Lock role for dean/department_head — use Transfer Role instead -->
+                                <input type="hidden" name="role_id" value="<?= $user['role_id'] ?>">
+                                <input type="text" class="form-control bg-light"
+                                    value="<?= ucfirst(str_replace('_', ' ', $user['role_name'])) ?>" disabled>
+                                <small class="text-muted">
+                                    Use the <a href="transfer_dean_role.php" class="text-orange">Transfer Role</a> feature to reassign this role.
+                                </small>
+                            <?php else: ?>
+                                <select name="role_id" class="form-select" required>
+                                    <option value="">Select Role</option>
+                                    <?php foreach ($roles as $role): ?>
+                                        <option value="<?= $role['id'] ?>" <?= $role['id'] == $user['role_id'] ? 'selected' : '' ?>>
+                                            <?= ucfirst(str_replace('_', ' ', $role['role_name'])) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            <?php endif; ?>
                         </div>
 
                         <div class="col-md-6">
@@ -306,18 +324,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">New Password <small class="text-muted">(leave blank to
-                                    keep current)</small></label>
-                            <input type="password" name="password" class="form-control"
-                                placeholder="Enter new password">
+                            <label class="form-label fw-bold">New Password
+                                <small class="text-muted">(leave blank to keep current)</small>
+                            </label>
+                            <input type="password" name="password" class="form-control" placeholder="Enter new password">
                         </div>
 
                         <div class="col-12 mt-4">
                             <button type="submit" class="btn btn-orange rounded-pill px-4">
                                 <i class="bi bi-save me-2"></i>Update User
                             </button>
-                            <a href="manage_user.php"
-                                class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
+                            <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
                         </div>
                     </div>
                 </form>

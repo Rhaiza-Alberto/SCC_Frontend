@@ -21,25 +21,46 @@ require_once __DIR__ . '/functions.php';
 </head>
 
 <body>
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black py-2">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-black py-2 shadow-sm">
         <div class="container">
+
             <a class="navbar-brand d-flex align-items-center" href="#">
-                <!-- Placeholder for Logo -->
-                <img src="css/logo.png" alt="Logo" class="me-2 rounded-circle" style="width: 50px; height: 50px;">
-                <span class="fs-4 fw-bold font-serif">SCC- CCS Syllabus Portal</span>
+
+                <img src="css/logo.png" alt="SCC Logo" class="me-3 rounded-circle border border-light"
+                    style="width: 60px; height: 60px; object-fit: cover;">
+
+                <div class="d-flex flex-column lh-sm">
+
+                    <small class="text-uppercase text-light opacity-75 fw-semibold">
+                        Southern City Colleges
+                    </small>
+
+                    <small class="text-light opacity-50" style="font-size: 11px;">
+                        Pilar St. 10999 Zamboanga City, Zamboanga Peninsula Philippines
+                    </small>
+
+                    <div style="height: 1px; background-color: rgba(255,255,255,0.4);" class="my-1"></div>
+
+                    <span class="fs-4 fw-bold font-serif text-warning">
+                        CCS Syllabus Management Portal
+                    </span>
+
+                </div>
             </a>
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <a href="login.php" class="btn btn-outline-warning px-4 rounded-pill">Log In</a>
+                <a href="login.php" class="btn btn-outline-warning px-4 rounded-pill fw-semibold">
+                    Log In
+                </a>
             </div>
+
         </div>
     </nav>
 
-    <!-- Hero Section -->
     <section class="hero-section text-center py-5">
         <div class="container py-5 mt-5">
             <h1 class="display-4 fw-bold font-serif mb-3" style=" text-shadow: 2px 2px 4px  rgba(159, 48, 0, 0.8);">
@@ -60,7 +81,7 @@ require_once __DIR__ . '/functions.php';
     <hr class="container my-5" style="opacity: 0.1;">
 
     <!-- About Section -->
-    <section class="about-section text-center py-5 ">
+    <section class="about-section text-center py-5">
         <div class="container">
             <h2 class="fw-bold font-serif mb-4">About the Portal</h2>
             <p class="text-muted mb-5">This system helps SCC - CCS instructors and administrators manage course syllabi
@@ -134,7 +155,7 @@ require_once __DIR__ . '/functions.php';
                     <ul class="list-unstyled text-white-50 small">
                         <li class="mb-2">
                             <i class="bi bi-geo-alt-fill me-2"></i>
-                            Zamboanga City, Souther City Colleges
+                            Pilar St., Zamboanga City, Souther City Colleges
                         <li class="mb-2">
                             <i class="bi bi-envelope-fill me-2"></i>
                             ccs@scc.edu.ph

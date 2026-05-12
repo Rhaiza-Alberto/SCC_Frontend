@@ -86,10 +86,10 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 
     <!-- Sidebar -->
     <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-         style="width:260px; position:fixed; z-index:1100;">
+        style="width:260px; position:fixed; z-index:1100;">
         <div class="text-center mb-3 mt-2">
             <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                 style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
+                style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
             <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
             <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
         </div>
@@ -105,7 +105,8 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                 <?php endif; ?>
             </a>
             <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white active-nav-link p-3 rounded">My Submissions</a>
+            <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
+            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
             <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
@@ -120,7 +121,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
             <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+            <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
         </nav>
     </div>
 

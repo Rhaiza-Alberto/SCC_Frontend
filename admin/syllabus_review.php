@@ -150,27 +150,27 @@ $notifications = get_notifications($user_id, 5);
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                     style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
                 <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white active-nav-link p-3 rounded">Syllabus
-                    Review</a>
+                <a href="syllabus_review.php" class="nav-link text-white active-nav-link p-3 rounded">Syllabus Review</a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
                 <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
+
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
-                    Requests</a>
+                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
                 <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
                 <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
+
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
+                <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 

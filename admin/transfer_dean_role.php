@@ -148,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
                 <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
                 <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
+                <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
                 <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
                 <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
@@ -158,8 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
                 <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="transfer_dean_role.php" class="nav-link text-white p-3 rounded active-nav-link">Transfer Role</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+                <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 

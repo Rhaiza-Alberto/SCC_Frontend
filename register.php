@@ -141,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         );
                     }
 
-                    header('Location: verify.php?email=' . urlencode($form_data['email']) . '&sent=true');
+                    header('Location: verify_user.php?email=' . urlencode($form_data['email']) . '&sent=true');
                     exit();
                 }
             }

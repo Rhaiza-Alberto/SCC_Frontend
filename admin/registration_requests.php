@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
 // ── Fetch pending faculty registrations ──────────────────────────────────────
 $stmt = $conn->prepare("
     SELECT u.id, u.first_name, u.middle_name, u.last_name,
-           u.email, u.created_at, col.college_name
+           u.email, u.created_at, u.email_verified, col.college_name
     FROM users u
     LEFT JOIN colleges col ON u.college_id = col.id
     JOIN roles r       ON u.role_id        = r.id
@@ -150,13 +150,14 @@ $pending_review_count = (int) $conn->query("
                                 <th>EMAIL</th>
                                 <th>COLLEGE</th>
                                 <th>REGISTERED</th>
+                                <th class="text-center">EMAIL STATUS</th>
                                 <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (empty($pending_registrations)): ?>
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-5">
+                                    <td colspan="7" class="text-center text-muted py-5">
                                         <i class="bi bi-person-check fs-2 opacity-25 d-block mb-2"></i>
                                         No pending registration requests
                                     </td>
@@ -177,6 +178,13 @@ $pending_review_count = (int) $conn->query("
                                             </span>
                                         </td>
                                         <td class="small" style="color:var(--text-secondary)"><?= date('M d, Y', strtotime($reg['created_at'])) ?></td>
+                                        <td class="text-center">
+                                            <?php if (!empty($reg['email_verified'])): ?>
+                                                <span class="badge bg-success-light text-success border-success-light rounded-pill px-3" style="font-size:0.65rem">Verified</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning-light text-warning border-warning-light rounded-pill px-3" style="font-size:0.65rem">Unverified</span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td class="text-center">
                                             <div class="d-flex gap-2 justify-content-center">
                                                 <button onclick="handleAction('approve', <?= $reg['id'] ?>, '<?= htmlspecialchars($reg['first_name'] . ' ' . $reg['last_name']) ?>')" class="btn btn-sm btn-light border text-success fw-bold px-3"><i class="bi bi-check2 me-1"></i> Approve</button>

@@ -9,7 +9,7 @@ $error = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email'] ?? '');
-    
+
     if (empty($email)) {
         $message = "Please enter your email address.";
         $error = true;
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Generate new 6-digit code
                 $new_code = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
                 $conn->prepare("UPDATE users SET verification_token = ? WHERE id = ?")
-                     ->execute([$new_code, $user['id']]);
+                    ->execute([$new_code, $user['id']]);
 
                 // Send Email
                 $verify_link = "http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/verify.php";
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 ";
                 send_system_email($email, $subject, $body);
-                
+
                 header("Location: verify.php?email=" . urlencode($email) . "&sent=true");
                 exit();
             }
@@ -68,6 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -77,10 +78,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/design-system.css">
     <style>
-        body { background: var(--bg-secondary); min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: 'Inter', sans-serif; }
-        .resend-card { background: white; border-radius: var(--radius-lg); padding: 3rem; max-width: 450px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        body {
+            background: var(--bg-secondary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .resend-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 3rem;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
+
 <body>
     <div class="resend-card animate-in">
         <div class="text-center mb-4">
@@ -101,13 +118,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST">
             <div class="mb-4">
                 <label class="form-label small fw-bold">Email Address</label>
-                <input type="email" name="email" class="form-control py-2" placeholder="name@gmail.com" value="<?= htmlspecialchars($email) ?>" required>
+                <input type="email" name="email" class="form-control py-2" placeholder="name@gmail.com"
+                    value="<?= htmlspecialchars($email) ?>" required>
             </div>
-            <button type="submit" class="btn btn-primary-scc w-100 py-2 fw-bold rounded-pill mb-3 shadow-sm">Send New Link</button>
+            <button type="submit" class="btn btn-primary-scc w-100 py-2 fw-bold rounded-pill mb-3 shadow-sm">Send New
+                Link</button>
             <div class="text-center">
-                <a href="login.php" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i> Back to Login</a>
+                <a href="login.php" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i>
+                    Back to Login</a>
             </div>
         </form>
     </div>
 </body>
+
 </html>

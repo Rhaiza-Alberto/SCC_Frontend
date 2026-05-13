@@ -153,6 +153,7 @@ if (isset($_GET['mark_read'])) {
                                 <th>NAME</th>
                                 <th>EMAIL</th>
                                 <th>ROLE</th>
+                                <th>STATUS</th>
                                 <th>COLLEGE</th>
                                 <th class="text-center">ACTION</th>
                             </tr>
@@ -173,6 +174,17 @@ if (isset($_GET['mark_read'])) {
                                             style="font-size:0.7rem; background: <?= $u['role_name'] == 'dean' ? 'var(--primary-light)' : ($u['role_name'] == 'vpaa' ? 'var(--success-light)' : 'var(--bg-card)') ?>; color: <?= $u['role_name'] == 'dean' ? 'var(--primary)' : ($u['role_name'] == 'vpaa' ? 'var(--success)' : 'var(--text-secondary)') ?>; border: 1px solid <?= $u['role_name'] == 'dean' ? 'var(--primary-light)' : ($u['role_name'] == 'vpaa' ? 'var(--success-light)' : 'var(--border)') ?> !important">
                                             <?= htmlspecialchars(strtoupper($u['role_name'])) ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <?php if ($u['email_verified']): ?>
+                                            <span class="badge bg-success-light text-success rounded-pill px-2 py-1" style="font-size:0.65rem">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Verified
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning-light text-warning rounded-pill px-2 py-1" style="font-size:0.65rem">
+                                                <i class="bi bi-exclamation-circle-fill me-1"></i> Unverified
+                                            </span>
+                                        <?php endif; ?>
                                     </td>
                                     <td class="small" style="color:var(--text-secondary)">
                                         <?= htmlspecialchars($u['college_name'] ?? 'Unassigned') ?>

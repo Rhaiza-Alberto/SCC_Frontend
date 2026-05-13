@@ -1,4 +1,4 @@
-<?php
+content = r"""<?php
 /**
  * dept_head/my_submissions.php
  * Shows all syllabus submissions made by the Dept Head (own uploads).
@@ -79,7 +79,9 @@ $notifications = get_notifications($user_id, 5);
                 <!-- Notification Bell -->
                 <div class="d-flex align-items-center gap-3">
                     <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <div class="position-relative p-2 rounded-circle"
+                             style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);"
+                             data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
                             <?php if ($unread_count > 0): ?>
                                 <span class="notif-badge" style="top:-2px;right:-2px;">
@@ -134,8 +136,9 @@ $notifications = get_notifications($user_id, 5);
             </div>
         <?php endif; ?>
 
-        <!-- Tabs + Search Row -->
-        <div class="scc-tab-search-wrapper animate-in" style="--animation-order:3">
+        <!-- Tabs + Search Bar Row -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 animate-in"
+             style="--animation-order:3">
             <div class="scc-tabs-container" id="submissionTabs" role="tablist">
                 <button class="scc-tab-item tab-orange active"
                         data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
@@ -156,7 +159,7 @@ $notifications = get_notifications($user_id, 5);
                     <span class="tab-count"><?= count($rejected) ?></span>
                 </button>
             </div>
-            <div class="position-relative search-container" style="width:100%;max-width:300px;">
+            <div class="position-relative mb-4" style="width:100%;max-width:300px;">
                 <i class="bi bi-search position-absolute"
                    style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
                 <input type="text" id="submissionSearch" class="form-control ps-5"
@@ -365,3 +368,9 @@ $notifications = get_notifications($user_id, 5);
     </script>
 </body>
 </html>
+"""
+
+with open(r'C:\xampp\htdocs\SCC_Frontend\dept_head\my_submissions.php', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("my_submissions.php written OK")

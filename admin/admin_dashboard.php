@@ -323,8 +323,9 @@ $notifications = get_notifications($user_id, 5);
                                             <div class="text-muted text-truncate" style="font-size: 0.65rem; max-width: 300px;"><?= htmlspecialchars($s['course_title']) ?></div>
                                         </td>
                                         <td class="small text-muted"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
-                                        <td class="text-end">
-                                            <a href="syllabus_review.php?id=<?= $s['id'] ?>" class="btn btn-sm btn-primary-scc px-3 py-1 small">Review</a>
+                                        <td class="text-end text-nowrap">
+                                            <button type="button" onclick="showTrackerModal(<?= (int)$s['id'] ?>, '<?= htmlspecialchars($s['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($s['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                            <a href="syllabus_review.php?status=Pending" class="btn btn-sm btn-primary-scc px-3 py-1 small">Review</a>
                                         </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
@@ -363,8 +364,9 @@ $notifications = get_notifications($user_id, 5);
                                                     <div class="text-muted small" style="font-size: 0.65rem"><?= htmlspecialchars($s['course_title']) ?></div>
                                                 </td>
                                                 <td><?= format_syllabus_status($s['status'], $s['current_stage_role'] ?? null, $s['rejecting_role'] ?? null, $s['rejecting_name'] ?? null) ?></td>
-                                                <td class="text-end">
-                                                    <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>" target="_blank" class="btn btn-sm btn-light border px-2 py-1"><i class="bi bi-eye"></i></a>
+                                                <td class="text-end text-nowrap">
+                                                    <button type="button" onclick="showTrackerModal(<?= (int)$s['id'] ?>, '<?= htmlspecialchars($s['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($s['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                                    <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($s['file_path'])) ?>" target="_blank" class="btn btn-sm btn-light border px-2 py-1 shadow-sm"><i class="bi bi-eye"></i></a>
                                                 </td>
                                             </tr>
                                         <?php endforeach; endif; ?>
@@ -388,6 +390,7 @@ $notifications = get_notifications($user_id, 5);
                                             <th>UPLOADER</th>
                                             <th>COURSE</th>
                                             <th class="text-end">DATE</th>
+                                            <th class="text-end">ACTION</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -398,8 +401,13 @@ $notifications = get_notifications($user_id, 5);
                                         <?php else: foreach ($visible_all as $s): ?>
                                             <tr>
                                                 <td><div class="fw-bold text-dark small"><?= htmlspecialchars($s['first_name'] . ' ' . $s['last_name']) ?></div></td>
-                                                <td><div class="small text-muted"><?= htmlspecialchars($s['course_code']) ?></div></td>
+                                                <td>
+                                                    <div class="small text-muted fw-bold"><?= htmlspecialchars($s['course_code']) ?></div>
+                                                </td>
                                                 <td class="text-end small text-muted"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
+                                                <td class="text-end">
+                                                    <button type="button" onclick="showTrackerModal(<?= (int)$s['id'] ?>, '<?= htmlspecialchars($s['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($s['course_title'] ?? '', ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                                </td>
                                             </tr>
                                         <?php endforeach; endif; ?>
                                     </tbody>
@@ -463,6 +471,7 @@ $notifications = get_notifications($user_id, 5);
             }
         }
     </script>
+    <?php include __DIR__ . '/../_tracker_modal.php'; ?>
 </body>
 
 </html>

@@ -362,12 +362,13 @@ $notifications = get_notifications($user_id, 5);
                                     <th>COLLEGE</th>
                                     <th>COURSE INFORMATION</th>
                                     <th>STATUS</th>
-                                    <th class="text-end">SUBMITTED</th>
+                                    <th>SUBMITTED</th>
+                                    <th class="text-end">ACTION</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php if (empty($recent_submissions)): ?>
-                                    <tr><td colspan="5" class="text-center py-5 text-muted small">No recent activity found</td></tr>
+                                    <tr><td colspan="6" class="text-center py-5 text-muted small">No recent activity found</td></tr>
                                 <?php else: foreach ($recent_submissions as $s): ?>
                                     <tr>
                                         <td>
@@ -380,7 +381,10 @@ $notifications = get_notifications($user_id, 5);
                                             <div class="text-muted text-truncate" style="font-size: 0.65rem; max-width: 250px;"><?= htmlspecialchars($s['course_title']) ?></div>
                                         </td>
                                         <td><?= format_syllabus_status($s['status'], $s['current_stage_role'] ?? null, $s['rejecting_role'] ?? null) ?></td>
-                                        <td class="text-end text-muted small"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
+                                        <td class="text-muted small"><?= date('M d, Y', strtotime($s['submitted_at'])) ?></td>
+                                        <td class="text-end">
+                                            <button type="button" onclick="showTrackerModal(<?= (int)$s['id'] ?>, '<?= htmlspecialchars($s['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($s['course_title'] ?? '', ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                        </td>
                                     </tr>
                                 <?php endforeach; endif; ?>
                             </tbody>
@@ -393,5 +397,9 @@ $notifications = get_notifications($user_id, 5);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/common.js"></script>
+    <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+    </script>
+    <?php include __DIR__ . '/../_tracker_modal.php'; ?>
 </body>
 </html>

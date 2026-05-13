@@ -185,7 +185,7 @@ require_once __DIR__ . '/functions.php';
                             <i class="bi bi-diagram-3"></i>
                         </div>
                         <h5 class="fw-bold mb-3" style="font-size: 1.1rem;">Multi-tier Approval</h5>
-                        <p class="text-muted small mb-0">Automated workflow routing from Department Heads to Dean and
+                        <p class="text-muted small mb-0">Automated workflow routing from Faculties to Dean and
                             VPAA for thorough institutional review.</p>
                     </div>
                 </div>

@@ -156,12 +156,9 @@ $notifications = get_notifications($user_id, 5);
                 </div>
                 <div class="d-flex align-items-center gap-3">
                     <div class="dropdown">
-                        <div class="position-relative p-2 rounded-circle hover-bg-light"
-                            style="cursor:pointer; background: var(--bg-card); border: 1px solid var(--border);"
-                            data-bs-toggle="dropdown">
+                        <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
-                            <?php if ($unread_count > 0): ?><span class="notif-badge"
-                                    style="top: -2px; right: -2px;"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
+                            <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
                             style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
@@ -213,35 +210,21 @@ $notifications = get_notifications($user_id, 5);
             <?php endif; ?>
 
             <!-- Search and Bookmark Tabs -->
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-end mb-0 gap-3 animate-in">
+            <div class="scc-tab-search-wrapper animate-in" style="--animation-order:3">
                 <div class="scc-tabs-container" id="reviewTabs" role="tablist">
-                    <button
-                        class="scc-tab-item tab-orange <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'active' : '' ?>"
-                        data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
-                        <span class="tab-indicator"></span>
-                        Pending
-                        <span class="tab-count"><?= $pending_count ?></span>
+                    <button class="scc-tab-item tab-orange <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
+                        <span class="tab-indicator"></span> Pending <span class="tab-count"><?= $pending_count ?></span>
                     </button>
-                    <button
-                        class="scc-tab-item tab-green <?= (isset($_GET['status']) && $_GET['status'] === 'Approved') ? 'active' : '' ?>"
-                        data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
-                        <span class="tab-indicator"></span>
-                        Approved
-                        <span class="tab-count"><?= count($approved_rows) ?></span>
+                    <button class="scc-tab-item tab-green <?= (isset($_GET['status']) && $_GET['status'] === 'Approved') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
+                        <span class="tab-indicator"></span> Approved <span class="tab-count"><?= count($approved_rows) ?></span>
                     </button>
-                    <button
-                        class="scc-tab-item tab-red <?= (isset($_GET['status']) && $_GET['status'] === 'Rejected') ? 'active' : '' ?>"
-                        data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
-                        <span class="tab-indicator"></span>
-                        Declined
-                        <span class="tab-count"><?= count($rejected_rows) ?></span>
+                    <button class="scc-tab-item tab-red <?= (isset($_GET['status']) && $_GET['status'] === 'Rejected') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
+                        <span class="tab-indicator"></span> Declined <span class="tab-count"><?= count($rejected_rows) ?></span>
                     </button>
                 </div>
-                <div class="position-relative mb-4" style="width:100%; max-width:300px;">
-                    <i class="bi bi-search position-absolute"
-                        style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
-                    <input type="text" id="reviewSearch" class="form-control ps-5" placeholder="Search in this tab..."
-                        style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 45px;">
+                <div class="position-relative search-container" style="width:100%;max-width:300px;">
+                    <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                    <input type="text" id="reviewSearch" class="form-control ps-5" placeholder="Search in this tab..." style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 45px;">
                 </div>
             </div>
 
@@ -258,92 +241,60 @@ $notifications = get_notifications($user_id, 5);
                             </p>
                         </div>
                     <?php else: ?>
-                        <div class="row g-4" id="pendingGrid">
-                            <?php foreach ($pending_rows as $i => $sub): ?>
-                                <div class="col-12 col-xl-6 review-item animate-in" style="--animation-order: <?= $i + 3 ?>"
-                                    data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>">
-                                    <div class="scc-card h-100 p-0 overflow-hidden scc-premium-shadow border-0"
-                                        style="background: var(--bg-card);">
-                                        <div class="p-0 position-relative">
-                                            <div class="position-absolute top-0 start-0 w-100 h-100"
-                                                style="background: linear-gradient(135deg, var(--primary-light) 0%, transparent 40%); opacity: 0.4;">
-                                            </div>
-                                            <div class="p-4 position-relative">
-                                                <div class="d-flex justify-content-between align-items-start mb-4">
-                                                    <div>
-                                                        <span class="badge rounded-pill mb-3 px-3 py-1"
-                                                            style="font-size:0.65rem; background: var(--primary); color: #fff; letter-spacing: 1px; font-weight: 700;">FINAL
-                                                            VALIDATION</span>
-                                                        <h4 class="fw-800 mb-1"
-                                                            style="color:var(--text); letter-spacing: -0.5px;">
-                                                            <?= htmlspecialchars($sub['course_code']) ?></h4>
-                                                        <p class="text-secondary small fw-500 mb-0">
-                                                            <?= htmlspecialchars($sub['course_title']) ?></p>
+                        <div class="scc-card scc-premium-shadow border-0 animate-in" style="--animation-order:4">
+                            <div class="table-responsive">
+                                <table class="scc-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-4">Course</th>
+                                            <th>Instructor</th>
+                                            <th>Category</th>
+                                            <th>Submitted</th>
+                                            <th class="text-center">Syllabus</th>
+                                            <th class="text-center pe-4">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($pending_rows as $sub): ?>
+                                            <tr class="review-item" data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>">
+                                                <td class="ps-4">
+                                                    <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
+                                                    <div class="text-secondary small text-truncate" style="max-width:200px;"><?= htmlspecialchars($sub['course_title']) ?></div>
+                                                </td>
+                                                <td>
+                                                    <div class="small fw-bold" style="color:var(--text)"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
+                                                    <div class="text-muted small" style="font-size:0.7rem"><?= ucfirst(htmlspecialchars($sub['uploader_role'])) ?></div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="rounded-circle" style="width: 6px; height: 6px; background: var(--primary);"></div>
+                                                        <div class="small" style="color:var(--text)"><?= htmlspecialchars($sub['subject_type'] ?? 'General') ?></div>
                                                     </div>
-                                                    <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                                        target="_blank"
-                                                        class="btn glass-effect rounded-circle d-flex align-items-center justify-content-center shadow-sm hover-lift"
-                                                        style="width: 48px; height: 48px; color: var(--primary); border: 1px solid var(--primary-border);">
+                                                </td>
+                                                <td class="small text-muted"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                                <td class="text-center">
+                                                    <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-primary hover-lift d-inline-block">
                                                         <i class="bi bi-file-earmark-pdf fs-5"></i>
                                                     </a>
-                                                </div>
-
-                                                <div class="row g-3 mb-4">
-                                                    <div class="col-6">
-                                                        <label class="text-muted small d-block mb-2 fw-bold text-uppercase"
-                                                            style="font-size: 0.65rem; letter-spacing: 0.5px;">Submitted
-                                                            By</label>
-                                                        <div class="d-flex align-items-center gap-3">
-                                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm"
-                                                                style="width:38px; height:38px; font-size:0.9rem">
-                                                                <?= strtoupper(substr($sub['first_name'], 0, 1)) ?>
-                                                            </div>
-                                                            <div class="overflow-hidden">
-                                                                <div class="fw-bold small text-truncate"
-                                                                    style="color:var(--text)">
-                                                                    <?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?>
-                                                                </div>
-                                                                <div class="text-muted" style="font-size:0.75rem">
-                                                                    <?= ucfirst(htmlspecialchars($sub['uploader_role'])) ?>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+                                                </td>
+                                                <td class="text-center pe-4">
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <button type="button" onclick="showTrackerModal(<?= (int)$sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm hover-lift" title="Track Progress">
+                                                            <i class="bi bi-geo-alt"></i>
+                                                        </button>
+                                                        <button type="button" onclick="handleReview('approve', <?= (int)$sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm hover-lift">
+                                                            <i class="bi bi-shield-check me-1"></i> Approve
+                                                        </button>
+                                                        <button type="button" onclick="handleReview('reject', <?= (int)$sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')" class="btn btn-sm btn-outline-danger rounded-pill px-3 shadow-sm hover-lift">
+                                                            <i class="bi bi-arrow-counterclockwise me-1"></i> Reject
+                                                        </button>
                                                     </div>
-                                                    <div class="col-6">
-                                                        <label class="text-muted small d-block mb-2 fw-bold text-uppercase"
-                                                            style="font-size: 0.65rem; letter-spacing: 0.5px;">Subject
-                                                            Category</label>
-                                                        <div class="d-flex align-items-center gap-2">
-                                                            <div class="rounded-circle"
-                                                                style="width: 8px; height: 8px; background: var(--primary);">
-                                                            </div>
-                                                            <div class="small fw-700" style="color:var(--text)">
-                                                                <?= htmlspecialchars($sub['subject_type'] ?? 'General') ?></div>
-                                                        </div>
-                                                        <div class="text-muted mt-1" style="font-size:0.7rem"><i
-                                                                class="bi bi-calendar3 me-1"></i>
-                                                            <?= date('M d, Y', strtotime($sub['submitted_at'])) ?></div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="d-flex gap-3 pt-4 border-top"
-                                                    style="border-color: var(--border) !important;">
-                                                    <button
-                                                        onclick="handleReview('approve', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
-                                                        class="btn btn-success w-100 fw-800 py-2 shadow-sm rounded-pill hover-lift">
-                                                        <i class="bi bi-shield-check me-2"></i> Approve
-                                                    </button>
-                                                    <button
-                                                        onclick="handleReview('reject', <?= (int) $sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>')"
-                                                        class="btn btn-outline-danger w-100 fw-800 py-2 shadow-sm rounded-pill hover-lift">
-                                                        <i class="bi bi-arrow-counterclockwise me-2"></i> Reject
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
@@ -368,7 +319,8 @@ $notifications = get_notifications($user_id, 5);
                                             <th>Instructor</th>
                                             <th>Status</th>
                                             <th>Approved</th>
-                                            <th class="text-center pe-4">Syllabus</th>
+                                            <th class="text-center">Syllabus</th>
+                                            <th class="text-center pe-4">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -393,11 +345,14 @@ $notifications = get_notifications($user_id, 5);
                                                         Approved</span></td>
                                                 <td class="small text-muted">
                                                     <?= date('M d, Y', strtotime($sub['reviewed_at'])) ?></td>
-                                                <td class="text-center pe-4">
+                                                <td class="text-center">
                                                     <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
                                                         target="_blank" class="text-primary hover-lift d-inline-block">
                                                         <i class="bi bi-file-earmark-pdf fs-5"></i>
                                                     </a>
+                                                </td>
+                                                <td class="text-center pe-4">
+                                                    <button type="button" onclick="showTrackerModal(<?= (int)$sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm hover-lift" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -428,7 +383,8 @@ $notifications = get_notifications($user_id, 5);
                                             <th>Instructor</th>
                                             <th>Reason</th>
                                             <th>Declined</th>
-                                            <th class="text-center pe-4">Syllabus</th>
+                                            <th class="text-center">Syllabus</th>
+                                            <th class="text-center pe-4">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -452,11 +408,14 @@ $notifications = get_notifications($user_id, 5);
                                                     <?= htmlspecialchars($sub['comment'] ?? 'No reason provided') ?></td>
                                                 <td class="small text-muted">
                                                     <?= date('M d, Y', strtotime($sub['reviewed_at'])) ?></td>
-                                                <td class="text-center pe-4">
+                                                <td class="text-center">
                                                     <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
                                                         target="_blank" class="text-danger hover-lift d-inline-block">
                                                         <i class="bi bi-file-earmark-pdf fs-5"></i>
                                                     </a>
+                                                </td>
+                                                <td class="text-center pe-4">
+                                                    <button type="button" onclick="showTrackerModal(<?= (int)$sub['syllabus_id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm hover-lift" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -535,8 +494,6 @@ $notifications = get_notifications($user_id, 5);
             }
         }
     </script>
+    <?php include __DIR__ . '/../_tracker_modal.php'; ?>
 </body>
-
-</html>>
-
 </html>

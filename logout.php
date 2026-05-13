@@ -8,9 +8,11 @@ session_start();
 // Clear all session data
 $_SESSION = [];
 
-// Destroy the session cookie
+// Destroy the session cookie with matching parameters
 if (isset($_COOKIE[session_name()])) {
-    setcookie(session_name(), '', time() - 3600, '/');
+    $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+             || (int)($_SERVER['SERVER_PORT'] ?? 80) === 443;
+    setcookie(session_name(), '', time() - 3600, '/', '', $is_https, true);
 }
 
 // Destroy the session

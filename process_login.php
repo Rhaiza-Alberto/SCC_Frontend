@@ -1,4 +1,23 @@
 <?php
+/**
+ * process_login.php
+ * Validates credentials and establishes a secure, authenticated session.
+ */
+
+// ── Secure Session Cookie Parameters ─────────────────────────────────────────
+// Must be called BEFORE session_start().
+$is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+         || (int)($_SERVER['SERVER_PORT'] ?? 80) === 443;
+
+session_set_cookie_params([
+    'lifetime' => 8 * 3600,          // 8-hour cookie lifetime
+    'path'     => '/',
+    'domain'   => '',                // current domain only
+    'secure'   => $is_https,         // HTTPS-only in production
+    'httponly' => true,              // not accessible via JavaScript
+    'samesite' => 'Strict',          // block CSRF cross-site delivery
+]);
+
 session_start();
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
@@ -92,15 +111,19 @@ try {
 
     $session_role = $role_map[$user['role_name']] ?? 'faculty';
 
+    // Regenerate session ID to prevent session fixation attacks
+    session_regenerate_id(true);
+
     // Set Session Variables
-    $_SESSION['logged_in'] = true;
-    $_SESSION['user_id'] = (int) $user['id'];
-    $_SESSION['email'] = $user['email'];
-    $_SESSION['username'] = trim($user['first_name'] . ' ' . $user['last_name']);
-    $_SESSION['role'] = $session_role;
-    $_SESSION['role_name'] = $user['role_name'];
-    $_SESSION['role_id'] = (int) $user['role_id'];
-    $_SESSION['college_id'] = $user['college_id'] ? (int) $user['college_id'] : null;
+    $_SESSION['logged_in']      = true;
+    $_SESSION['user_id']        = (int) $user['id'];
+    $_SESSION['email']          = $user['email'];
+    $_SESSION['username']       = trim($user['first_name'] . ' ' . $user['last_name']);
+    $_SESSION['role']           = $session_role;
+    $_SESSION['role_name']      = $user['role_name'];
+    $_SESSION['role_id']        = (int) $user['role_id'];
+    $_SESSION['college_id']     = $user['college_id'] ? (int) $user['college_id'] : null;
+    $_SESSION['last_activity']  = time();  // for backend inactivity guard
 
     /**
      * REDIRECT LOGIC

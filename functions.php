@@ -562,24 +562,21 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
     if ($rows_affected === 0) {
         error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Upserting completed step.");
         $conn->prepare("
-            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
-            VALUES (?, ?, ?, ?, ?, NOW())
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at, comment)
+            VALUES (?, ?, ?, ?, ?, NOW(), ?)
             ON DUPLICATE KEY UPDATE
                 action      = VALUES(action),
                 reviewer_id = VALUES(reviewer_id),
-                action_at   = VALUES(action_at),
+                action_at   = NOW(),
                 comment     = VALUES(comment)
-            ON DUPLICATE KEY UPDATE
-                action      = VALUES(action),
-                reviewer_id = VALUES(reviewer_id),
-                action_at   = NOW()
         ")->execute([
-                    $syllabus_id,
-                    get_step_order($role),
-                    $role_id,
-                    $action,
-                    $user_id,
-                ]);
+            $syllabus_id,
+            get_step_order($role),
+            $role_id,
+            $action,
+            $user_id,
+            $comment
+        ]);
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────
@@ -681,10 +678,28 @@ function ensure_role_in_session()
 /**
  * Restrict access to a specific role.
  * Uses SESSION role as the primary source of truth.
+ * Also enforces server-side inactivity timeout (30 minutes).
  */
 function restrict_to_role($allowed_role)
 {
     ensure_role_in_session();
+
+    // ── Backend Inactivity Guard ──────────────────────────────────────────────
+    $session_timeout = 1800; // 30 minutes in seconds
+    if (isset($_SESSION['last_activity'])) {
+        if ((time() - $_SESSION['last_activity']) > $session_timeout) {
+            // Session expired — destroy and redirect
+            $_SESSION = [];
+            if (isset($_COOKIE[session_name()])) {
+                setcookie(session_name(), '', time() - 3600, '/', '', false, true);
+            }
+            session_destroy();
+            header('Location: ../login.php?timeout=1');
+            exit();
+        }
+    }
+    // Refresh last activity timestamp on every protected page load
+    $_SESSION['last_activity'] = time();
 
     $current_role = $_SESSION['role'] ?? '';
 

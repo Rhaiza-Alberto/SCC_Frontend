@@ -1,4 +1,4 @@
-<?php
+content = r"""<?php
 /**
  * faculty/my_submissions.php
  * Shows all faculty syllabus submissions from the database.
@@ -65,7 +65,7 @@ $notifications = get_notifications($user_id, 5);
                 <!-- Notification Bell -->
                 <div class="d-flex align-items-center gap-3">
                     <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <div class="position-relative p-2 rounded-circle" style="cursor:pointer;background:var(--bg-card);border:1px solid var(--border);" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
                             <?php if ($unread_count > 0): ?>
                                 <span class="notif-badge" style="top:-2px;right:-2px;"><?= $unread_count > 9 ? '9+' : $unread_count ?></span>
@@ -101,7 +101,7 @@ $notifications = get_notifications($user_id, 5);
         <?php endif; ?>
 
         <!-- Tabs + Search Row -->
-        <div class="scc-tab-search-wrapper animate-in" style="--animation-order:3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 animate-in" style="--animation-order:3">
             <div class="scc-tabs-container" id="submissionTabs" role="tablist">
                 <button class="scc-tab-item tab-orange active" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
                     <span class="tab-indicator"></span> Pending <span class="tab-count"><?= count($pending) ?></span>
@@ -113,7 +113,7 @@ $notifications = get_notifications($user_id, 5);
                     <span class="tab-indicator"></span> Declined <span class="tab-count"><?= count($rejected) ?></span>
                 </button>
             </div>
-            <div class="position-relative search-container" style="width:100%;max-width:300px;">
+            <div class="position-relative mb-4" style="width:100%;max-width:300px;">
                 <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
                 <input type="text" id="submissionSearch" class="form-control ps-5" placeholder="Filter current list..." style="border-radius:var(--radius-md);background:var(--bg-card);border:1px solid var(--border);height:45px;">
             </div>
@@ -155,8 +155,7 @@ $notifications = get_notifications($user_id, 5);
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-primary d-inline-block"><i class="bi bi-file-earmark-pdf fs-5"></i></a>
                                             </td>
                                             <td class="small text-muted"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
-                                            <td class="text-center text-nowrap">
-                                                <button type="button" onclick="showTrackerModal(<?= (int)$sub['id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm me-1" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                            <td class="text-center">
                                                 <a href="edit_syllabus.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-outline-warning rounded-pill px-3"><i class="bi bi-pencil-square me-1"></i> Edit</a>
                                             </td>
                                         </tr>
@@ -187,7 +186,6 @@ $notifications = get_notifications($user_id, 5);
                                         <th>Status</th>
                                         <th class="text-center">Syllabus</th>
                                         <th>Approved At</th>
-                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -203,9 +201,6 @@ $notifications = get_notifications($user_id, 5);
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-success d-inline-block"><i class="bi bi-file-earmark-pdf fs-5"></i></a>
                                             </td>
                                             <td class="small text-muted"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
-                                            <td class="text-center">
-                                                <button type="button" onclick="showTrackerModal(<?= (int)$sub['id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
-                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -246,8 +241,7 @@ $notifications = get_notifications($user_id, 5);
                                             <td class="text-center">
                                                 <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-danger d-inline-block"><i class="bi bi-file-earmark-pdf fs-5"></i></a>
                                             </td>
-                                            <td class="text-center text-nowrap">
-                                                <button type="button" onclick="showTrackerModal(<?= (int)$sub['id'] ?>, '<?= htmlspecialchars($sub['course_code'], ENT_QUOTES) ?>', '<?= htmlspecialchars($sub['course_title'], ENT_QUOTES) ?>')" class="btn btn-sm btn-light border px-2 py-1 text-primary shadow-sm me-1" title="Track Progress"><i class="bi bi-geo-alt"></i></button>
+                                            <td class="text-center">
                                                 <a href="edit_syllabus.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-outline-danger rounded-pill px-3"><i class="bi bi-pencil-square me-1"></i> Revise</a>
                                             </td>
                                         </tr>
@@ -275,6 +269,11 @@ $notifications = get_notifications($user_id, 5);
         document.getElementById('sidebarOverlay').classList.toggle('active');
     }
     </script>
-    <?php include __DIR__ . '/../_tracker_modal.php'; ?>
 </body>
 </html>
+"""
+
+with open(r'C:\xampp\htdocs\SCC_Frontend\faculty\my_submissions.php', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("faculty/my_submissions.php written OK")

@@ -473,6 +473,15 @@ a:hover {
   border: 1px solid rgba(59, 130, 246, 0.25)
 }
 
+/* === Modals === */
+.modal {
+  z-index: 1150 !important;
+}
+
+.modal-backdrop {
+  z-index: 1140 !important;
+}
+
 /* === Notification Badge Count === */
 .notif-badge {
   position: absolute;
@@ -787,12 +796,40 @@ a:hover {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 1.5rem;
-  margin-bottom: 2.5rem;
+  margin-bottom: 0; /* Removed fixed margin for better alignment in wrappers */
   border-bottom: 1px solid var(--border);
   padding: 0 0.5rem;
   overflow-x: auto;
   scrollbar-width: none;
+  flex-grow: 1; /* Allow it to take space in flex row */
 }
+
+/* New Wrapper for perfect Tab + Search alignment */
+.scc-tab-search-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: stretch;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 768px) {
+  .scc-tab-search-wrapper {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  
+  .scc-tab-search-wrapper .scc-tabs-container {
+    margin-bottom: 0;
+  }
+  
+  .scc-tab-search-wrapper .search-container {
+    margin-bottom: 0 !important;
+    padding-bottom: 0.5rem; /* Optical alignment with tab baseline */
+  }
+}
+
 .scc-tabs-container::-webkit-scrollbar { display: none; }
 
 .scc-tab-item {

@@ -26,8 +26,9 @@ if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
     exit();
 }
 
-$error_message = $_SESSION['error'] ?? '';
+$error_message   = $_SESSION['error']   ?? '';
 $success_message = $_SESSION['success'] ?? '';
+$timeout_msg     = isset($_GET['timeout']) ? 'Your session expired due to inactivity. Please log in again.' : '';
 unset($_SESSION['error'], $_SESSION['success']);
 ?>
 <!DOCTYPE html>
@@ -67,6 +68,15 @@ unset($_SESSION['error'], $_SESSION['success']);
 
                 <h1>Welcome Back</h1>
                 <p class="subtitle">Sign in to your SCC-CCS Syllabus Portal account</p>
+
+                <?php if (!empty($timeout_msg)): ?>
+                    <div class="alert alert-warning alert-dismissible fade show rounded-3 border-0 shadow-sm d-flex align-items-center gap-2" role="alert"
+                        style="font-size:0.85rem">
+                        <i class="bi bi-clock-history flex-shrink-0"></i>
+                        <span><?= htmlspecialchars($timeout_msg) ?></span>
+                        <button type="button" class="btn-close btn-close-sm ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
 
                 <?php if (!empty($success_message)): ?>
                     <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm" role="alert"

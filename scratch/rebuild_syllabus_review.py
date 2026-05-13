@@ -1,4 +1,4 @@
-<?php
+content = r"""<?php
 /**
  * syllabus_review.php
  * Department Head — review syllabi submitted to their department.
@@ -153,7 +153,7 @@ $pending_count = count($pending_rows);
         <?php endif; ?>
 
         <!-- Tabs + Search Row -->
-        <div class="scc-tab-search-wrapper animate-in" style="--animation-order:3">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 animate-in" style="--animation-order:3">
             <div class="scc-tabs-container" id="reviewTabs" role="tablist">
                 <button class="scc-tab-item tab-orange active" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
                     <span class="tab-indicator"></span> Pending <span class="tab-count"><?= $pending_count ?></span>
@@ -165,7 +165,7 @@ $pending_count = count($pending_rows);
                     <span class="tab-indicator"></span> Rejected <span class="tab-count"><?= count($rejected_rows) ?></span>
                 </button>
             </div>
-            <div class="position-relative search-container" style="width:100%;max-width:300px;">
+            <div class="position-relative mb-4" style="width:100%;max-width:300px;">
                 <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
                 <input type="text" id="reviewSearch" class="form-control ps-5" placeholder="Filter submissions..." style="border-radius:var(--radius-md);background:var(--bg-card);border:1px solid var(--border);height:45px;">
             </div>
@@ -366,3 +366,9 @@ $pending_count = count($pending_rows);
     </script>
 </body>
 </html>
+"""
+
+with open(r'C:\xampp\htdocs\SCC_Frontend\dept_head\syllabus_review.php', 'w', encoding='utf-8') as f:
+    f.write(content)
+
+print("dept_head/syllabus_review.php written OK")

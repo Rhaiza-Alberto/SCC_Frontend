@@ -1,6 +1,7 @@
 /**
  * common.js
  * Global scripts for SCC-CCS Syllabus Portal
+ * Includes: Logout confirm, sidebar close, alert dismiss, inactivity timeout
  */
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -57,4 +58,80 @@ document.addEventListener('DOMContentLoaded', function () {
             if (closeBtn) closeBtn.click();
         }, 5000);
     });
+
+    // ── Auto Session Timeout ─────────────────────────────────────────────────
+    // Session expires after TIMEOUT_MS of inactivity; warns at WARN_MS before
+    const TIMEOUT_MS  = 30 * 60 * 1000; // 30 minutes
+    const WARN_MS     =  2 * 60 * 1000; //  2 minutes warning before logout
+    const LOGOUT_URL  = (function () {
+        // Resolve the logout URL relative to the current depth
+        const depth = (window.location.pathname.match(/\//g) || []).length - 1;
+        return depth > 1 ? '../logout.php' : 'logout.php';
+    })();
+
+    let idleTimer, warnTimer, warnShown = false;
+
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        clearTimeout(warnTimer);
+        warnShown = false;
+
+        // Schedule the warning 2 min before timeout
+        warnTimer = setTimeout(function () {
+            if (typeof Swal !== 'undefined' && !warnShown) {
+                warnShown = true;
+                let countdown = Math.floor(WARN_MS / 1000);
+                let swalTimer;
+
+                Swal.fire({
+                    title: 'Session Expiring Soon',
+                    html: `You will be logged out due to inactivity in <b id="scc-countdown">${countdown}</b> seconds.`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ff8800',
+                    cancelButtonColor: '#dc3545',
+                    confirmButtonText: 'Keep me logged in',
+                    cancelButtonText: 'Logout now',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    timer: WARN_MS,
+                    timerProgressBar: true,
+                    didOpen: function () {
+                        swalTimer = setInterval(function () {
+                            countdown--;
+                            const el = document.getElementById('scc-countdown');
+                            if (el) el.textContent = countdown;
+                            if (countdown <= 0) clearInterval(swalTimer);
+                        }, 1000);
+                    },
+                    willClose: function () {
+                        clearInterval(swalTimer);
+                    }
+                }).then(function (result) {
+                    if (result.isDismissed && result.dismiss === Swal.DismissReason.timer) {
+                        // Timer ran out — force logout
+                        window.location.href = LOGOUT_URL;
+                    } else if (result.dismiss === Swal.DismissReason.cancel) {
+                        window.location.href = LOGOUT_URL;
+                    } else if (result.isConfirmed) {
+                        // User clicked keep-in — reset timers
+                        resetIdleTimer();
+                    }
+                });
+            }
+        }, TIMEOUT_MS - WARN_MS);
+
+        // Hard logout after full timeout
+        idleTimer = setTimeout(function () {
+            window.location.href = LOGOUT_URL;
+        }, TIMEOUT_MS);
+    }
+
+    // Track any meaningful user activity
+    ['mousemove', 'keydown', 'mousedown', 'touchstart', 'scroll', 'click'].forEach(function (evt) {
+        document.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    // Start the timer on page load
+    resetIdleTimer();
 });

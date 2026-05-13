@@ -71,12 +71,10 @@ $stmt->execute();
 $approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* ── Unique filter values ── */
-$colleges = array_unique(array_filter(array_column($approved_syllabi, 'college_name')));
 $semesters = array_unique(array_filter(array_column($approved_syllabi, 'semester')));
-$years = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
-sort($colleges);
+$year_levels = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
 sort($semesters);
-rsort($years);
+rsort($year_levels);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -134,7 +132,7 @@ rsort($years);
             <?php $stats_data = [
                 ['label' => 'Approved Syllabi', 'value' => count($approved_syllabi), 'icon' => 'bi-journal-check'],
                 ['label' => 'Contributing Faculty', 'value' => count(array_unique(array_column($approved_syllabi, 'faculty_name'))), 'icon' => 'bi-people'],
-                ['label' => 'Active Colleges', 'value' => count($colleges), 'icon' => 'bi-building']
+                ['label' => 'Active Terms', 'value' => count($semesters), 'icon' => 'bi-calendar3']
             ]; foreach ($stats_data as $i => $s): ?>
             <div class="col-md-4">
                 <div class="scc-stat stat-total animate-in animate-in-delay-<?= $i ?>">
@@ -154,34 +152,27 @@ rsort($years);
         <div class="scc-card mb-4 animate-in">
             <div class="card-body p-4">
                 <div class="row g-3">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" id="searchInput" class="form-control border-start-0 ps-0" style="font-size:0.85rem" placeholder="Search by course or faculty...">
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <select id="collegeFilter" class="form-select" style="font-size:0.85rem">
-                            <option value="">All Colleges</option>
-                            <?php foreach ($colleges as $col): ?>
-                                <option value="<?= htmlspecialchars($col) ?>"><?= htmlspecialchars($col) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
                         <select id="semFilter" class="form-select" style="font-size:0.85rem">
                             <option value="">All Semesters</option>
-                            <?php foreach ($semesters as $sem): ?>
-                                <option value="<?= htmlspecialchars($sem) ?>"><?= htmlspecialchars($sem) ?></option>
-                            <?php endforeach; ?>
+                            <option value="1st Semester">1st Semester</option>
+                            <option value="2nd Semester">2nd Semester</option>
+                            <option value="Summer">Summer</option>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <select id="yearFilter" class="form-select" style="font-size:0.85rem">
-                            <option value="">All Years</option>
-                            <?php foreach ($years as $yr): ?>
-                                <option value="<?= htmlspecialchars($yr) ?>"><?= htmlspecialchars($yr) ?></option>
-                            <?php endforeach; ?>
+                            <option value="">All Year Levels</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -202,7 +193,6 @@ rsort($years);
                     <?php foreach ($approved_syllabi as $row): ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 syllabus-card-item animate-in" 
                              data-search="<?= strtolower(htmlspecialchars($row['course_code'] . ' ' . $row['course_title'] . ' ' . $row['faculty_name'])) ?>"
-                             data-college="<?= htmlspecialchars($row['college_name'] ?? '') ?>"
                              data-sem="<?= htmlspecialchars($row['semester'] ?? '') ?>"
                              data-year="<?= htmlspecialchars($row['school_year'] ?? '') ?>">
                             <div class="scc-card h-100 border-0 shadow-sm" style="border-top: 3px solid var(--primary) !important;">
@@ -219,8 +209,8 @@ rsort($years);
                                             <span class="small text-muted text-truncate"><?= htmlspecialchars($row['faculty_name']) ?></span>
                                         </div>
                                         <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-building text-muted me-2" style="font-size: 0.8rem;"></i>
-                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['college_name'] ?? '—') ?></span>
+                                            <i class="bi bi-mortarboard text-muted me-2" style="font-size: 0.8rem;"></i>
+                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['school_year'] ?? '—') ?> Level</span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                             <div>
@@ -276,17 +266,15 @@ rsort($years);
 
             function applyFilters() {
                 const q = searchInput.value.toLowerCase().trim();
-                const college = collegeFilter.value;
                 const sem = semFilter.value;
                 const yr = yearFilter.value;
                 let visible = 0;
 
                 cards.forEach(card => {
                     const matchSearch = !q || card.dataset.search.includes(q);
-                    const matchCollege = !college || card.dataset.college === college;
                     const matchSem = !sem || card.dataset.sem === sem;
                     const matchYear = !yr || card.dataset.year === yr;
-                    const show = matchSearch && matchCollege && matchSem && matchYear;
+                    const show = matchSearch && matchSem && matchYear;
                     card.classList.toggle('d-none', !show);
                     if (show) visible++;
                 });
@@ -294,12 +282,11 @@ rsort($years);
                 noResults.classList.toggle('d-none', visible > 0);
             }
 
-            [searchInput, collegeFilter, semFilter, yearFilter].forEach(el =>
+            [searchInput, semFilter, yearFilter].forEach(el =>
                 el.addEventListener('input', applyFilters));
 
             clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
-                collegeFilter.value = '';
                 semFilter.value = '';
                 yearFilter.value = '';
                 applyFilters();

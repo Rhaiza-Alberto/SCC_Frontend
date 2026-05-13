@@ -21,7 +21,7 @@ if (isset($_GET['token'])) {
             $update = $conn->prepare("UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?");
             $update->execute([$user['id']]);
             $success = true;
-            $message = "Your email has been verified and your account has been made! Please log in to continue.";
+            $message = "Verification Success! Your email is verified. Now wait for the Dean's approval to access your account.";
         } else {
             $error = "Invalid or expired verification link.";
         }
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['verify_code'])) {
                 $update = $conn->prepare("UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?");
                 $update->execute([$user['id']]);
                 $success = true;
-                $message = "Thank you, " . htmlspecialchars($user['first_name']) . "! Your account has been made. Your email is now verified. Please log in to proceed.";
+                $message = "Verification Success, " . htmlspecialchars($user['first_name']) . "! Your email is verified. Now wait for the Dean's approval to access your account.";
                 
                 // Notify Dean
                 $dean = get_dean();

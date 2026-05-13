@@ -39,245 +39,136 @@ rsort($years);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shared Syllabus - SCC-CCS Syllabus Portal</title>
+    <title>Shared Syllabus — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange {
-            color: #ff8800 !important;
-        }
-
-        .btn-orange {
-            background-color: #ff8800 !important;
-            color: #fff !important;
-            border: none;
-        }
-
-        .btn-orange:hover {
-            background-color: #e67a00 !important;
-        }
-
-        .notif-dot {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 10px;
-            height: 10px;
-            background: #dc3545;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
-
-        .syllabus-card {
-            transition: transform .25s ease, box-shadow .25s ease;
-            border-left: 4px solid #ff8800;
-        }
-
-        .syllabus-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, .10) !important;
-        }
-
-        .badge-approved {
-            background: #d1fae5;
-            color: #065f46;
-            font-size: .7rem;
-        }
-
-        .search-box:focus {
-            border-color: #ff8800;
-            box-shadow: 0 0 0 .2rem rgba(255, 136, 0, .2);
-        }
-
-        #syllabi-table tbody tr.hidden-row {
-            display: none;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
+<body>
+    <?php $active_page = 'shared'; include '_sidebar.php'; ?>
 
-        <!-- ── Sidebar ── -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;">
-                    <?= htmlspecialchars($username) ?>
-                </p>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Shared <span style="color:var(--primary)">Syllabus</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Approved institutional syllabi repository</p>
             </div>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="faculty_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">Shared Syllabus</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
-        </div>
-
-        <!-- ── Main Content ── -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
-            <!-- Top Bar -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="text-orange font-serif fw-bold mb-0">Shared Syllabus Repository</h2>
-                    <p class="text-muted small mb-0">All VPAA-approved syllabi available to faculty and dean</p>
-                </div>
-
-                <!-- Notification Bell -->
+            <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
-                    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
-                            <span class="notif-dot"></span>
-                        <?php endif; ?>
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
                     </div>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
-                            style="z-index:11;">
-                            <strong>Notifications</strong>
-                            <?php if ($unread_count > 0): ?>
-                                <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                            <?php endif; ?>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
                         </li>
                         <?php if (empty($notifications)): ?>
-                            <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                        <?php else:
-                            foreach ($notifications as $n):
-                                $color = get_notification_color($n['message']); ?>
-                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>"
-                                        class="text-decoration-none text-dark d-block px-3 py-2">
-                                        <p class="mb-0 small">
-                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                        </p>
-                                        <span class="text-muted"
-                                            style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                    </a>
-                                </li>
-                            <?php endforeach; endif; ?>
-                        <li class="dropdown-menu-sticky-footer">
-                            <a href="notifications.php"
-                                class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all
-                                notifications</a>
-                        </li>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
                     </ul>
                 </div>
             </div>
+        </div>
 
             <!-- Stats Row -->
-            <div class="row g-3 mb-4">
+            <div class="row g-3 mb-4 animate-in">
                 <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width:48px;height:48px;background:rgba(255,136,0,.12);">
-                            <i class="bi bi-journal-check text-orange fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold fs-4 text-orange"><?= count($approved_syllabi) ?></div>
-                            <div class="text-muted small">Approved Syllabi</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width:48px;height:48px;background:rgba(255,136,0,.12);">
-                            <i class="bi bi-people text-orange fs-5"></i>
-                        </div>
-                        <div>
-                            <div class="fw-bold fs-4 text-orange">
-                                <?= count(array_unique(array_column($approved_syllabi, 'faculty_name'))) ?>
+                    <div class="scc-stat p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon" style="background:rgba(34,197,94,0.1);color:var(--success)"><i class="bi bi-journal-check"></i></div>
+                            <div>
+                                <h3 class="stat-value mb-0"><?= count($approved_syllabi) ?></h3>
+                                <p class="stat-label mb-0">Approved Syllabi</p>
                             </div>
-                            <div class="text-muted small">Contributing Faculty</div>
                         </div>
                     </div>
                 </div>
                 <div class="col-12 col-md-4">
-                    <div class="card border-0 shadow-sm p-3 d-flex flex-row align-items-center gap-3">
-                        <div class="rounded-circle d-flex align-items-center justify-content-center"
-                            style="width:48px;height:48px;background:rgba(255,136,0,.12);">
-                            <i class="bi bi-building text-orange fs-5"></i>
+                    <div class="scc-stat p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon" style="background:rgba(59,130,246,0.1);color:var(--primary)"><i class="bi bi-people"></i></div>
+                            <div>
+                                <h3 class="stat-value mb-0"><?= count(array_unique(array_column($approved_syllabi, 'faculty_name'))) ?></h3>
+                                <p class="stat-label mb-0">Contributing Faculty</p>
+                            </div>
                         </div>
-                        <div>
-                            <div class="fw-bold fs-4 text-orange"><?= count($colleges) ?></div>
-                            <div class="text-muted small">Colleges</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="scc-stat p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning)"><i class="bi bi-building"></i></div>
+                            <div>
+                                <h3 class="stat-value mb-0"><?= count($colleges) ?></h3>
+                                <p class="stat-label mb-0">Colleges</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Filter / Search Bar -->
-            <div class="card border-0 shadow-sm p-3 mb-4">
+            <div class="scc-card p-3 mb-4 animate-in">
                 <div class="row g-2 align-items-end">
-                    <div class="col-12 col-md-4">
-                        <label class="form-label small fw-bold text-muted mb-1">Search</label>
-                        <input type="text" id="searchInput" class="form-control search-box"
-                            placeholder="Course code, title, or faculty…">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small fw-bold text-muted mb-1">Search repository</label>
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                            <input type="text" id="searchInput" class="form-control ps-5" placeholder="Course code, title, or faculty…" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem 0.6rem 0.6rem 2.5rem;">
+                        </div>
                     </div>
                     <div class="col-6 col-md-3">
-                        <label class="form-label small fw-bold text-muted mb-1">College</label>
-                        <select id="deptFilter" class="form-select">
-                            <option value="">All Colleges</option>
-                            <?php foreach ($colleges as $col): ?>
-                                <option value="<?= htmlspecialchars($col) ?>"><?= htmlspecialchars($col) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-2">
                         <label class="form-label small fw-bold text-muted mb-1">Semester</label>
-                        <select id="semFilter" class="form-select">
-                            <option value="">All</option>
+                        <select id="semFilter" class="form-select" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem;">
+                            <option value="">All Semesters</option>
                             <?php foreach ($semesters as $sem): ?>
                                 <option value="<?= htmlspecialchars($sem) ?>"><?= htmlspecialchars($sem) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-6 col-md-2">
+                    <div class="col-6 col-md-3">
                         <label class="form-label small fw-bold text-muted mb-1">School Year</label>
-                        <select id="yearFilter" class="form-select">
-                            <option value="">All Years</option>
+                        <select id="yearFilter" class="form-select" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem;">
+                            <option value="">All School Years</option>
                             <?php foreach ($years as $yr): ?>
                                 <option value="<?= htmlspecialchars($yr) ?>"><?= htmlspecialchars($yr) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-6 col-md-1 d-flex align-items-end">
-                        <button class="btn btn-outline-secondary w-100" id="clearFilters" title="Clear filters">
-                            <i class="bi bi-x-lg"></i>
+                    <div class="col-12 col-md-1 d-flex align-items-end">
+                        <button class="btn btn-outline-scc w-100" id="clearFilters" title="Clear filters" style="border-radius:var(--radius-sm); padding:0.6rem;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Syllabi Table -->
-            <div class="card border-0 shadow-sm">
+            <div class="scc-card animate-in">
                 <div class="card-body p-0">
                     <?php if (empty($approved_syllabi)): ?>
-                        <div class="text-center py-5 text-muted">
-                            <i class="bi bi-folder2-open fs-1 text-orange opacity-50 mb-3 d-block"></i>
+                        <div class="text-center py-5" style="color:var(--text-muted)">
+                            <i class="bi bi-folder2-open fs-1 mb-3 d-block opacity-50"></i>
                             <p class="mb-0">No approved syllabi yet.</p>
                         </div>
                     <?php else: ?>
                         <div class="table-responsive">
-                            <table class="table table-hover align-middle mb-0" id="syllabi-table">
-                                <thead class="table-light border-bottom">
+                            <table class="scc-table" id="syllabi-table">
+                                <thead>
                                     <tr>
                                         <th class="text-secondary small ps-4">#</th>
                                         <th class="text-secondary small">COURSE</th>
@@ -318,7 +209,7 @@ rsort($years);
                                                 <?= date('M d, Y', strtotime($row['submitted_at'])) ?>
                                             </td>
                                             <td class="text-center">
-                                                <span class="badge badge-approved rounded-pill px-3 py-1">
+                                                <span class="badge-status bg-success-subtle text-success">
                                                     <i class="bi bi-check-circle-fill me-1"></i>Approved
                                                 </span>
                                             </td>
@@ -341,17 +232,16 @@ rsort($years);
                     <?php endif; ?>
                 </div>
             </div>
-
-        </div><!-- /main-content -->
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/common.js"></script>
+    <script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
     <script>
         (function () {
             const searchInput = document.getElementById('searchInput');
-            const deptFilter = document.getElementById('deptFilter');
             const semFilter = document.getElementById('semFilter');
             const yearFilter = document.getElementById('yearFilter');
             const clearBtn = document.getElementById('clearFilters');
@@ -362,17 +252,15 @@ rsort($years);
 
             function applyFilters() {
                 const q = searchInput.value.toLowerCase().trim();
-                const dept = deptFilter.value;
                 const sem = semFilter.value;
                 const yr = yearFilter.value;
                 let visible = 0;
 
                 table.querySelectorAll('tbody tr').forEach(row => {
                     const matchSearch = !q || row.dataset.search.includes(q);
-                    const matchDept = !dept || row.dataset.dept === dept;
                     const matchSem = !sem || row.dataset.sem === sem;
                     const matchYear = !yr || row.dataset.year === yr;
-                    const show = matchSearch && matchDept && matchSem && matchYear;
+                    const show = matchSearch && matchSem && matchYear;
                     row.style.display = show ? '' : 'none';
                     if (show) visible++;
                 });
@@ -380,12 +268,11 @@ rsort($years);
                 noResults.classList.toggle('d-none', visible > 0);
             }
 
-            [searchInput, deptFilter, semFilter, yearFilter].forEach(el =>
+            [searchInput, semFilter, yearFilter].forEach(el =>
                 el.addEventListener('input', applyFilters));
 
             clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
-                deptFilter.value = '';
                 semFilter.value = '';
                 yearFilter.value = '';
                 applyFilters();

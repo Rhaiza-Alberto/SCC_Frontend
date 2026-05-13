@@ -11,7 +11,8 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 ensure_role_in_session();
 
 $user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'] ?? 'Dean / Admin';
+$username = $_SESSION['username'] ?? 'User';
+$role_display = 'Department Head';
 
 // Handle mark-all-read
 if (isset($_GET['mark_read'])) {
@@ -23,22 +24,8 @@ if (isset($_GET['mark_read'])) {
 // Handle single notification click (mark read + redirect)
 if (isset($_GET['notif_id'])) {
     $notif_id = (int) $_GET['notif_id'];
-    $user_id = $_SESSION['user_id'];
-    
-    // Mark as read
     mark_single_notification_read($notif_id, $user_id);
-    
-    // Determine redirect based on message content
-    $conn = get_db();
-    $stmt = $conn->prepare("SELECT message FROM notifications WHERE id = ?");
-    $stmt->execute([$notif_id]);
-    $notif = $stmt->fetch();
-
-    if ($notif && strpos($notif['message'], 'registration') !== false) {
-        header('Location: registration_requests.php');
-    } else {
-        header('Location: syllabus_review.php');
-    }
+    header('Location: syllabus_review.php');
     exit();
 }
 
@@ -64,23 +51,24 @@ $unread_count = count_unread_notifications($user_id);
     <title>Notifications — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
-    <?php $active_page = 'notifications'; include '_sidebar.php'; ?>
+    <?php $active_page = 'dashboard'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">All <span style="color:var(--primary)">Notifications</span></h4>
-                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0"><?= count($all_notifications) ?> total &middot; <?= $unread_count ?> unread</p>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0"><?= count($all_notifications) ?> total alerts &middot; <?= $unread_count ?> unread</p>
             </div>
             <div class="d-flex align-items-center gap-3" id="navbarActions">
                 <?php if ($unread_count > 0): ?>
-                    <a href="?mark_read=1" class="btn btn-primary btn-sm px-3 rounded-pill fw-bold shadow-sm">
-                        <i class="bi bi-check2-all me-1"></i> Mark All as Read
+                    <a href="?mark_read=1" class="btn btn-outline-scc rounded-pill px-4 fw-bold small">
+                        <i class="bi bi-check2-all me-1"></i> Mark all read
                     </a>
                 <?php endif; ?>
             </div>
@@ -122,18 +110,15 @@ $unread_count = count_unread_notifications($user_id);
         </div>
 
         <div class="mt-4">
-            <a href="admin_dashboard.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
-                <i class="bi bi-arrow-left me-2"></i> Back to Dashboard
+            <a href="dept_dashboard.php" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold small">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
         </div>
     </main>
-
-    </div>
-</div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
-        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
     </script>
 </body>
 </html>

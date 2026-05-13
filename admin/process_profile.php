@@ -1,20 +1,20 @@
 <?php
 /**
- * dept_head/process_profile.php
- * Handles profile update POST for the department head.
- * Fixes: $pdo → get_db(), removed non-existent columns (department/username),
- *        correct session key names, redirects to correct paths.
+ * admin/process_profile.php
+ * Handles profile update POST for the Dean/Admin.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
-    header('Location: ../login.php');
+restrict_to_role('dean');
+
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header('Location: profile.php');
     exit();
 }
 
-$user_id    = $_SESSION['user_id'] ?? null;
+$user_id     = $_SESSION['user_id'];
 $first_name  = trim($_POST['first_name']  ?? '');
 $middle_name = trim($_POST['middle_name'] ?? '') ?: null;
 $last_name   = trim($_POST['last_name']   ?? '');
@@ -41,15 +41,10 @@ if (!in_array($sex_normalized, ['Male', 'Female'])) {
     exit();
 }
 
-if (!$user_id) {
-    header('Location: ../login.php');
-    exit();
-}
-
 try {
     $conn = get_db();
 
-    // Update only the columns that actually exist in the users table
+    // Update the columns in the users table
     $stmt = $conn->prepare("
         UPDATE users
         SET first_name  = ?,

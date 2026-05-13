@@ -101,133 +101,136 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transfer Dean Role - SCC-CCS</title>
+    <title>Transfer Dean Role — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange {
-            color: #ff8800 !important;
-        }
-
-        .btn-orange {
-            background-color: #ff8800 !important;
-            color: white !important;
-            border: none;
-        }
-
-        .btn-orange:hover {
-            background-color: #e67a00 !important;
-            color: white !important;
-        }
-
-        .warning-box {
-            background-color: #fff3cd;
-            border-left: 4px solid #ff8800;
-            padding: 20px;
-            border-radius: 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+<body>
+    <?php $active_page = 'users'; include '_sidebar.php'; ?>
+
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Transfer <span style="color:var(--primary)">Dean Role</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Succession management and administrative role handover</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="transfer_dean_role.php" class="nav-link text-white p-3 rounded active-nav-link">Transfer Role</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
-        </div>
-
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-orange font-serif fw-bold">Transfer Dean Role</h2>
-                <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="bi bi-arrow-left me-2"></i> Back
+            <div>
+                <a href="manage_user.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Users
                 </a>
             </div>
+        </div>
 
-            <?php if ($error): ?>
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            <?php endif; ?>
-
-            <div class="warning-box mb-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Important Notice</h5>
-                <p class="mb-2">You are about to transfer your Dean role to another user. Please note:</p>
-                <ul class="mb-0">
-                    <li>This action cannot be undone</li>
-                    <li>You will immediately lose all Dean privileges</li>
-                    <li>The selected user will become the new Dean</li>
-                    <li>You will be automatically logged out after the transfer</li>
-                    <li>Your role will be changed to the role of the user you selected</li>
-                    <li>The new Dean must log out and log back in if they are currently active</li>
-                </ul>
+        <?php if ($error): ?>
+            <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $error; ?>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
             </div>
+        <?php endif; ?>
 
-            <div class="card premium-card p-4 shadow-sm border-0 bg-white">
-                <form method="POST" onsubmit="return confirm('Are you absolutely sure you want to transfer the Dean role? This action cannot be undone!');">
+        <div class="alert alert-warning border-0 shadow-sm mb-4 p-4 animate-in" style="background:var(--warning-light); color:var(--warning); border-radius:var(--radius-lg)">
+            <h6 class="fw-bold mb-3 d-flex align-items-center"><i class="bi bi-shield-lock-fill fs-4 me-2"></i> Critical Succession Notice</h6>
+            <p class="small mb-2 opacity-75">You are initiating a permanent transfer of administrative authority. Please review the following implications:</p>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <ul class="mb-0 small">
+                        <li class="mb-1">This action is <strong>irreversible</strong> once confirmed.</li>
+                        <li class="mb-1">Immediate loss of all Dean-level privileges.</li>
+                        <li class="mb-1">The selected user will gain full system control.</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="mb-0 small">
+                        <li class="mb-1">You will be automatically logged out.</li>
+                        <li class="mb-1">Your role will swap with the selected user's role.</li>
+                        <li class="mb-1">Institutional records will reflect this handover.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="scc-card animate-in" style="max-width: 700px; margin: 0 auto;">
+            <div class="card-header border-0 bg-transparent p-4 pb-0 text-center">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">Succession <span style="color:var(--primary)">Authorization</span></h6>
+                <p class="small text-muted mb-0">Authorized handover of administrative credentials</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" id="transferForm">
                     <div class="mb-4">
-                        <label class="form-label fw-bold">Select New Dean <span class="text-danger">*</span></label>
+                        <label class="form-label fw-bold small text-secondary">Designate New Dean <span class="text-danger">*</span></label>
                         <select name="new_dean_id" class="form-select" required>
-                            <option value="">Choose a user...</option>
+                            <option value="">Choose a successor...</option>
                             <?php foreach ($eligible_users as $user): ?>
                                 <option value="<?= (int) $user['id'] ?>">
                                     <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
-                                    - <?= htmlspecialchars(ucfirst($user['role_name'])) ?>
-                                    <?php if ($user['college_name']): ?>
-                                        (<?= htmlspecialchars($user['college_name']) ?>)
-                                    <?php endif; ?>
+                                    — <?= htmlspecialchars(ucfirst($user['role_name'])) ?>
+                                    <?php if ($user['college_name']): ?>(<?= htmlspecialchars($user['college_name']) ?>)<?php endif; ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                        <small class="text-muted">Select the user who will receive the Dean role</small>
+                        <div class="form-text small opacity-75">The user who will receive the Dean credentials</div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Confirmation <span class="text-danger">*</span></label>
-                        <input type="text" name="confirmation" class="form-control" placeholder="Type 'TRANSFER' to confirm" required>
-                        <small class="text-muted">Type <strong>TRANSFER</strong> (in capital letters) to confirm this action</small>
+                    <div class="mb-5 p-4 bg-light rounded-4 border">
+                        <label class="form-label fw-bold small text-dark">Succession Confirmation <span class="text-danger">*</span></label>
+                        <input type="text" name="confirmation" class="form-control mb-2" placeholder="Type 'TRANSFER' to authorize" required style="letter-spacing: 2px; text-transform: uppercase;">
+                        <p class="small text-muted mb-0">Type <strong>TRANSFER</strong> in all caps to finalize the handover authorization.</p>
                     </div>
 
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-danger rounded-pill px-4">
-                            <i class="bi bi-arrow-left-right me-2"></i>Transfer Dean Role
-                        </button>
-                        <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
+                    <div class="row g-2">
+                        <div class="col-md-8">
+                            <button type="button" onclick="confirmTransfer()" class="btn btn-danger btn-lg w-100 fw-bold rounded-pill shadow-sm">
+                                <i class="bi bi-arrow-left-right me-2"></i> Execute Role Transfer
+                            </button>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="manage_user.php" class="btn btn-light btn-lg w-100 fw-bold rounded-pill border">Cancel</a>
+                        </div>
                     </div>
                 </form>
             </div>
         </div>
+    </main>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/common.js"></script>
+<script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    function confirmTransfer() {
+        const confirmVal = document.querySelector('input[name="confirmation"]').value;
+        const selectedUser = document.querySelector('select[name="new_dean_id"]');
+        
+        if (!selectedUser.value) {
+            Swal.fire('Error', 'Please select a successor.', 'error');
+            return;
+        }
+        
+        if (confirmVal !== 'TRANSFER') {
+            Swal.fire('Confirmation Required', 'Please type TRANSFER to confirm.', 'warning');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Critical Handover',
+            text: "Are you absolutely sure? You will be logged out and lose all administrative access immediately.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--danger)',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Finalize Transfer'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                document.getElementById('transferForm').submit();
+            }
+        });
+    }
+</script>
 </body>
-
 </html>

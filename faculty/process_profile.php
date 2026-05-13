@@ -40,10 +40,16 @@ if (!in_array($sex, ['Male', 'Female'])) {
     exit();
 }
 
-if ($birthdate && !strtotime($birthdate)) {
-    $_SESSION['error_message'] = "Invalid birthdate.";
-    header('Location: profile.php?edit=true');
-    exit();
+if ($birthdate) {
+    if (!strtotime($birthdate)) {
+        $_SESSION['error_message'] = "Invalid birthdate.";
+        header('Location: profile.php?edit=true');
+        exit();
+    } elseif (strtotime($birthdate) > time()) {
+        $_SESSION['error_message'] = "Birthdate cannot be in the future.";
+        header('Location: profile.php?edit=true');
+        exit();
+    }
 }
 
 try {
@@ -55,7 +61,7 @@ try {
             last_name   = ?,
             birthdate   = ?,
             sex         = ?
-        WHERE id = ? AND is_deleted = 0
+        WHERE id = ?
     ");
     $stmt->execute([
         $first_name,

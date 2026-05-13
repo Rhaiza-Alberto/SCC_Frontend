@@ -52,316 +52,223 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Submissions - SCC-CCS Dean's Panel</title>
+    <title>My Submissions — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange  { color: #ff8800 !important; }
-        .btn-orange   { background-color: #ff8800 !important; color: #fff !important; border: none; }
-        .btn-orange:hover { background-color: #e67a00 !important; }
-        .stat-card { transition: transform .3s ease, box-shadow .3s ease; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,.1) !important; }
-        .notif-dot { position:absolute;top:2px;right:2px;width:10px;height:10px;
-                     background:#dc3545;border-radius:50%;border:2px solid #fff; }
-    </style>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-light">
-<div class="d-flex">
+<body>
+    <?php $active_page = 'submissions'; include '_sidebar.php'; ?>
 
-    <!-- Sidebar -->
-    <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">My <span style="color:var(--primary)">Submissions</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Track your personal syllabus submission progress</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Syllabus Review
-                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Registration Requests
-                    <?php if (isset($reg_count) && $reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
-        </div>
-
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h3 class="text-orange font-serif fw-bold mb-0">My Syllabus Submissions</h3>
-
-            <!-- Notification Bell -->
-            <div class="dropdown">
-                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-4 text-dark"></i>
-                    <?php if ($unread_count > 0): ?>
-                        <span class="notif-dot"></span>
-                    <?php endif; ?>
-                </div>
-
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
-                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
-                        <strong>Notifications</strong>
-                        <?php if ($unread_count > 0): ?>
-                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                        <?php endif; ?>
-                    </li>
-                    <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                    <?php else: foreach ($notifications as $n): 
-                        $color = get_notification_color($n['message']); ?>
-                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                <p class="mb-0 small">
-                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                </p>
-                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                            </a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
                         </li>
-                    <?php endforeach; endif; ?>
-                    <li class="dropdown-menu-sticky-footer">
-                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
-                    </li>
-                </ul>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
 
         <?php if ($success_message): ?>
-            <div class="alert alert-success alert-dismissible fade show mb-4">
-                <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">
+                <i class="bi bi-check-circle-fill me-2"></i><?= htmlspecialchars($success_message) ?>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
-        <!-- Tabbed Submissions -->
-        <div class="card premium-card p-4 mb-5 shadow-sm">
-            <ul class="nav nav-tabs nav-fill mb-4 border-bottom" id="submissionTabs" role="tablist">
-                <li class="nav-item">
-                    <button class="nav-link active font-serif fw-bold text-orange"
-                            data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
-                        Pending Approval
-                        <?php if (count($pending) > 0): ?>
-                            <span class="badge bg-warning text-dark ms-1"><?= count($pending) ?></span>
-                        <?php endif; ?>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link font-serif fw-bold text-orange"
-                            data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
-                        Approved
-                        <?php if (count($approved) > 0): ?>
-                            <span class="badge bg-success ms-1"><?= count($approved) ?></span>
-                        <?php endif; ?>
-                    </button>
-                </li>
-                <li class="nav-item">
-                    <button class="nav-link font-serif fw-bold text-orange"
-                            data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
-                        Declined
-                        <?php if (count($rejected) > 0): ?>
-                            <span class="badge bg-danger ms-1"><?= count($rejected) ?></span>
-                        <?php endif; ?>
-                    </button>
-                </li>
-            </ul>
+        <div class="scc-card animate-in">
+            <div class="card-body p-0">
+                <ul class="nav nav-tabs nav-fill border-bottom px-3 pt-3" id="submissionTabs" role="tablist" style="background:var(--bg-subtle)">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabPending" type="button" style="color:var(--text); border-bottom: 2px solid transparent;">
+                            <i class="bi bi-clock-history me-2 text-warning"></i> Pending Review
+                            <?php if (count($pending) > 0): ?><span class="badge bg-warning text-dark ms-1"><?= count($pending) ?></span><?php endif; ?>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabApproved" type="button" style="color:var(--text); border-bottom: 2px solid transparent;">
+                            <i class="bi bi-check-circle me-2 text-success"></i> Approved
+                            <?php if (count($approved) > 0): ?><span class="badge bg-success ms-1"><?= count($approved) ?></span><?php endif; ?>
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold py-3" data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button" style="color:var(--text); border-bottom: 2px solid transparent;">
+                            <i class="bi bi-x-circle me-2 text-danger"></i> Declined
+                            <?php if (count($rejected) > 0): ?><span class="badge bg-danger ms-1"><?= count($rejected) ?></span><?php endif; ?>
+                        </button>
+                    </li>
+                </ul>
 
-            <div class="tab-content">
-
-                <!-- Pending Tab -->
-                <div class="tab-pane fade show active" id="tabPending">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle table-premium">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-secondary small">ID</th>
-                                    <th class="text-secondary small">COURSE</th>
-                                    <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
-                                    <th class="text-secondary small">STATUS</th>
-                                    <th class="text-secondary small text-center">FILE</th>
-                                    <th class="text-secondary small">SUBMITTED</th>
-                                    <th class="text-secondary small text-center">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($pending)): ?>
-                                    <tr><td colspan="7" class="text-center text-muted py-4">No pending submissions.</td></tr>
-                                <?php else: ?>
-                                    <?php foreach ($pending as $i => $sub): ?>
+                <div class="tab-content p-4">
+                    <!-- Pending Tab -->
+                    <div class="tab-pane fade show active" id="tabPending">
+                        <div class="table-responsive">
+                            <table class="scc-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px">ID</th>
+                                        <th>COURSE</th>
+                                        <th>YEAR</th>
+                                        <th>STATUS</th>
+                                        <th class="text-center">FILE</th>
+                                        <th>SUBMITTED</th>
+                                        <th class="text-center">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($pending)): ?>
+                                        <tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-inbox fs-2 d-block opacity-25 mb-2"></i>No pending submissions.</td></tr>
+                                    <?php else: foreach ($pending as $sub): ?>
                                         <tr>
-                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
+                                            <td class="small text-muted fw-bold"><?= $sub['id'] ?></td>
                                             <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                        <?= htmlspecialchars($sub['course_title']) ?>
-                                                    </span>
-                                                </div>
+                                                <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
+                                                <div class="text-muted" style="font-size:0.7rem;"><?= htmlspecialchars($sub['course_title']) ?></div>
                                             </td>
-                                            <td class="d-none d-xl-table-cell small">
-                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                            </td>
-                                            <td><?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($sub['school_year'] ?? '—') ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], $sub['current_stage_role'] ?? null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
                                             <td class="text-center">
-                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="btn btn-sm btn-light border" title="Preview PDF">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                             </td>
-                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                             <td class="text-center">
-                                                <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
-                                                   class="btn btn-sm btn-outline-warning rounded-pill px-3">Edit</a>
+                                                <a href="../faculty/edit_syllabus.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-light border fw-bold text-primary px-3">Edit</a>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <?php endforeach; endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Approved Tab -->
-                <div class="tab-pane fade" id="tabApproved">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle table-premium">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-secondary small">ID</th>
-                                    <th class="text-secondary small">COURSE</th>
-                                    <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
-                                    <th class="text-secondary small">STATUS</th>
-                                    <th class="text-secondary small">LAST REVIEWER</th>
-                                    <th class="text-secondary small text-center">FILE</th>
-                                    <th class="text-secondary small">SUBMITTED</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($approved)): ?>
-                                    <tr><td colspan="7" class="text-center text-muted py-4">No approved submissions yet.</td></tr>
-                                <?php else: ?>
-                                    <?php foreach ($approved as $i => $sub): ?>
+                    <!-- Approved Tab -->
+                    <div class="tab-pane fade" id="tabApproved">
+                        <div class="table-responsive">
+                            <table class="scc-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px">ID</th>
+                                        <th>COURSE</th>
+                                        <th>YEAR</th>
+                                        <th>STATUS</th>
+                                        <th>REVIEWER</th>
+                                        <th class="text-center">FILE</th>
+                                        <th>SUBMITTED</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($approved)): ?>
+                                        <tr><td colspan="7" class="text-center text-muted py-5"><i class="bi bi-check2-all fs-2 d-block opacity-25 mb-2"></i>No approved submissions yet.</td></tr>
+                                    <?php else: foreach ($approved as $sub): ?>
                                         <tr>
-                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
+                                            <td class="small text-muted fw-bold"><?= $sub['id'] ?></td>
                                             <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                        <?= htmlspecialchars($sub['course_title']) ?>
-                                                    </span>
-                                                </div>
+                                                <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
+                                                <div class="text-muted" style="font-size:0.7rem;"><?= htmlspecialchars($sub['course_title']) ?></div>
                                             </td>
-                                            <td class="d-none d-xl-table-cell small">
-                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                            </td>
-                                            <td><?= format_syllabus_status($sub['status']) ?></td>
-                                            <td class="small"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($sub['school_year'] ?? '—') ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($sub['last_reviewer'] ?? '—') ?></td>
                                             <td class="text-center">
-                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="btn btn-sm btn-light border" title="Preview PDF">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                             </td>
-                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <?php endforeach; endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
 
-                <!-- Declined Tab -->
-                <div class="tab-pane fade" id="tabDeclined">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle table-premium">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-secondary small">ID</th>
-                                    <th class="text-secondary small">COURSE</th>
-                                    <th class="text-secondary small d-none d-xl-table-cell">YEAR</th>
-                                    <th class="text-secondary small">STATUS</th>
-                                    <th class="text-secondary small">REASON</th>
-                                    <th class="text-secondary small text-center">FILE</th>
-                                    <th class="text-secondary small">SUBMITTED</th>
-                                    <th class="text-secondary small text-center">ACTION</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($rejected)): ?>
-                                    <tr><td colspan="8" class="text-center text-muted py-4">No declined submissions.</td></tr>
-                                <?php else: ?>
-                                    <?php foreach ($rejected as $i => $sub): ?>
+                    <!-- Declined Tab -->
+                    <div class="tab-pane fade" id="tabDeclined">
+                        <div class="table-responsive">
+                            <table class="scc-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 50px">ID</th>
+                                        <th>COURSE</th>
+                                        <th>YEAR</th>
+                                        <th>STATUS</th>
+                                        <th>REASON</th>
+                                        <th class="text-center">FILE</th>
+                                        <th>SUBMITTED</th>
+                                        <th class="text-center">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if (empty($rejected)): ?>
+                                        <tr><td colspan="8" class="text-center text-muted py-5"><i class="bi bi-x-circle fs-2 d-block opacity-25 mb-2"></i>No declined submissions.</td></tr>
+                                    <?php else: foreach ($rejected as $sub): ?>
                                         <tr>
-                                            <td class="small fw-bold text-muted"><?= $sub['id'] ?></td>
+                                            <td class="small text-muted fw-bold"><?= $sub['id'] ?></td>
                                             <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="fw-bold small"><?= htmlspecialchars($sub['course_code']) ?></span>
-                                                    <span class="text-muted text-truncate" style="font-size:.7rem;max-width:150px;">
-                                                        <?= htmlspecialchars($sub['course_title']) ?>
-                                                    </span>
-                                                </div>
+                                                <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
+                                                <div class="text-muted" style="font-size:0.7rem;"><?= htmlspecialchars($sub['course_title']) ?></div>
                                             </td>
-                                            <td class="d-none d-xl-table-cell small">
-                                                <?= htmlspecialchars($sub['school_year'] ?? '—') ?>
-                                            </td>
-                                            <td><?= format_syllabus_status($sub['status']) ?></td>
-                                            <td class="small"><?= htmlspecialchars($sub['reject_comment'] ?? '—') ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($sub['school_year'] ?? '—') ?></td>
+                                            <td><?= format_syllabus_status($sub['status'], null, $sub['rejecting_role'] ?? null, $sub['rejecting_name'] ?? null) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($sub['reject_comment'] ?? 'No reason provided') ?></td>
                                             <td class="text-center">
-                                                <a href="view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>"
-                                                   target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0">
-                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="btn btn-sm btn-light border" title="Preview PDF">
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                             </td>
-                                            <td class="small"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
+                                            <td class="small" style="color:var(--text-secondary)"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                             <td class="text-center">
-                                                <div class="d-flex flex-column gap-2">
-                                                    <a href="edit_syllabus.php?id=<?= $sub['id'] ?>"
-                                                       class="btn btn-sm btn-outline-warning rounded-pill px-3">Edit</a>
-                                                    <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>"
-                                                       class="btn btn-sm btn-outline-danger rounded-pill px-3">Resubmit</a>
+                                                <div class="d-flex flex-column gap-1">
+                                                    <a href="../faculty/edit_syllabus.php?id=<?= $sub['id'] ?>" class="btn btn-sm btn-light border fw-bold text-primary">Edit</a>
+                                                    <a href="upload_syllabus.php?resubmit=<?= $sub['id'] ?>" class="btn btn-sm btn-light border fw-bold text-danger">Resubmit</a>
                                                 </div>
                                             </td>
                                         </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
+                                    <?php endforeach; endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
-
-            </div><!-- /tab-content -->
+            </div>
         </div>
+    </main>
     </div><!-- /main-content -->
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
 </body>
 </html>

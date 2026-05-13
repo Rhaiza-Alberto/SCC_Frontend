@@ -82,211 +82,136 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
     </style>
 </head>
 <body class="bg-light">
-<div class="d-flex">
+    <?php include '_sidebar.php'; ?>
 
-    <!-- Sidebar -->
-    <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-         style="width:260px; position:fixed; z-index:1100;">
-        <div class="text-center mb-3 mt-2">
-            <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                 style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-            <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
-        </div>
-        <nav class="nav flex-column gap-2 mb-auto">
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
-                Syllabus Review
-                <?php if ($pending_review_count > 0): ?>
-                    <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
-                <?php endif; ?>
-            </a>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white active-nav-link p-3 rounded">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
-                Registration Requests
-                <?php if ($reg_count > 0): ?>
-                    <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
-                <?php endif; ?>
-            </a>
-            <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-            <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-        </nav>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h3 class="text-orange font-serif fw-bold mb-0">Edit Submission</h3>
-
-            <!-- Notification Bell -->
-            <div class="dropdown">
-                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-4 text-dark"></i>
-                    <?php if ($unread_count > 0): ?>
-                        <span class="notif-dot"></span>
-                    <?php endif; ?>
+    <main class="scc-main">
+        <div class="container-fluid">
+            <!-- Header Section -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h4 class="fw-bold mb-0" style="color:var(--text)">Edit <span style="color:var(--primary)">Syllabus</span></h4>
+                    <p class="text-muted small mb-0">Dean's submission management</p>
                 </div>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
-                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
-                        <strong>Notifications</strong>
-                        <?php if ($unread_count > 0): ?>
-                            <a href="?id=<?= $syllabus_id ?>&mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                        <?php endif; ?>
-                    </li>
-                    <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                    <?php else: foreach ($notifications as $n): 
-                        $color = get_notification_color($n['message']); ?>
-                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                <p class="mb-0 small">
-                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                </p>
-                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                            </a>
-                        </li>
-                    <?php endforeach; endif; ?>
-                    <li class="dropdown-menu-sticky-footer">
-                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
-                    </li>
-                </ul>
+                <div class="d-flex align-items-center gap-3" id="navbarActions">
+                </div>
             </div>
-        </div>
 
-        <?php if ($success_message): ?>
-            <div class="alert alert-success alert-dismissible fade show mb-4">
-                <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-        <?php if ($error_message): ?>
-            <div class="alert alert-danger alert-dismissible fade show mb-4">
-                <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error_message) ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-
-        <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
-            <p class="text-muted small mb-4">
-                Update your syllabus details below.
-            </p>
-
-            <form action="process_edit_syllabus.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="syllabus_id" value="<?= $syllabus_id ?>">
-
-                <!-- Course Code -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course Code <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="course_code"
-                           value="<?= htmlspecialchars($syllabus['course_code']) ?>" required>
+            <?php if ($success_message): ?>
+                <div class="alert alert-success alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4">
+                    <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
+            <?php endif; ?>
 
-                <!-- Course Title -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course Title / Subject Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="course_title"
-                           value="<?= htmlspecialchars($syllabus['course_title']) ?>" required>
+            <?php if ($error_message): ?>
+                <div class="alert alert-danger alert-dismissible fade show rounded-3 border-0 shadow-sm mb-4">
+                    <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error_message) ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
+            <?php endif; ?>
 
-                <!-- Course Name -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course</label>
-                    <input type="text" class="form-control" name="course"
-                           value="<?= htmlspecialchars($syllabus['course_name'] ?? '') ?>">
-                </div>
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="scc-card animate-in">
+                        <div class="card-body p-4">
+                            <form action="process_edit_syllabus.php" method="POST" enctype="multipart/form-data">
+                                <input type="hidden" name="syllabus_id" value="<?= $syllabus_id ?>">
 
-                <!-- Subject Type -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Subject Type <span class="text-danger">*</span></label>
-                    <select class="form-select" name="subject_type" required>
-                        <option disabled>-- Select Subject Type --</option>
-                        <?php
-                        $types = [
-                            'Institutional Subject',
-                            'General Education (GE)',
-                            'Core Subject',
-                            'Professional Subjects',
-                            'Mandatory / Elect Subject',
-                        ];
-                        foreach ($types as $t): ?>
-                            <option value="<?= $t ?>" <?= ($syllabus['subject_type'] ?? '') === $t ? 'selected' : '' ?>>
-                                <?= $t ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Course Code <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="course_code"
+                                            value="<?= htmlspecialchars($syllabus['course_code']) ?>" required>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold small">Course Title / Subject Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="course_title"
+                                            value="<?= htmlspecialchars($syllabus['course_title']) ?>" required>
+                                    </div>
+                                </div>
 
-                <!-- Semester -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Subject Semester <span class="text-danger">*</span></label>
-                    <select class="form-select" name="subject_semester" required>
-                        <option disabled>-- Select Semester --</option>
-                        <?php foreach (['1st Semester', '2nd Semester', 'Summer'] as $sem): ?>
-                            <option value="<?= $sem ?>" <?= ($syllabus['semester'] ?? '') === $sem ? 'selected' : '' ?>>
-                                <?= $sem ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small">Course Name</label>
+                                    <input type="text" class="form-control" name="course"
+                                        value="<?= htmlspecialchars($syllabus['course_name'] ?? '') ?>" placeholder="e.g. BS in Computer Science">
+                                </div>
 
-                <!-- Year Level -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Year Level <span class="text-danger">*</span></label>
-                    <select class="form-select" name="year_level" required>
-                        <option disabled>-- Select Year Level --</option>
-                        <?php
-                        $levels = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
-                        foreach ($levels as $lvl): ?>
-                            <option value="<?= $lvl ?>" <?= ($syllabus['school_year'] ?? '') === $lvl ? 'selected' : '' ?>>
-                                <?= $lvl ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Subject Type <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="subject_type" required>
+                                            <option disabled>-- Select --</option>
+                                            <?php
+                                            $types = ['Institutional Subject', 'General Education (GE)', 'Core Subject', 'Professional Subjects', 'Mandatory / Elect Subject'];
+                                            foreach ($types as $t): ?>
+                                                <option value="<?= $t ?>" <?= ($syllabus['subject_type'] ?? '') === $t ? 'selected' : '' ?>><?= $t ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Semester <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="subject_semester" required>
+                                            <option disabled>-- Select --</option>
+                                            <?php foreach (['1st Semester', '2nd Semester', 'Summer'] as $sem): ?>
+                                                <option value="<?= $sem ?>" <?= ($syllabus['semester'] ?? '') === $sem ? 'selected' : '' ?>><?= $sem ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold small">Year Level <span class="text-danger">*</span></label>
+                                        <select class="form-select" name="year_level" required>
+                                            <option disabled>-- Select --</option>
+                                            <?php foreach (['1st Year', '2nd Year', '3rd Year', '4th Year'] as $lvl): ?>
+                                                <option value="<?= $lvl ?>" <?= ($syllabus['school_year'] ?? '') === $lvl ? 'selected' : '' ?>><?= $lvl ?></option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
+                                </div>
 
-                <!-- Current File -->
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Current File</label>
-                    <div class="d-flex align-items-center gap-2">
-                        <a href="view_syllabus.php?file=<?= urlencode(basename($syllabus['file_path'])) ?>"
-                           target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-file-earmark-pdf me-1 text-orange"></i>View Current PDF
-                        </a>
+                                <div class="p-3 bg-light rounded-3 mb-4 border">
+                                    <label class="form-label fw-bold small d-block mb-2">Current Document</label>
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <i class="bi bi-file-earmark-pdf fs-4 text-danger"></i>
+                                            <span class="small fw-bold text-dark"><?= htmlspecialchars(basename($syllabus['file_path'])) ?></span>
+                                        </div>
+                                        <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($syllabus['file_path'])) ?>"
+                                           target="_blank" class="btn btn-sm btn-outline-primary fw-bold">View PDF</a>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-bold small">Replace File (PDF Only — optional)</label>
+                                    <input type="file" class="form-control" name="pdf_file" accept=".pdf">
+                                    <div class="form-text small">Leave blank to keep current file. Max 10MB.</div>
+                                </div>
+
+                                <div class="d-flex gap-2 pt-3 border-top">
+                                    <button type="submit" class="btn btn-primary-scc px-4">Save Changes</button>
+                                    <a href="my_submissions.php" class="btn btn-light border px-4">Cancel</a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Replace File (optional) -->
-                <div class="mb-4">
-                    <label class="form-label fw-bold small">Replace File (PDF Only — optional)</label>
-                    <input type="file" class="form-control" name="pdf_file" accept=".pdf">
-                    <small class="text-muted">Leave blank to keep the existing file. Maximum file size: 10MB.</small>
+                <div class="col-lg-4">
+                    <div class="scc-card animate-in" style="animation-delay: 0.1s">
+                        <div class="card-body p-4">
+                            <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2 text-primary"></i>Dean Access</h6>
+                            <p class="small text-muted mb-3">You are editing a syllabus submitted under your account. These follow the standard institutional workflow.</p>
+                            <ul class="list-unstyled small text-muted mb-0" style="line-height: 1.8">
+                                <li><i class="bi bi-check2 text-success me-2"></i> Only Pending/Rejected files can be updated.</li>
+                                <li><i class="bi bi-check2 text-success me-2"></i> Replaced files must be PDF.</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- Buttons -->
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-orange btn-lg fw-bold rounded-pill">
-                        <i class="bi bi-save me-2"></i>Save Changes
-                    </button>
-                    <a href="my_submissions.php" class="btn btn-outline-secondary btn-lg rounded-pill">Cancel</a>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
+    </main>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/theme.js"></script>
 </body>
 </html>

@@ -73,61 +73,54 @@ $reg_count = (int) $conn->query("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Course - SCC-CCS</title>
+    <title>Edit Course — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange { color: #ff8800 !important; }
-        .btn-orange { background-color: #ff8800 !important; color: white !important; border: none; }
-        .btn-orange:hover { background-color: #e67a00 !important; }
-    </style>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column" style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2" style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+<body>
+    <?php $active_page = 'courses'; include '_sidebar.php'; ?>
+
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Edit <span style="color:var(--primary)">Course</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Update existing course information in the institutional catalog</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-                <a href="manage_courses.php" class="nav-link text-white p-3 rounded active-nav-link">Manage Courses</a>
-                <!-- ... other links ... -->
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
+            <div>
+                <a href="manage_courses.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Catalog
+                </a>
+            </div>
         </div>
 
-        <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-            <div class="mb-5">
-                <a href="manage_courses.php" class="btn btn-outline-dark rounded-pill px-3 py-1 small mb-3">
-                    <i class="bi bi-arrow-left me-1"></i> Back to List
-                </a>
-                <h2 class="text-orange font-serif fw-bold mb-0">Edit Course</h2>
-                <p class="text-muted">Update course details</p>
+        <div class="scc-card animate-in" style="max-width: 600px; margin: 0 auto;">
+            <div class="card-header border-0 bg-transparent p-4 pb-0 text-center">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">Course <span style="color:var(--primary)">Catalog Update</span></h6>
+                <p class="small text-muted">Modify existing course parameters below</p>
             </div>
-
-            <div class="card premium-card p-5 shadow-sm border-0 mx-auto" style="max-width: 600px;">
+            <div class="card-body p-4 p-md-5">
                 <?php if ($error): ?>
-                    <div class="alert alert-danger rounded-4 border-0 shadow-sm mb-4 small"><?= $error ?></div>
+                    <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $error; ?>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                    </div>
                 <?php endif; ?>
 
                 <form method="POST">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Course Code</label>
-                        <input type="text" name="course_code" class="form-control" 
-                               value="<?= htmlspecialchars($course['course_code']) ?>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold small">Course Title</label>
-                        <input type="text" name="course_title" class="form-control" 
-                               value="<?= htmlspecialchars($course['course_title']) ?>" required>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-secondary">Course Code <span class="text-danger">*</span></label>
+                        <input type="text" name="course_code" class="form-control" value="<?= htmlspecialchars($course['course_code']) ?>" required>
                     </div>
                     <div class="mb-4">
-                        <label class="form-label fw-bold small">College</label>
+                        <label class="form-label fw-bold small text-secondary">Course Title <span class="text-danger">*</span></label>
+                        <input type="text" name="course_title" class="form-control" value="<?= htmlspecialchars($course['course_title']) ?>" required>
+                    </div>
+                    <div class="mb-5">
+                        <label class="form-label fw-bold small text-secondary">Assigned College <span class="text-danger">*</span></label>
                         <select name="college_id" class="form-select" required>
                             <option value="">-- Select College --</option>
                             <?php foreach ($colleges as $college): ?>
@@ -138,11 +131,19 @@ $reg_count = (int) $conn->query("
                         </select>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-orange btn-lg fw-bold rounded-pill">Update Course</button>
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill shadow-sm">
+                            <i class="bi bi-check2-circle me-2"></i> Update Course Entry
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
+    </main>
     </div>
-</body>
-</html>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../js/common.js"></script>
+<script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+</script>

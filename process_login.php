@@ -32,7 +32,7 @@ try {
         SELECT u.*, r.role_name
         FROM users u
         JOIN roles r ON u.role_id = r.id
-        WHERE u.email = ? AND u.is_deleted = 0
+        WHERE u.email = ?
         LIMIT 1
     ");
     $stmt->execute([$email]);
@@ -53,6 +53,13 @@ try {
 
     if (!$password_valid) {
         $_SESSION['error'] = 'Invalid email or password.';
+        header('Location: login.php');
+        exit();
+    }
+
+    // Email verification check
+    if (empty($user['email_verified'])) {
+        $_SESSION['error'] = 'Your email address is not verified. <a href="verify.php?email=' . urlencode($email) . '" class="text-orange fw-bold">Enter code</a> or <a href="resend_verification.php?email=' . urlencode($email) . '" class="text-orange fw-bold">resend it</a>.';
         header('Location: login.php');
         exit();
     }

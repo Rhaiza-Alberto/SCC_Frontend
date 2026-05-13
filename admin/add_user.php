@@ -84,178 +84,138 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add User - SCC-CCS</title>
+    <title>Add User — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange {
-            color: #ff8800 !important;
-        }
-
-        .btn-orange {
-            background-color: #ff8800 !important;
-            color: white !important;
-            border: none;
-        }
-
-        .btn-orange:hover {
-            background-color: #e67a00 !important;
-            color: white !important;
-        }
-    </style>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+<body>
+    <?php $active_page = 'add_user'; include '_sidebar.php'; ?>
+
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Add <span style="color:var(--primary)">User</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Register new faculty or administrative staff accounts</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
-                    Requests</a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white active-nav-link p-3 rounded">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
-            </nav>
-        </div>
-
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="text-orange font-serif fw-bold mb-0">Add New User</h2>
-                    <p class="text-muted small">Enter details to register a new system member.</p>
-                </div>
+            <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
-                    <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                        <i class="bi bi-bell fs-4 text-dark"></i>
-                        <?php if ($unread_count > 0): ?>
-                            <span class="notif-dot"></span>
-                        <?php endif; ?>
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
                     </div>
-
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                        style="width:320px;max-height:400px;overflow-y:auto;">
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
-                            style="z-index:11;">
-                            <strong>Notifications</strong>
-                            <?php if ($unread_count > 0): ?>
-                                <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                            <?php endif; ?>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
                         </li>
                         <?php if (empty($notifications)): ?>
-                            <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                        <?php else:
-                            foreach ($notifications as $n):
-                                $color = get_notification_color($n['message']); ?>
-                                <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>"
-                                        class="text-decoration-none text-dark d-block px-3 py-2">
-                                        <p class="mb-0 small">
-                                            <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                            <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                        </p>
-                                        <span class="text-muted"
-                                            style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                    </a>
-                                </li>
-                            <?php endforeach; endif; ?>
-                        <li class="dropdown-menu-sticky-footer">
-                            <a href="notifications.php"
-                                class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all
-                                notifications</a>
-                        </li>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
                     </ul>
                 </div>
             </div>
+        </div>
 
-            <?php if ($success): ?>
-                <div class="alert alert-success alert-dismissible fade show rounded-3 shadow-sm border-0" role="alert">
-                    <i class="bi bi-check-circle-fill me-2"></i> <?php echo $success; ?>
-                    <a href="manage_user.php" class="ms-3 fw-bold text-success text-decoration-none">View User List</a>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
-            <?php if ($error): ?>
-                <div class="alert alert-danger alert-dismissible fade show rounded-3 shadow-sm border-0" role="alert">
-                    <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $error; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            <?php endif; ?>
+        <?php if ($success): ?>
+            <div class="alert alert-success border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">
+                <i class="bi bi-check-circle-fill me-2"></i> <?php echo $success; ?>
+                <a href="manage_user.php" class="ms-3 fw-bold text-success text-decoration-none small">View User List <i class="bi bi-arrow-right ms-1"></i></a>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
 
-            <div class="d-flex justify-content-center">
-                <div class="card premium-card p-4 shadow-sm border-0 bg-white" style="max-width: 800px; width: 100%;">
-                    <form method="POST">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">FIRST NAME</label>
-                                <input type="text" class="form-control" name="first_name" placeholder="E.g. John"
-                                    required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">LAST NAME</label>
-                                <input type="text" class="form-control" name="last_name" placeholder="E.g. Doe"
-                                    required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">GMAIL ADDRESS</label>
-                                <input type="email" class="form-control" name="email" placeholder="user@gmail.com"
-                                    required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">PASSWORD</label>
-                                <input type="password" class="form-control" name="password" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">ASSIGNED ROLE</label>
-                                <select class="form-select" name="role_id" required>
-                                    <option value="" disabled selected>-- Select Role --</option>
-                                    <?php foreach ($roles as $role): ?>
-                                        <option value="<?= $role['id'] ?>"><?= ucfirst($role['role_name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">COLLEGE</label>
-                                <select class="form-select" name="college_id">
-                                    <option value="">N/A</option>
-                                    <?php foreach ($colleges as $col): ?>
-                                        <option value="<?= $col['id'] ?>"><?= htmlspecialchars($col['college_name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
+        <?php if ($error): ?>
+            <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i> <?php echo $error; ?>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <div class="scc-card animate-in" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header border-0 bg-transparent p-4 pb-0 text-center">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">User <span style="color:var(--primary)">Account Creation</span></h6>
+                <p class="small text-muted">Complete the fields below to create a new institutional account</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">First Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="first_name" placeholder="e.g. John" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-secondary">Last Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="last_name" placeholder="e.g. Doe" required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">Gmail Address <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                <input type="email" class="form-control border-start-0" name="email" placeholder="user@gmail.com" required>
                             </div>
                         </div>
-                        <div class="text-center mt-4 pt-3 border-top">
-                            <button type="reset" class="btn btn-light rounded-pill px-4 me-2">Clear</button>
-                            <button type="submit" class="btn btn-orange rounded-pill px-5">Add User Profile</button>
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">Initial Password <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0" name="password" required>
+                            </div>
+                            <p class="small text-muted mt-1 mb-0">Minimum 8 characters recommended.</p>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-6 mt-4">
+                            <label class="form-label fw-bold small text-secondary">Assigned Role <span class="text-danger">*</span></label>
+                            <select class="form-select" name="role_id" required>
+                                <option value="" disabled selected>Select Role</option>
+                                <?php foreach ($roles as $role): ?>
+                                    <option value="<?= $role['id'] ?>"><?= ucfirst($role['role_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-4">
+                            <label class="form-label fw-bold small text-secondary">Assigned College</label>
+                            <select class="form-select" name="college_id">
+                                <option value="">N/A (General/Institutional)</option>
+                                <?php foreach ($colleges as $col): ?>
+                                    <option value="<?= $col['id'] ?>"><?= htmlspecialchars($col['college_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="col-12 mt-5">
+                            <div class="row g-2">
+                                <div class="col-md-8">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill">Create User Account</button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="reset" class="btn btn-light btn-lg w-100 fw-bold rounded-pill border">Clear Form</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
+    </main>
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
 </body>
 
 </html>

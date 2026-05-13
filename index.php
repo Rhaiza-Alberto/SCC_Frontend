@@ -9,208 +9,264 @@ require_once __DIR__ . '/functions.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SCC-CCS Syllabus Portal</title>
-    <!-- Bootstrap 5 CSS -->
+    <title>SCC-CCS — Syllabus Management Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap"
-        rel="stylesheet">
-    <!-- Custom CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/style.css">
+    <style>
+        .landing-nav {
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        [data-theme="dark"] .landing-nav {
+            background: rgba(15, 15, 20, 0.8) !important;
+            border-bottom-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .hero-premium {
+            position: relative;
+            min-height: 700px;
+            padding: 140px 0 100px;
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.8), rgba(30, 15, 0, 0.6), rgba(0, 0, 0, 0.85)),
+                url('css/background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            display: flex;
+            align-items: center;
+            color: white;
+            overflow: hidden;
+        }
+
+        .hero-premium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 136, 0, 0.4) 0%, transparent 70%);
+            z-index: 1;
+        }
+
+        .cta-card-compact {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2.5rem !important;
+            border-radius: var(--radius-xl) !important;
+            background: var(--primary) !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: 0 20px 40px rgba(255, 136, 0, 0.2) !important;
+        }
+
+        .feature-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-light);
+            color: var(--primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .theme-toggle-nav {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-nav:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: var(--primary-border);
+        }
+    </style>
 </head>
 
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-black py-2 shadow-sm">
+<body class="bg-light">
+    <!-- Premium Navigation -->
+    <nav class="navbar navbar-expand-lg landing-nav sticky-top py-3">
         <div class="container">
-
-            <a class="navbar-brand d-flex align-items-center" href="#">
-
-                <img src="css/logo.png" alt="SCC Logo" class="me-3 rounded-circle border border-light"
-                    style="width: 60px; height: 60px; object-fit: cover;">
-
-                <div class="d-flex flex-column lh-sm">
-
-                    <small class="text-uppercase text-light opacity-75 fw-semibold">
-                        Southern City Colleges
-                    </small>
-
-                    <small class="text-light opacity-50" style="font-size: 11px;">
-                        Pilar St. 10999 Zamboanga City, Zamboanga Peninsula Philippines
-                    </small>
-
-                    <div style="height: 1px; background-color: rgba(255,255,255,0.4);" class="my-1"></div>
-
-                    <span class="fs-4 fw-bold font-serif text-warning">
-                        CCS Syllabus Management Portal
-                    </span>
-
+            <a class="navbar-brand d-flex align-items-center gap-3" href="index.php">
+                <img src="css/logo.png" alt="Logo" width="42" height="42" class="rounded-circle shadow-sm">
+                <div class="d-none d-md-block">
+                    <div class="fw-bold fs-5 mb-0" style="color:var(--text); line-height:1">SCC <span
+                            style="color:var(--primary)">Syllabus</span></div>
+                    <small class="text-muted"
+                        style="font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;">College of Computing
+                        Studies</small>
                 </div>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-                <a href="login.php" class="btn btn-outline-warning px-4 rounded-pill fw-semibold">
-                    Log In
-                </a>
+            <div class="ms-auto d-flex gap-2 gap-md-3 align-items-center" id="navbarActions">
+                <button type="button" class="theme-toggle-nav" id="themeToggleBtn" title="Toggle Theme">
+                    <i class="bi bi-moon-fill"></i>
+                </button>
+                <div class="vr mx-1 opacity-10 d-none d-md-block"></div>
+                <a href="login.php" class="text-decoration-none fw-bold small px-2 py-1" style="color:var(--text)">Log
+                    In</a>
+                <a href="register.php"
+                    class="btn btn-primary-scc rounded-pill px-4 py-2 shadow-sm small fw-bold">Register</a>
             </div>
-
         </div>
     </nav>
 
-    <section class="hero-section text-center py-5">
-        <div class="container py-5 mt-5">
-            <h1 class="display-4 fw-bold font-serif mb-3" style=" text-shadow: 2px 2px 4px  rgba(159, 48, 0, 0.8);">
-                Welcome to College of Computing Studies!</h1>
-            <h2 class=" mb-4 font-serif" style="color: #ffffffff; text-shadow: 2px 2px 4px rgba(159, 48, 0, 0.8);">
-                Course Syllabus Approval Portal</h2>
-            <p class="lead mb-5 mx-auto"
-                style="color: white; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5); max-width: 700px;">
-                Streamline syllabus creation, submission, and approval across all departments and colleges.
-            </p>
-            <a href="login.php" class="btn btn-outline-warning btn-lg px-5 py-3 rounded-pill orange-text-btn "> Get
-                Started</a>
+    <!-- Hero Section -->
+    <section class="hero-premium">
+        <div class="container position-relative" style="z-index: 2;">
+            <div class="row align-items-center">
+                <div class="col-lg-7">
+                    <span class="badge rounded-pill mb-3 px-3 py-2 fw-bold"
+                        style="background:rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px);">
+                        <i class="bi bi-shield-check me-2 text-warning"></i> SCC-CCS OFFICIAL PORTAL
+                    </span>
+                    <h1 class="display-3 fw-bold mb-4" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Streamlining
+                        Academic <span style="color:var(--primary)">Excellence.</span></h1>
+                    <p class="lead mb-5"
+                        style="max-width: 600px; color: rgba(255,255,255,0.9); text-shadow: 0 1px 5px rgba(0,0,0,0.2);">
+                        The centralized hub for SCC College of Computing Studies syllabus management. Accelerate
+                        approvals, ensure compliance, and manage curriculum workflows with institutional precision.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <a href="login.php" class="btn btn-light btn-lg rounded-pill px-5 py-3 fw-bold shadow">
+                            Get Started <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                        <a href="#features" class="btn btn-outline-light btn-lg rounded-pill px-5 py-3 fw-bold">
+                            Capabilities
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="scroll-indicator"></div>
     </section>
 
-    <!-- Divider -->
-    <hr class="container my-5" style="opacity: 0.1;">
+    <!-- Features Section -->
+    <section id="features" class="py-5 mt-5">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h6 class="text-primary fw-bold text-uppercase mb-2" style="letter-spacing: 2px; font-size: 0.75rem;">
+                    Platform Capabilities</h6>
+                <h2 class="display-6 fw-bold" style="color:var(--text)">Syllabus Management <span
+                        class="text-orange">Simplified</span></h2>
+            </div>
 
-    <!-- About Section -->
-    <section class="about-section text-center py-5">
+            <div class="row g-4 pt-4">
+                <div class="col-md-4">
+                    <div class="scc-card p-4 h-100 border-0 shadow-sm">
+                        <div class="feature-icon-wrapper">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-size: 1.1rem;">Institutional Uploads</h5>
+                        <p class="text-muted small mb-0">Standardized syllabus submission portal for all faculty members
+                            with automatic versioning and archiving.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="scc-card p-4 h-100 border-0 shadow-sm">
+                        <div class="feature-icon-wrapper" style="background:rgba(34,197,94,0.1); color:#22c55e">
+                            <i class="bi bi-diagram-3"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-size: 1.1rem;">Multi-tier Approval</h5>
+                        <p class="text-muted small mb-0">Automated workflow routing from Department Heads to Dean and
+                            VPAA for thorough institutional review.</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="scc-card p-4 h-100 border-0 shadow-sm">
+                        <div class="feature-icon-wrapper" style="background:rgba(99,102,241,0.1); color:#6366f1">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <h5 class="fw-bold mb-3" style="font-size: 1.1rem;">Smart Notifications</h5>
+                        <p class="text-muted small mb-0">Real-time status updates and action-required alerts keep the
+                            syllabus cycle moving efficiently.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 mb-5">
         <div class="container">
-            <h2 class="fw-bold font-serif mb-4">About the Portal</h2>
-            <p class="text-muted mb-5 mx-auto" style="max-width: 900px; line-height: 1.8;">
-                This system helps SCC - CCS instructors and administrators manage course syllabi efficiently,
-                ensuring a structured and organized workflow for submission, review, approval, and revision.
-                It is designed to improve transparency, reduce manual processing, and support a centralized
-                academic management process within the College of Computing Studies.
-            </p>
-
-            <div class="row g-4 mt-4 pb-5">
-                <!-- Card 1 -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-orange p-4 bg-transparent">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold font-serif mb-3">Instructor Access</h5>
-                            <p class="card-text text-muted">Upload and update course syllabi with ease.</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card 2 -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-orange p-4 bg-transparent">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold font-serif mb-3">Approval Workflow</h5>
-                            <p class="card-text text-muted">Streamlined review by Department Heads, Deans, and VPAA.</p>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card 3 -->
-                <div class="col-md-4">
-                    <div class="card h-100 border-orange p-4 bg-transparent">
-                        <div class="card-body">
-                            <h5 class="card-title fw-bold font-serif mb-3">Notifications</h5>
-                            <p class="card-text text-muted">Receive updates on approvals, revisions, and comments
-                                instantly.</p>
-                        </div>
-                    </div>
+            <div class="scc-card cta-card-compact text-center">
+                <h2 class="fw-bold mb-3" style="font-size: 2rem;">Ready to modernize your workflow?</h2>
+                <p class="mb-4 opacity-90 small mx-auto" style="max-width: 500px;">Join the SCC Faculty and start
+                    managing your syllabi with precision and ease through our unified platform.</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="register.php" class="btn btn-light rounded-pill px-5 py-2 fw-bold shadow-sm">Create
+                        Account</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="bg-black text-white mt-5">
-        <div class="container" style="max-width: 1100px;">
+    <footer class="bg-white border-top py-5 mt-5">
+        <div class="container">
             <div class="row g-4">
-                <!-- About Section -->
-                <div class="col-lg-4 col-md-6">
-                    <h5 class="fw-bold mb-3 text-orange">About SCC-CCS</h5>
-                    <p class="text-white-50 small">
-                        The College of Computing Studies at Southern City College is dedicated to providing quality IT
-                        education
-                        and fostering innovation through comprehensive syllabus management.
+                <div class="col-lg-4">
+                    <div class="d-flex align-items-center gap-3 mb-4">
+                        <img src="css/logo.png" alt="Logo" width="38" height="38" class="rounded-circle">
+                        <div class="fw-bold fs-5" style="color:var(--text)">SCC <span
+                                style="color:var(--primary)">Syllabus</span></div>
+                    </div>
+                    <p class="text-muted small mb-4" style="max-width: 320px;">
+                        The College of Computing Studies' dedicated portal for syllabus management and institutional
+                        compliance.
                     </p>
-                </div>
-
-                <!-- Quick Links -->
-                <div class="col-lg-2 col-md-6">
-                    <h5 class="fw-bold mb-3 text-orange">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="index.php"
-                                class="text-white-50 text-decoration-none small hover-link">Home</a></li>
-                        <li class="mb-2"><a href="login.php"
-                                class="text-white-50 text-decoration-none small hover-link">Login</a></li>
-                        <li class="mb-2"><a href="register.php"
-                                class="text-white-50 text-decoration-none small hover-link">Register</a></li>
-                        <li class="mb-2"><a href="#"
-                                class="text-white-50 text-decoration-none small hover-link">Help</a></li>
-                    </ul>
-                </div>
-
-                <!-- Contact Info -->
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3 text-orange">Contact Us</h5>
-                    <ul class="list-unstyled text-white-50 small">
-                        <li class="mb-2">
-                            <i class="bi bi-geo-alt-fill me-2"></i>
-                            Pilar St., Zamboanga City, Souther City Colleges
-                        <li class="mb-2">
-                            <i class="bi bi-envelope-fill me-2"></i>
-                            ccs@scc.edu.ph
-                        </li>
-                        <li class="mb-2">
-                            <i class="bi bi-telephone-fill me-2"></i>
-                            97-6892 Local(120)
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Social Media -->
-                <div class="col-lg-3 col-md-6">
-                    <h5 class="fw-bold mb-3 text-orange">Follow Us</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#" class="text-white-50 hover-link">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                class="bi bi-facebook" viewBox="0 0 16 16">
-                                <path
-                                    d="M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z" />
-                            </svg>
-                        </a>
-                        <a href="#" class="text-white-50 hover-link">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                class="bi bi-twitter" viewBox="0 0 16 16">
-                                <path
-                                    d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z" />
-                            </svg>
-                        </a>
-                        <a href="#" class="text-white-50 hover-link">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                                class="bi bi-envelope" viewBox="0 0 16 16">
-                                <path
-                                    d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z" />
-                            </svg>
-                        </a>
+                    <div class="d-flex gap-3 text-muted">
+                        <a href="#" class="text-reset"><i class="bi bi-facebook fs-5"></i></a>
+                        <a href="#" class="text-reset"><i class="bi bi-twitter-x fs-5"></i></a>
+                        <a href="#" class="text-reset"><i class="bi bi-linkedin fs-5"></i></a>
                     </div>
                 </div>
+                <div class="col-lg-2 ms-auto">
+                    <h6 class="fw-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">Platform</h6>
+                    <ul class="list-unstyled text-muted small">
+                        <li class="mb-2"><a href="login.php" class="text-reset text-decoration-none">Log In</a></li>
+                        <li class="mb-2"><a href="register.php" class="text-reset text-decoration-none">Register</a>
+                        </li>
+                        <li class="mb-2"><a href="#" class="text-reset text-decoration-none">Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3">
+                    <h6 class="fw-bold mb-4 small text-uppercase" style="letter-spacing: 1px;">Institutional</h6>
+                    <ul class="list-unstyled text-muted small">
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2 text-primary"></i> Pilar St., Zamboanga City</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2 text-primary"></i> ccs@scc.edu.ph</li>
+                        <li class="mb-2"><i class="bi bi-telephone me-2 text-primary"></i> 991-6892</li>
+                    </ul>
+                </div>
             </div>
-
-            <!-- Copyright -->
-            <hr class="my-4" style="opacity: 0.2;">
-            <div class="text-center">
-                <p class="mb-0 text-white-50 small">&copy; 2025 Southern City Colleges - College of Computing Studies.
-                    All Rights Reserved.</p>
+            <hr class="my-5 opacity-5">
+            <div class="text-center text-muted small">
+                &copy; <?= date('Y') ?> Southern City Colleges. All Rights Reserved.
             </div>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/common.js"></script>
 </body>
 
 </html>
+>

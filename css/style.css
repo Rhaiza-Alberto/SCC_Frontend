@@ -5,16 +5,23 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    color: #000;
 }
 
 /* Navbar */
 .navbar {
-    background-color: #000 !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .navbar {
+    background-color: rgba(26, 26, 36, 0.8) !important;
+    border-bottom-color: var(--border);
 }
 
 .navbar-brand {
-    color: #fff !important;
+    color: var(--text) !important;
 }
 
 /* Navbar Button Premium (Matches Login Button) */
@@ -112,7 +119,7 @@ body {
 
 /* Hero Button */
 .orange-text-btn {
-    background: #ffffff;
+    background: var(--bg-card);
     color: #b46000 !important;
     border: none;
     position: relative;
@@ -239,7 +246,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
-    background: #fff;
+    background: var(--bg-card);
 }
 
 .border-orange:hover {
@@ -248,7 +255,7 @@ body {
 }
 
 .card-title {
-    color: #333;
+    color: var(--text);
     transition: color 0.3s;
 }
 
@@ -267,7 +274,7 @@ footer {
 
 /* Login Page */
 .login-card {
-    background-color: #000;
+    background-color: var(--bg-card);
     border-radius: 10px;
     width: 100%;
     max-width: 450px;
@@ -326,7 +333,7 @@ footer {
 
 /* Registration Page */
 .register-card {
-    background-color: #000;
+    background-color: var(--bg-card);
     border-radius: 10px;
     width: 100%;
     max-width: 800px;
@@ -392,8 +399,8 @@ footer {
 /* Premium Cancel Button */
 .btn-cancel {
     background: transparent;
-    color: #666;
-    border: 2px solid #ddd;
+    color: var(--text-secondary);
+    border: 2px solid var(--border);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
@@ -401,9 +408,9 @@ footer {
 }
 
 .btn-cancel:hover {
-    background-color: #f8f9fa;
-    color: #333;
-    border-color: #bbb;
+    background-color: var(--bg-secondary);
+    color: var(--text);
+    border-color: var(--primary);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
@@ -414,7 +421,7 @@ footer {
 
 /* Table Styles */
 .bg-light-gray {
-    background-color: #f8f9fa;
+    background-color: rgba(128, 128, 128, 0.05);
     /* Light gray for table rows like in image */
 }
 
@@ -450,14 +457,14 @@ footer {
 }
 
 .bg-light-gray td {
-    background-color: #f2f2f2 !important;
+    background-color: rgba(128, 128, 128, 0.05) !important;
     /* Slightly darker gray for specific rows */
     border-bottom-width: 0;
 }
 
 /* --- Premium Dashboard Additions (Final) --- */
 .premium-card {
-    background: #ffffff;
+    background: var(--bg-card);
     border: 1px solid rgba(255, 136, 0, 0.1);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
@@ -480,8 +487,8 @@ footer {
 .stat-card {
     position: relative;
     overflow: hidden;
-    background: #ffffff;
-    border: 2px solid #eee;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
     border-radius: 16px;
     padding: 1.5rem;
     height: 100%;
@@ -502,25 +509,25 @@ footer {
 .stat-card-total {
     border: 2px solid #ff8800 !important;
     color: #ff8800 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-approved {
     border: 2px solid #28a745 !important;
     color: #28a745 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-pending {
     border: 2px solid #ffc107 !important;
     color: #ffc107 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-rejected {
     border: 2px solid #dc3545 !important;
     color: #dc3545 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card h6 {
@@ -539,7 +546,7 @@ footer {
 }
 
 .sidebar-premium {
-    background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%) !important;
+    background: var(--bg-sidebar) !important;
     box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
     border-right: 1px solid rgba(255, 136, 0, 0.1) !important;
     overflow-y: auto;
@@ -569,8 +576,8 @@ footer {
 }
 
 .table-premium thead th {
-    background-color: #fcfcfc !important;
-    color: #495057 !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-secondary) !important;
     font-weight: 600 !important;
     text-transform: uppercase;
     font-size: 0.7rem !important;
@@ -580,7 +587,7 @@ footer {
 .table-premium tbody td {
     padding: 1.25rem 1rem !important;
     font-size: 0.9rem;
-    border-bottom: 1px solid #f8f9fa;
+    border-bottom: 1px solid var(--border);
 }
 
 .hover-effect:hover {
@@ -614,7 +621,7 @@ footer {
 
 /* Table Styles */
 .bg-light-gray {
-    background-color: #f8f9fa;
+    background-color: var(--bg-secondary);
     /* Light gray for table rows like in image */
 }
 
@@ -650,38 +657,25 @@ footer {
 }
 
 .bg-light-gray td {
-    background-color: #f2f2f2 !important;
+    background-color: var(--bg-secondary) !important;
     /* Slightly darker gray for specific rows */
     border-bottom-width: 0;
 }
 
 /* --- Premium Dashboard Additions (Final) --- */
 .premium-card {
-    background: #ffffff;
-    border: 1px solid rgba(255, 136, 0, 0.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-sm);
     transition: all 0.3s ease;
-}
-
-.premium-card:hover {
-    box-shadow: 0 15px 40px rgba(255, 136, 0, 0.1);
-}
-
-.scale-effect {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.scale-effect:hover {
-    transform: scale(1.02);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .stat-card {
     position: relative;
     overflow: hidden;
-    background: #ffffff;
-    border: 2px solid #eee;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
     border-radius: 16px;
     padding: 1.5rem;
     height: 100%;
@@ -692,85 +686,33 @@ footer {
     transition: all 0.3s ease;
 }
 
-.notification-icon {
-    position: relative;
-    display: inline-block;
-}
-
-/* Removed stat-card circle accent for cleaner look */
-
 .stat-card-total {
     border: 2px solid #ff8800 !important;
     color: #ff8800 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-approved {
     border: 2px solid #28a745 !important;
     color: #28a745 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-pending {
     border: 2px solid #ffc107 !important;
     color: #ffc107 !important;
-    background: #fff !important;
+    background: var(--bg-card) !important;
 }
 
 .stat-card-rejected {
     border: 2px solid #dc3545 !important;
     color: #dc3545 !important;
-    background: #fff !important;
-}
-
-.stat-card h6 {
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    opacity: 0.9;
-}
-
-.stat-card .display-4 {
-    font-weight: 700;
-    margin-bottom: 0;
-    font-size: 2.5rem;
-}
-
-.sidebar-premium {
-    background: linear-gradient(180deg, #000000 0%, #1a1a1a 100%) !important;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
-    border-right: 1px solid rgba(255, 136, 0, 0.1) !important;
-    overflow-y: auto;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    left: 0;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 136, 0, 0.3) transparent;
-}
-
-.sidebar-premium::-webkit-scrollbar {
-    width: 6px;
-}
-
-.sidebar-premium::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.sidebar-premium::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 136, 0, 0.3);
-    border-radius: 20px;
-}
-
-.sidebar-premium::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 136, 0, 0.5);
+    background: var(--bg-card) !important;
 }
 
 .table-premium thead th {
-    background-color: #fcfcfc !important;
-    color: #495057 !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-secondary) !important;
     font-weight: 600 !important;
     text-transform: uppercase;
     font-size: 0.7rem !important;
@@ -780,7 +722,7 @@ footer {
 .table-premium tbody td {
     padding: 1.25rem 1rem !important;
     font-size: 0.9rem;
-    border-bottom: 1px solid #f8f9fa;
+    border-bottom: 1px solid var(--border);
 }
 
 .notification-badge-dot {
@@ -791,14 +733,14 @@ footer {
     height: 8px;
     background-color: #ff8800;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 2px solid var(--bg-card);
 }
 
 /* Sticky Notification Footer */
 .dropdown-menu-sticky-footer {
     position: sticky;
     bottom: 0;
-    background-color: #fff;
-    border-top: 1px solid #eee;
+    background-color: var(--bg-card);
+    border-top: 1px solid var(--border);
     z-index: 10;
 }

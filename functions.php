@@ -183,7 +183,7 @@ function get_user_by_id($user_id)
         FROM users u
         LEFT JOIN roles r       ON u.role_id    = r.id
         LEFT JOIN colleges c    ON u.college_id = c.id
-        WHERE u.id = ? AND u.is_deleted = 0
+        WHERE u.id = ?
     ");
     $stmt->execute([$user_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -209,9 +209,7 @@ function get_dean($college_id = null)
         $stmt = $conn->prepare("
             SELECT u.* FROM users u
             JOIN roles r ON u.role_id = r.id
-            WHERE r.role_name = 'dean'
-              AND u.college_id = ?
-              AND u.is_deleted = 0
+               AND u.college_id = ?
             LIMIT 1
         ");
         $stmt->execute([$college_id]);
@@ -224,8 +222,7 @@ function get_dean($college_id = null)
     $stmt = $conn->prepare("
         SELECT u.* FROM users u
         JOIN roles r ON u.role_id = r.id
-        WHERE r.role_name = 'dean'
-          AND u.is_deleted = 0
+          AND r.role_name = 'dean'
         ORDER BY u.id ASC
         LIMIT 1
     ");
@@ -239,8 +236,7 @@ function get_vpaa()
     $stmt = $conn->prepare("
         SELECT u.* FROM users u
         JOIN roles r ON u.role_id = r.id
-        WHERE r.role_name = 'vpaa'
-          AND u.is_deleted = 0
+          AND r.role_name = 'vpaa'
         LIMIT 1
     ");
     $stmt->execute();
@@ -566,24 +562,21 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
     if ($rows_affected === 0) {
         error_log("process_syllabus_action: no Pending row found for syllabus_id={$syllabus_id} role_id={$role_id}. Upserting completed step.");
         $conn->prepare("
-            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at)
-            VALUES (?, ?, ?, ?, ?, NOW())
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at, comment)
+            VALUES (?, ?, ?, ?, ?, NOW(), ?)
             ON DUPLICATE KEY UPDATE
                 action      = VALUES(action),
                 reviewer_id = VALUES(reviewer_id),
-                action_at   = VALUES(action_at),
+                action_at   = NOW(),
                 comment     = VALUES(comment)
-            ON DUPLICATE KEY UPDATE
-                action      = VALUES(action),
-                reviewer_id = VALUES(reviewer_id),
-                action_at   = NOW()
         ")->execute([
-                    $syllabus_id,
-                    get_step_order($role),
-                    $role_id,
-                    $action,
-                    $user_id,
-                ]);
+            $syllabus_id,
+            get_step_order($role),
+            $role_id,
+            $action,
+            $user_id,
+            $comment
+        ]);
     }
 
     // ── Rejected ─────────────────────────────────────────────────────────────
@@ -635,18 +628,18 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
 function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null, $rejecting_name = null)
 {
     if ($status === 'Approved') {
-        return '<span class="badge bg-success bg-opacity-25 text-success border border-success rounded-pill px-3" style="font-size:.75rem;">Approved VPAA</span>';
+        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--success-light); color:var(--success); border:1px solid var(--success-light) !important">APPROVED BY VPAA</span>';
     }
     if ($status === 'Rejected') {
-        $role_text = $rejecting_role ? strtoupper($rejecting_role) : 'REJECTED';
-        $name_text = $rejecting_name ? " ($rejecting_name)" : "";
-        return '<span class="badge bg-danger bg-opacity-25 text-danger border border-danger rounded-pill px-3" style="font-size:.75rem;">Rejected ' . $role_text . '</span>';
+        $role_text = $rejecting_role ? strtoupper(str_replace('_', ' ', $rejecting_role)) : 'ADMIN';
+        $name_text = $rejecting_name ? " — " . htmlspecialchars($rejecting_name) : "";
+        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--danger-light); color:var(--danger); border:1px solid var(--danger-light) !important">REJECTED BY ' . $role_text . $name_text . '</span>';
     }
     // Pending — show which stage
     if ($current_stage_role === 'vpaa') {
-        return '<span class="badge bg-info bg-opacity-25 text-info border border-info rounded-pill px-3" style="font-size:.75rem;">Partially Approved – Awaiting VPAA</span>';
+        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--primary-light); color:var(--primary); border:1px solid var(--primary-light) !important">AWAITING VPAA APPROVAL</span>';
     }
-    return '<span class="badge bg-warning text-dark bg-opacity-25 border border-warning rounded-pill px-3" style="font-size:.75rem;">Pending – Awaiting Dean</span>';
+    return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--warning-light); color:var(--warning); border:1px solid var(--warning-light) !important">AWAITING DEAN REVIEW</span>';
 }
 
 /* ============================
@@ -685,17 +678,35 @@ function ensure_role_in_session()
 /**
  * Restrict access to a specific role.
  * Uses SESSION role as the primary source of truth.
+ * Also enforces server-side inactivity timeout (30 minutes).
  */
 function restrict_to_role($allowed_role)
 {
     ensure_role_in_session();
-    
+
+    // ── Backend Inactivity Guard ──────────────────────────────────────────────
+    $session_timeout = 1800; // 30 minutes in seconds
+    if (isset($_SESSION['last_activity'])) {
+        if ((time() - $_SESSION['last_activity']) > $session_timeout) {
+            // Session expired — destroy and redirect
+            $_SESSION = [];
+            if (isset($_COOKIE[session_name()])) {
+                setcookie(session_name(), '', time() - 3600, '/', '', false, true);
+            }
+            session_destroy();
+            header('Location: ../login.php?timeout=1');
+            exit();
+        }
+    }
+    // Refresh last activity timestamp on every protected page load
+    $_SESSION['last_activity'] = time();
+
     $current_role = $_SESSION['role'] ?? '';
-    
+
     if (strtolower($current_role) !== strtolower($allowed_role)) {
         // Log the unauthorized attempt
         error_log("Unauthorized access attempt by user ID " . ($_SESSION['user_id'] ?? 'unknown') . " (Role: $current_role) to $allowed_role restricted area.");
-        
+
         // Redirect to appropriate dashboard based on their ACTUAL role
         switch (strtolower($current_role)) {
             case 'vpaa':

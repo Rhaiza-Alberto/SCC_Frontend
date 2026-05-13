@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
     $action = $_POST['action'];
 
     if ($action === 'approve') {
-        $conn->prepare("UPDATE users SET is_approved = 1 WHERE id = ? AND is_deleted = 0")
+        $conn->prepare("UPDATE users SET is_approved = 1 WHERE id = ?")
             ->execute([$target_id]);
         notify_user(
             $target_id,
@@ -38,8 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
             null
         );
     } elseif ($action === 'reject') {
-        // Soft-delete the registration (keeps the row for audit trail)
-        $conn->prepare("UPDATE users SET is_deleted = 1 WHERE id = ?")
+        $conn->prepare("DELETE FROM users WHERE id = ?")
             ->execute([$target_id]);
     }
 
@@ -60,7 +59,6 @@ try {
             JOIN roles r       ON u.role_id      = r.id
             WHERE r.role_name    = 'faculty'
               AND u.is_approved  = 0
-              AND u.is_deleted   = 0
               AND u.college_id   = ?
             ORDER BY u.created_at DESC
         ");
@@ -74,7 +72,6 @@ try {
             JOIN roles r       ON u.role_id      = r.id
             WHERE r.role_name   = 'faculty'
               AND u.is_approved = 0
-              AND u.is_deleted  = 0
             ORDER BY u.created_at DESC
         ");
         $stmt->execute();
@@ -104,6 +101,7 @@ $notifications = get_notifications($user_id, 5);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/common.js"></script>
+    <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -117,203 +115,86 @@ $notifications = get_notifications($user_id, 5);
             right: 2px;
             width: 10px;
             height: 10px;
-            background: #dc3545;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
-    </style>
-</head>
+         <?php $active_page = 'registration'; include '_sidebar.php'; ?>
 
-<body class="bg-light">
-    <div class="d-flex">
-
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Registration <span style="color:var(--primary)">Requests</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Approve or reject new faculty access requests</p>
             </div>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="dept_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ACCOUNT MANAGEMENT</div>
-            <a href="registration_requests.php" class="nav-link text-white active-nav-link p-3 rounded">Registration
-                Requests</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
+            <div class="d-flex align-items-center gap-3">
+                 <span class="badge <?= $reg_count > 0 ? 'bg-warning-light text-warning border-warning-border' : 'bg-light text-muted border' ?> rounded-pill px-3 py-1" style="font-size:0.75rem">
+                    <i class="bi bi-person-plus me-1"></i> <?= $reg_count ?> New
+                </span>
+            </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
+        <?php if ($reg_count === 0): ?>
+            <div class="alert alert-success border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center" role="alert" style="background:var(--success-light); color:var(--success)">
+                <i class="bi bi-check-circle-fill me-3 fs-5"></i>
+                <div>All faculty registration requests have been cleared.</div>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-warning border-0 shadow-sm rounded-4 py-3 mb-4 d-flex align-items-center" role="alert" style="background:var(--warning-light); color:var(--warning)">
+                <i class="bi bi-exclamation-circle-fill me-3 fs-5"></i>
+                <div>You have <?= $reg_count ?> faculty registration request(s) awaiting your validation.</div>
+            </div>
+        <?php endif; ?>
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-orange font-serif fw-bold">Registration Requests</h2>
-                <div class="d-flex align-items-center gap-3">
-                    <span
-                        class="badge rounded-pill px-3 py-1 shadow-sm <?= $reg_count > 0 ? 'bg-warning text-dark' : 'bg-secondary opacity-50' ?>">
-                        <i class="bi bi-person-plus-fill me-1"></i><?= $reg_count ?> New
-                    </span>
-                    <!-- Notification Bell -->
-                    <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                            <i class="bi bi-bell fs-4 text-dark"></i>
-                            <?php if ($unread_count > 0): ?>
-                                <span class="notif-dot"></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow"
-                            style="width:320px;max-height:400px;overflow-y:auto;">
-
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom">
-                                <strong>Notifications</strong>
-                                <?php if ($unread_count > 0): ?>
-                                    <a href="?mark_read=1" class="text-decoration-none small text-orange">
-                                        Mark all read
-                                    </a>
-                                <?php endif; ?>
-                            </li>
-
-                            <?php if (empty($notifications)): ?>
-                                <li class="px-3 py-3 text-center text-muted small">
-                                    No notifications yet
-                                </li>
-                            <?php else: ?>
-
-                                <?php foreach ($notifications as $n):
-                                    $color = get_notification_color($n['message']); ?>
-
-                                    <li class="px-3 py-2 border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                        <p class="mb-0 small">
-                                            <span class="<?= $color['text'] ?> fw-bold me-1">
-                                                <?= $color['icon'] ?>
-                                            </span>
-                                            <span class="<?= $color['text'] ?>">
-                                                <?= htmlspecialchars($n['message']) ?>
-                                            </span>
-                                        </p>
-
-                                        <span class="text-muted" style="font-size:.7rem;">
-                                            <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                                        </span>
-                                    </li>
-
-                                <?php endforeach; ?>
-
-                            <?php endif; ?>
-                        </ul>
-                    </div>
-
-                    <?php if ($db_error): ?>
-                        <div class="alert alert-danger mb-4">
-                            <strong>Database Error:</strong> <?= htmlspecialchars($db_error) ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Status alert -->
-                    <?php if ($reg_count === 0): ?>
-                        <div class="alert border-0 shadow-sm mb-4 d-flex align-items-center p-3 rounded-3"
-                            style="background-color:rgba(220,53,69,.08);">
-                            <div class="bg-danger text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
-                                style="width:45px;height:45px;">
-                                <i class="bi bi-megaphone-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-muted opacity-75">All Caught Up</h6>
-                                <p class="mb-0 text-muted small">No pending faculty registration requests at this time.</p>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="alert border-0 shadow-sm mb-4 d-flex align-items-center p-3 rounded-3"
-                            style="background-color:rgba(255,193,7,.1);">
-                            <div class="bg-warning text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center"
-                                style="width:45px;height:45px;">
-                                <i class="bi bi-megaphone-fill fs-5"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-muted opacity-75">Action Required</h6>
-                                <p class="mb-0 text-muted small">
-                                    <?= $reg_count ?> faculty registration(s) awaiting your approval.
-                                </p>
-                            </div>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Registrations Table -->
-                    <div class="card premium-card p-4 mb-5 shadow-sm">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title font-serif fw-bold mb-0 text-orange">Pending Faculty Registrations
-                            </h5>
-                            <?php if ($reg_count > 0): ?>
-                                <span class="badge bg-orange rounded-pill px-3"><?= $reg_count ?> New</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle table-premium">
-                                <thead class="table-light">
+        <div class="scc-card animate-in">
+            <div class="card-header border-0 bg-transparent p-4 pb-0">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">Pending <span style="color:var(--primary)">Applications</span></h6>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="scc-table">
+                        <thead>
+                            <tr>
+                                <th class="ps-4">FULL NAME</th>
+                                <th>EMAIL</th>
+                                <th>COLLEGE</th>
+                                <th>REGISTERED</th>
+                                <th class="text-center pe-4">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($pending_registrations)): ?>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-5">
+                                        <i class="bi bi-person-check fs-1 opacity-25 d-block mb-2"></i>
+                                        No pending registration requests
+                                    </td>
+                                </tr>
+                            <?php else:
+                                foreach ($pending_registrations as $reg): ?>
                                     <tr>
-                                        <th class="text-secondary small">#</th>
-                                        <th class="text-secondary small">FULL NAME</th>
-                                        <th class="text-secondary small">EMAIL</th>
-                                        <th class="text-secondary small">COLLEGE</th>
-                                        <th class="text-secondary small">REGISTERED</th>
-                                        <th class="text-secondary small text-center">ACTION</th>
+                                        <td class="ps-4">
+                                            <div class="fw-bold small" style="color:var(--text)">
+                                                <?= htmlspecialchars(trim($reg['first_name'] . ' ' . ($reg['middle_name'] ? $reg['middle_name'] . ' ' : '') . $reg['last_name'])) ?>
+                                            </div>
+                                        </td>
+                                        <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($reg['email']) ?></td>
+                                        <td>
+                                            <span class="badge rounded-pill border px-3 py-1" style="font-size:0.7rem;background:var(--primary-light);color:var(--primary);border-color:var(--primary-light) !important">
+                                                <?= htmlspecialchars($reg['college_name'] ?? '—') ?>
+                                            </span>
+                                        </td>
+                                        <td class="small" style="color:var(--text-secondary)"><?= date('M d, Y', strtotime($reg['created_at'])) ?></td>
+                                        <td class="text-center pe-4">
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <button onclick="handleAction('approve', <?= $reg['id'] ?>, '<?= htmlspecialchars($reg['first_name'] . ' ' . $reg['last_name']) ?>')" class="btn btn-sm btn-success rounded-pill px-3">Approve</button>
+                                                <button onclick="handleAction('reject', <?= $reg['id'] ?>, '<?= htmlspecialchars($reg['first_name'] . ' ' . $reg['last_name']) ?>')" class="btn btn-sm btn-danger rounded-pill px-3">Reject</button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                </thead>
-                                <tbody>
-                                    <?php if (empty($pending_registrations)): ?>
-                                        <tr>
-                                            <td colspan="6" class="text-center text-muted py-5">
-                                                <i class="bi bi-person-check fs-2 opacity-25 d-block mb-2"></i>
-                                                No pending registration requests
-                                            </td>
-                                        </tr>
-                                    <?php else:
-                                        foreach ($pending_registrations as $index => $reg): ?>
-                                            <tr>
-                                                <td><?= $index + 1 ?></td>
-                                                <td>
-                                                    <span class="fw-bold small">
-                                                        <?= htmlspecialchars(trim(
-                                                            $reg['first_name'] . ' ' .
-                                                            ($reg['middle_name'] ? $reg['middle_name'] . ' ' : '') .
-                                                            $reg['last_name']
-                                                        )) ?>
-                                                    </span>
-                                                </td>
-                                                <td class="small"><?= htmlspecialchars($reg['email']) ?></td>
-                                                <td class="small"><?= htmlspecialchars($reg['college_name']) ?></td>
-                                                <td class="small"><?= date('M d, Y', strtotime($reg['created_at'])) ?></td>
-                                                <td class="text-center">
-                                                    <button
-                                                        onclick="handleAction('approve', <?= $reg['id'] ?>, '<?= htmlspecialchars($reg['first_name'] . ' ' . $reg['last_name']) ?>')"
-                                                        class="btn btn-sm btn-outline-success me-1 px-3 rounded-pill">
-                                                        <i class="bi bi-check me-1"></i>Approve
-                                                    </button>
-                                                    <button
-                                                        onclick="handleAction('reject', <?= $reg['id'] ?>, '<?= htmlspecialchars($reg['first_name'] . ' ' . $reg['last_name']) ?>')"
-                                                        class="btn btn-sm btn-outline-danger px-3 rounded-pill">
-                                                        <i class="bi bi-x me-1"></i>Reject
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; endif; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
+                                <?php endforeach; endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+    </main>
 
             <!-- Hidden POST form for SweetAlert confirm -->
             <form id="actionForm" method="POST" action="registration_requests.php">

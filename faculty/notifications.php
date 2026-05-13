@@ -47,67 +47,34 @@ $unread_count = count_unread_notifications($user_id);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Notifications - SCC-CCS Syllabus Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange { color: #ff8800 !important; }
-        .notif-row { transition: background .15s; }
-        .notif-row:hover { background: #fff8f0; }
-        .notif-unread { border-left: 3px solid #ff8800; }
-        .notif-read   { border-left: 3px solid transparent; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
-<body class="bg-light">
-<div class="d-flex">
+<body>
+    <?php $active_page = 'dashboard'; include '_sidebar.php'; ?>
 
-    <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;">
-                    <?= htmlspecialchars($username) ?>
-                </p>
-            </div>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="faculty_dashboard.php" class="nav-link text-white active-nav-link p-3 rounded">Dashboard</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-        </div>
-
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
+    <main class="scc-main">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h1 class="text-orange font-serif fw-bold mb-0 h2">
-                    <i class="bi bi-bell me-2"></i>Notifications
-                </h1>
-                <p class="text-muted small mb-0 mt-1">
-                    <?= count($all_notifications) ?> total &middot;
-                    <?= $unread_count ?> unread
-                </p>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">All <span style="color:var(--primary)">Notifications</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0"><?= count($all_notifications) ?> total alerts &middot; <?= $unread_count ?> unread</p>
             </div>
-            <?php if ($unread_count > 0): ?>
-            <a href="?mark_read=1" class="btn btn-sm btn-outline-warning rounded-pill px-4 fw-bold">
-                <i class="bi bi-check2-all me-1"></i> Mark all as read
-            </a>
-            <?php endif; ?>
+            <div class="d-flex align-items-center gap-3" id="navbarActions">
+                <?php if ($unread_count > 0): ?>
+                    <a href="?mark_read=1" class="btn btn-outline-scc rounded-pill px-4 fw-bold small">
+                        <i class="bi bi-check2-all me-1"></i> Mark all read
+                    </a>
+                <?php endif; ?>
+            </div>
         </div>
 
-        <div class="card shadow-sm border-0 p-0 overflow-hidden">
+        <div class="scc-card p-0 overflow-hidden animate-in shadow-sm">
             <?php if (empty($all_notifications)): ?>
                 <div class="text-center py-5 text-muted">
                     <i class="bi bi-bell-slash fs-1 d-block mb-3 opacity-25"></i>
@@ -116,39 +83,42 @@ $unread_count = count_unread_notifications($user_id);
             <?php else: ?>
                 <?php foreach ($all_notifications as $n):
                     $color = get_notification_color($n['message']);
-                    $rowClass = $n['is_read'] ? 'notif-read' : 'notif-unread';
                 ?>
-                <a href="?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block">
-                <div class="notif-row px-4 py-3 border-bottom <?= $rowClass ?> <?= !$n['is_read'] ? 'bg-white' : 'bg-light bg-opacity-50' ?>">
-                    <div class="d-flex align-items-start gap-3">
-                        <span class="<?= $color['text'] ?> fs-5 mt-1"><?= $color['icon'] ?></span>
-                        <div class="flex-grow-1">
-                            <p class="mb-1 small <?= $color['text'] ?> fw-semibold">
-                                <?= htmlspecialchars($n['message']) ?>
-                            </p>
-                            <span class="text-muted" style="font-size:.7rem;">
-                                <i class="bi bi-clock me-1"></i>
-                                <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
-                            </span>
+                    <a href="?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block border-bottom notification-item <?= !$n['is_read'] ? 'unread' : '' ?>" style="transition: all 0.2s ease;">
+                        <div class="px-4 py-3" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle <?= $color['text'] ?> shadow-sm d-flex align-items-center justify-content-center flex-shrink-0" style="width:50px;height:50px;background-color:var(--bg-card);">
+                                    <span class="fs-4"><?= $color['icon'] ?></span>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1 small fw-bold" style="color:var(--text)">
+                                        <?= htmlspecialchars($n['message']) ?>
+                                    </p>
+                                    <span style="font-size:.72rem;color:var(--text-secondary)">
+                                        <i class="bi bi-clock me-1"></i>
+                                        <?= date('M d, Y h:i A', strtotime($n['created_at'])) ?>
+                                    </span>
+                                </div>
+                                <?php if (!$n['is_read']): ?>
+                                    <span class="badge bg-primary rounded-pill px-3 py-1" style="font-size:.6rem; letter-spacing:0.5px">NEW</span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <?php if (!$n['is_read']): ?>
-                            <span class="badge bg-warning text-dark rounded-pill px-2 py-1" style="font-size:.65rem;">New</span>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                </a>
+                    </a>
                 <?php endforeach; ?>
             <?php endif; ?>
         </div>
 
-        <div class="mt-3">
-            <a href="faculty_dashboard.php" class="text-orange text-decoration-none small fw-bold">
-                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+        <div class="mt-4">
+            <a href="faculty_dashboard.php" class="btn btn-sm btn-light border rounded-pill px-3 fw-bold small">
+                <i class="bi bi-arrow-left me-1"></i> Dashboard
             </a>
         </div>
-
-    </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
 </body>
 </html>

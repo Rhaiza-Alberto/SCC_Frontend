@@ -30,6 +30,15 @@ $pending_review_count = (int) $conn->query("
 ")->fetchColumn();
 
 $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 0 AND is_deleted = 0")->fetchColumn();
+
+// Fetch courses for dropdown
+$courses_stmt = $conn->prepare("SELECT * FROM courses ORDER BY course_code");
+$courses_stmt->execute();
+$course_list = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$success_message = $_SESSION['success_message'] ?? '';
+$error_message   = $_SESSION['error_message']   ?? '';
+unset($_SESSION['success_message'], $_SESSION['error_message']);
 ?>
 
 <!DOCTYPE html>
@@ -37,17 +46,13 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upload Syllabus - SCC-CCS Dean's Panel</title>
+    <title>Upload Syllabus — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        .text-orange { color: #ff8800 !important; }
-        .btn-orange { background-color: #ff8800 !important; color: white !important; border: none; }
-        .btn-orange:hover { background-color: #e67a00 !important; color: white !important; }
-        .notif-dot { position:absolute;top:2px;right:2px;width:10px;height:10px; background:#dc3545;border-radius:50%;border:2px solid #fff; }
-    </style>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-light">
 <div class="d-flex">
@@ -69,7 +74,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                 <?php endif; ?>
             </a>
             <a href="upload_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">Upload Syllabus</a>
-            <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
             <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
             <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
 
@@ -85,7 +89,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 
             <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
             <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
+            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
         </nav>
     </div>
 
@@ -126,107 +130,131 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                     </li>
                 </ul>
             </div>
-</div>
-        <div class="card premium-card shadow-sm p-5 bg-white mx-auto" style="max-width:800px;">
-            <form action="../faculty/process_upload.php" method="POST" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course Code <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="course_code" placeholder="E.G., CS101" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course Title / Subject Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" name="course_title" placeholder="E.G., Computer Programming 1" required>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Course / College</label>
-                    <input type="text" class="form-control" name="course" placeholder="E.G., Computer Science">
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Subject Type <span class="text-danger">*</span></label>
-                    <select class="form-select" name="subject_type" required>
-                        <option selected disabled>-- Select Subject Type --</option>
-                        <option value="Institutional Subject">Institutional Subject</option>
-                        <option value="General Education (GE)">General Education (GE)</option>
-                        <option value="Core Subject">Core Subject</option>
-                        <option value="Professional Subjects">Professional Subjects</option>
-                        <option value="Mandatory / Elect Subject">Mandatory / Elect Subject</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold small">Subject Semester <span class="text-danger">*</span></label>
-                    <select class="form-select" name="subject_semester" required>
-                        <option selected disabled>-- Select Semester --</option>
-                        <option value="1st Semester">1st Semester</option>
-                        <option value="2nd Semester">2nd Semester</option>
-                        <option value="Summer">Summer</option>
-                    </select>
-                </div>
-
-                <!-- Year Level -->
-                <div class="mb-3">
-                    <label for="yearLevel" class="form-label fw-bold small">Year Level <span class="text-danger">*</span></label>
-                    <select class="form-select" id="yearLevel" name="year_level" required>
-                        <option selected disabled>-- Select Year Level --</option>
-                        <option value="1st Year">1st Year</option>
-                        <option value="2nd Year">2nd Year</option>
-                        <option value="3rd Year">3rd Year</option>
-                        <option value="4th Year">4th Year</option>
-                    </select>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label fw-bold small">Upload File (PDF Only) <span class="text-danger">*</span></label>
-                    <input type="file" class="form-control" name="pdf_file" id="pdfFile" accept=".pdf" required>
-                </div>
-
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-orange btn-lg fw-bold rounded-pill">Upload Syllabus</button>
-                </div>
-            </form>
         </div>
+        <?php if ($success_message): ?>
+            <div class="alert alert-success alert-dismissible fade show mb-4 rounded-3 border-0 shadow-sm">
+                <i class="bi bi-check-circle me-2"></i><?= htmlspecialchars($success_message) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+        <?php if ($error_message): ?>
+            <div class="alert alert-danger alert-dismissible fade show mb-4 rounded-3 border-0 shadow-sm">
+                <i class="bi bi-exclamation-triangle me-2"></i><?= htmlspecialchars($error_message) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <div class="scc-card animate-in" style="max-width: 800px; margin: 0 auto;">
+            <div class="card-header border-0 bg-transparent p-4 pb-0 text-center">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">Syllabus <span style="color:var(--primary)">Submission Form</span></h6>
+                <p class="small text-muted">Please select the course and upload the corresponding PDF document</p>
+            </div>
+            <div class="card-body p-4 p-md-5">
+                <form id="uploadForm" action="../faculty/process_upload.php" method="POST" enctype="multipart/form-data">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold small" style="color:var(--text-secondary)">Select Course <span class="text-danger">*</span></label>
+                            <div class="position-relative">
+                                <i class="bi bi-book position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                                <select class="form-select ps-5" name="course_id" required style="padding:0.75rem 0.75rem 0.75rem 2.5rem;">
+                                    <option value="" selected disabled>-- Choose Course --</option>
+                                    <?php foreach($course_list as $course): ?>
+                                        <option value="<?= $course['id'] ?>"><?= htmlspecialchars($course['course_code']) ?> — <?= htmlspecialchars($course['course_title']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small" style="color:var(--text-secondary)">Subject Type <span class="text-danger">*</span></label>
+                            <select class="form-select" name="subject_type" required style="padding:0.75rem;">
+                                <option selected disabled value="">Select Type</option>
+                                <option>Institutional Subject</option>
+                                <option>General Education (GE)</option>
+                                <option>Core Subject</option>
+                                <option>Professional Subjects</option>
+                                <option>Mandatory / Elect Subject</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small" style="color:var(--text-secondary)">Semester <span class="text-danger">*</span></label>
+                            <select class="form-select" name="subject_semester" required style="padding:0.75rem;">
+                                <option selected disabled value="">Select Semester</option>
+                                <option>1st Semester</option>
+                                <option>2nd Semester</option>
+                                <option>Summer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold small" style="color:var(--text-secondary)">Year Level <span class="text-danger">*</span></label>
+                            <select class="form-select" name="year_level" required style="padding:0.75rem;">
+                                <option selected disabled value="">Select Year</option>
+                                <option>1st Year</option>
+                                <option>2nd Year</option>
+                                <option>3rd Year</option>
+                                <option>4th Year</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-12">
+                             <label class="form-label fw-bold small" style="color:var(--text-secondary)">School Year <span class="text-danger">*</span></label>
+                             <input type="text" class="form-control" name="school_year" placeholder="e.g. 2023-2024" required value="<?= get_current_school_year() ?>" style="padding:0.75rem;">
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="upload-zone p-4 text-center" style="border: 2px dashed var(--border); border-radius: var(--radius-md); background: var(--bg-card); transition: all 0.3s ease; position: relative;">
+                                <i class="bi bi-cloud-arrow-up fs-1" style="color:var(--primary); opacity:0.6;"></i>
+                                <p class="mb-2 mt-2 small fw-bold" style="color:var(--text)">Click to browse or drag and drop</p>
+                                <p class="mb-3 text-muted" style="font-size:0.7rem;">Only PDF files are supported. Max size: 10MB</p>
+                                <input type="file" class="form-control" name="pdf_file" id="pdfFile" accept=".pdf" required style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer;">
+                                <div id="fileInfo" class="mt-2 small fw-bold text-success" style="display:none;"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4 pt-2">
+                            <button type="submit" class="btn btn-primary-scc btn-lg w-100 fw-bold rounded-3 py-3">
+                                <i class="bi bi-send-check me-2"></i> Submit for Institutional Review
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-    document.getElementById('uploadForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        Swal.fire({
-            title: 'Confirm Submission',
-            text: "Are you sure you want to submit this syllabus for review?",
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#ff8800',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, submit it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                this.submit();
-            }
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Confirm Submission',
+                text: "Are you sure you want to submit this syllabus for review?",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ff8800',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, submit it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
         });
-    });
 
-    function confirmLogout() {
-        Swal.fire({
-            title: 'Sign Out?',
-            text: "Are you sure you want to end your current session?",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#ff8800',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Yes, Logout',
-            cancelButtonText: 'Cancel'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = '../logout.php';
+        // Show selected filename
+        document.getElementById('pdfFile').addEventListener('change', function(e) {
+            const fileName = e.target.files[0] ? e.target.files[0].name : '';
+            const infoDiv = document.getElementById('fileInfo');
+            if (fileName) {
+                infoDiv.textContent = 'Selected: ' + fileName;
+                infoDiv.style.display = 'block';
+            } else {
+                infoDiv.style.display = 'none';
             }
         });
-    }
-</script>
+    </script>
 </body>
 </html>

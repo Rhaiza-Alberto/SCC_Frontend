@@ -24,12 +24,17 @@ $is_dean = ($current_user['role_name'] === 'dean');
 $pending_review_count = 0;
 $reg_count = 0;
 
-// DELETE USER (SOFT DELETE) — must run BEFORE fetching users
+// DELETE USER (HARD DELETE) — must run BEFORE fetching users
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
 
-    $stmt = $conn->prepare("UPDATE users SET is_deleted = 1 WHERE id = ?");
-    $stmt->execute([$id]);
+    try {
+        $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $_SESSION['success_message'] = "User account has been permanently deleted.";
+    } catch (PDOException $e) {
+        $_SESSION['error_message'] = "Cannot delete user. They may have active syllabus submissions or workflow history.";
+    }
 
     header('Location: manage_user.php');
     exit();
@@ -60,28 +65,15 @@ if (isset($_GET['mark_read'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Users - SCC-CCS</title>
+    <title>Manage Users — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="../js/common.js"></script>
-    <style>
-        .text-orange {
-            color: #ff8800 !important;
-        }
-
-        .btn-orange {
-            background-color: #ff8800 !important;
-            color: white !important;
-            border: none;
-        }
-
-        .btn-orange:hover {
-            background-color: #e67a00 !important;
-            color: white !important;
-        }
-    </style>
 </head>
 
 <body class="bg-light">
@@ -93,37 +85,53 @@ if (isset($_GET['mark_read'])) {
                 <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
                     style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
                 <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
+                </p>
             </div>
             <nav class="nav flex-column gap-2 mb-auto">
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
+                <a href="admin_dashboard.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
+                <a href="syllabus_review.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
                     Syllabus Review
                     <?php if ($pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
+                        <span class="badge bg-danger ms-1"><?= (int) $pending_review_count ?></span>
                     <?php endif; ?>
                 </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
+                <a href="upload_syllabus.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload
+                    Syllabus</a>
+                <a href="manage_courses.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_courses.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Courses</a>
+                <a href="my_submissions.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My
+                    Submissions</a>
+                <a href="shared_syllabus.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared
+                    Syllabus</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
+                <a href="registration_requests.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
                     Registration Requests
                     <?php if ($reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
+                        <span class="badge bg-danger ms-1"><?= (int) $reg_count ?></span>
                     <?php endif; ?>
                 </a>
-                <a href="manage_user.php" class="nav-link text-white active-nav-link p-3 rounded">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
+                <a href="manage_user.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage
+                    Users</a>
+                <a href="add_user.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add
+                    User</a>
 
                 <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
+                <a href="profile.php"
+                    class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
+                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
             </nav>
         </div>
 
@@ -184,55 +192,64 @@ if (isset($_GET['mark_read'])) {
                 </div>
             </div>
 
-            <div class="card premium-card p-4 shadow-sm border-0 bg-white">
+        <div class="scc-card animate-in">
+            <div class="card-header border-0 bg-transparent p-4 pb-0">
+                <h6 class="fw-bold mb-0" style="color:var(--text)">User <span
+                        style="color:var(--primary)">Directory</span></h6>
+            </div>
+            <div class="card-body p-4">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                    <table class="scc-table">
                         <thead>
-                            <tr class="small text-muted text-uppercase">
-                                <th>#</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>College</th>
-                                <th class="text-center">Action</th>
+                            <tr>
+                                <th style="width: 50px">#</th>
+                                <th>NAME</th>
+                                <th>EMAIL</th>
+                                <th>ROLE</th>
+                                <th>STATUS</th>
+                                <th>COLLEGE</th>
+                                <th class="text-center">ACTION</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($users as $u): ?>
                                 <tr>
-                                    <td><?= (int) $u['id'] ?></td>
-
+                                    <td class="small text-muted"><?= (int) $u['id'] ?></td>
                                     <td>
-                                        <span class="fw-bold">
+                                        <div class="fw-bold small" style="color:var(--text)">
                                             <?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>
-                                        </span>
+                                        </div>
                                     </td>
-
-                                    <td class="small"><?= htmlspecialchars($u['email']) ?></td>
-
+                                    <td class="small" style="color:var(--text-secondary)">
+                                        <?= htmlspecialchars($u['email']) ?></td>
                                     <td>
-                                        <span
-                                            class="badge rounded-pill px-3 py-1 bg-opacity-10
-                                            <?= $u['role_name'] == 'dean' ? 'bg-danger text-danger' :
-                                                ($u['role_name'] == 'vpaa' ? 'bg-success text-success' : 'bg-primary text-primary') ?>">
+                                        <span class="badge rounded-pill px-3 py-1"
+                                            style="font-size:0.7rem; background: <?= $u['role_name'] == 'dean' ? 'var(--primary-light)' : ($u['role_name'] == 'vpaa' ? 'var(--success-light)' : 'var(--bg-card)') ?>; color: <?= $u['role_name'] == 'dean' ? 'var(--primary)' : ($u['role_name'] == 'vpaa' ? 'var(--success)' : 'var(--text-secondary)') ?>; border: 1px solid <?= $u['role_name'] == 'dean' ? 'var(--primary-light)' : ($u['role_name'] == 'vpaa' ? 'var(--success-light)' : 'var(--border)') ?> !important">
                                             <?= htmlspecialchars(strtoupper($u['role_name'])) ?>
                                         </span>
                                     </td>
-
-                                    <td class="small text-muted">
-                                        <?= htmlspecialchars($u['college_name'] ?? 'N/A') ?>
+                                    <td>
+                                        <?php if ($u['email_verified']): ?>
+                                            <span class="badge bg-success-light text-success rounded-pill px-2 py-1" style="font-size:0.65rem">
+                                                <i class="bi bi-check-circle-fill me-1"></i> Verified
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="badge bg-warning-light text-warning rounded-pill px-2 py-1" style="font-size:0.65rem">
+                                                <i class="bi bi-exclamation-circle-fill me-1"></i> Unverified
+                                            </span>
+                                        <?php endif; ?>
                                     </td>
-
+                                    <td class="small" style="color:var(--text-secondary)">
+                                        <?= htmlspecialchars($u['college_name'] ?? 'Unassigned') ?>
+                                    </td>
                                     <td class="text-center">
-                                        <div class="btn-group btn-group-sm">
+                                        <div class="d-flex gap-1 justify-content-center">
                                             <a href="edit_user.php?id=<?= (int) $u['id'] ?>"
-                                                class="btn btn-outline-primary border-0" title="Edit User">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="#" class="btn btn-outline-danger border-0"
-                                                onclick="confirmDelete(<?= (int) $u['id'] ?>, '<?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>')" title="Delete User">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                                class="btn btn-sm btn-light border" title="Edit User"><i
+                                                    class="bi bi-pencil"></i></a>
+                                            <button class="btn btn-sm btn-light border text-danger" title="Delete User"
+                                                onclick="confirmDelete(<?= (int) $u['id'] ?>, '<?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?>')"><i
+                                                    class="bi bi-trash"></i></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -242,19 +259,21 @@ if (isset($_GET['mark_read'])) {
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
     <script>
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
         function confirmDelete(userId, userName) {
             Swal.fire({
-                title: 'Are you sure?',
-                text: `You are about to delete user ${userName}. This cannot be undone.`,
+                title: 'Delete User?',
+                html: `Are you sure you want to remove <strong>${userName}</strong>? This action cannot be undone.`,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#dc3545',
                 cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, delete it!'
+                confirmButtonText: 'Yes, Delete'
             }).then((result) => {
                 if (result.isConfirmed) {
                     window.location.href = `?delete=${userId}`;

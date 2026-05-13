@@ -28,6 +28,12 @@ if (empty($first_name) || empty($last_name) || empty($birthdate) || empty($sex))
     exit();
 }
 
+if (strtotime($birthdate) > time()) {
+    $_SESSION['error_message'] = 'Birthdate cannot be in the future.';
+    header('Location: profile.php?edit=true');
+    exit();
+}
+
 $sex_normalized = ucfirst(strtolower($sex));
 if (!in_array($sex_normalized, ['Male', 'Female'])) {
     $_SESSION['error_message'] = 'Invalid sex value.';
@@ -51,7 +57,7 @@ try {
             last_name   = ?,
             birthdate   = ?,
             sex         = ?
-        WHERE id = ? AND is_deleted = 0
+        WHERE id = ?
     ");
     $stmt->execute([
         $first_name,

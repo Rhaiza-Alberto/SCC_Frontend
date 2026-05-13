@@ -7,6 +7,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     header('Location: ../login.php');
     exit();
 }
+restrict_to_role('dean');
 
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
@@ -26,13 +27,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please fill in all fields.';
     } else {
         try {
-            $stmt = $conn->prepare("INSERT INTO courses (course_code, course_title, college_id) VALUES (?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO courses (course_code, course_title, college_id, department_id) VALUES (?, ?, ?, NULL)");
             $stmt->execute([$course_code, $course_title, $college_id]);
             $success = 'Course successfully added!';
             header("Location: manage_courses.php?added=true");
             exit();
         } catch (PDOException $e) {
-            $error = 'Error: ' . $e->getMessage();
+            if ($e->getCode() == 23000) {
+                $error = 'The course code "' . htmlspecialchars($course_code) . '" already exists in the system.';
+            } else {
+                $error = 'Database Error: ' . $e->getMessage();
+            }
         }
     }
 }
@@ -122,11 +127,11 @@ $reg_count = (int) $conn->query("
             </div>
         </div>
     </main>
-    </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="../js/common.js"></script>
-<script>
-    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
-</script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
+    <script>
+        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
+</body>
+</html>

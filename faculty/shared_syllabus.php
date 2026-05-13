@@ -86,7 +86,7 @@ rsort($years);
 
             <!-- Stats Row -->
             <div class="row g-3 mb-4 animate-in">
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-6">
                     <div class="scc-stat p-3">
                         <div class="d-flex align-items-center gap-3">
                             <div class="stat-icon" style="background:rgba(34,197,94,0.1);color:var(--success)"><i class="bi bi-journal-check"></i></div>
@@ -97,7 +97,7 @@ rsort($years);
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-6">
                     <div class="scc-stat p-3">
                         <div class="d-flex align-items-center gap-3">
                             <div class="stat-icon" style="background:rgba(59,130,246,0.1);color:var(--primary)"><i class="bi bi-people"></i></div>
@@ -108,17 +108,7 @@ rsort($years);
                         </div>
                     </div>
                 </div>
-                <div class="col-12 col-md-4">
-                    <div class="scc-stat p-3">
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="stat-icon" style="background:rgba(245,158,11,0.1);color:var(--warning)"><i class="bi bi-building"></i></div>
-                            <div>
-                                <h3 class="stat-value mb-0"><?= count($colleges) ?></h3>
-                                <p class="stat-label mb-0">Colleges</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+
             </div>
 
             <!-- Filter / Search Bar -->
@@ -140,10 +130,10 @@ rsort($years);
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="col-6 col-md-3">
-                        <label class="form-label small fw-bold text-muted mb-1">School Year</label>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label small fw-bold text-muted mb-1">Year Level</label>
                         <select id="yearFilter" class="form-select" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem;">
-                            <option value="">All School Years</option>
+                            <option value="">All Year Levels</option>
                             <?php foreach ($years as $yr): ?>
                                 <option value="<?= htmlspecialchars($yr) ?>"><?= htmlspecialchars($yr) ?></option>
                             <?php endforeach; ?>
@@ -175,7 +165,7 @@ rsort($years);
                                         <th class="text-secondary small">FACULTY</th>
                                         <th class="text-secondary small d-none d-lg-table-cell">COLLEGE</th>
                                         <th class="text-secondary small d-none d-md-table-cell">SEMESTER</th>
-                                        <th class="text-secondary small d-none d-xl-table-cell">SCHOOL YEAR</th>
+                                        <th class="text-secondary small d-none d-xl-table-cell">YEAR LEVEL</th>
                                         <th class="text-secondary small d-none d-md-table-cell">SUBMITTED</th>
                                         <th class="text-secondary small text-center">STATUS</th>
                                         <th class="text-secondary small text-center pe-4">FILE</th>

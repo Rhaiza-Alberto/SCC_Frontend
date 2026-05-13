@@ -126,6 +126,11 @@ $pending_count = count($pending_rows);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../js/common.js"></script>
+    <style>
+        /* Fix notification overlay issue */
+        .dropdown-menu { z-index: 3000 !important; }
+        .scc-tab-search-wrapper { z-index: 5 !important; }
+    </style>
 </head>
 <body class="bg-light">
     <?php $active_page = 'review'; include '_sidebar.php'; ?>

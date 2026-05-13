@@ -33,11 +33,11 @@ html,body{height:100%;margin:0;padding:0;overflow-x:hidden}
   /* Layering Hierarchy System */
   --z-index-tab: 10;
   --z-index-search: 20;
-  --z-index-header: 100;
+  --z-index-header: 1000;
   --z-index-sidebar: 1100;
   --z-index-dropdown: 1500;
-  --z-index-notification: 2000;
-  --z-index-modal: 3000;
+  --z-index-notification: 9999;
+  --z-index-modal: 10000;
 }
 
 [data-theme="dark"] {
@@ -417,7 +417,7 @@ a:hover {
 /* Page Header Wrapper to ensure notifications are on top of content */
 .scc-page-header {
     position: relative;
-    z-index: var(--z-index-header);
+    z-index: var(--z-index-header) !important;
     margin-bottom: 2rem;
 }
 
@@ -523,8 +523,13 @@ a:hover {
 }
 
 /* Global Notification Dropdown Panel */
+.dropdown {
+    position: relative;
+    z-index: 1005 !important;
+}
+
 .dropdown-menu.shadow-lg.border-0 {
-    z-index: var(--z-index-notification) !important;
+    z-index: 9999 !important;
     position: absolute !important;
     margin-top: 0.75rem !important;
 }
@@ -532,12 +537,12 @@ a:hover {
 /* Fix for Search Bar & Tab Stacking */
 .search-container {
     position: relative;
-    z-index: var(--z-index-search);
+    z-index: 1 !important;
 }
 
 .scc-tabs-container {
     position: relative;
-    z-index: var(--z-index-tab);
+    z-index: 2 !important;
 }
 
 /* === Auth Pages (Split Screen) === */
@@ -851,7 +856,7 @@ a:hover {
   gap: 1rem;
   margin-bottom: 2rem;
   position: relative;
-  z-index: 5; /* Lower than header (100) and notifications (2000) */
+  z-index: 1 !important; /* Extremely low to stay below header */
 }
 
 @media (min-width: 768px) {

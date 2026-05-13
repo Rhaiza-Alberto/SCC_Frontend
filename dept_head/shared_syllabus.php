@@ -254,15 +254,7 @@ $notifications = get_notifications($user_id, 5);
                                 placeholder="Search course code, title, or faculty...">
                         </div>
                     </div>
-                    <div class="col-md-2">
-                        <select id="filter-dept" class="form-select search-box">
-                            <option value="">All Colleges</option>
-                            <?php foreach ($colleges_list as $c): ?>
-                                <option value="<?= htmlspecialchars($c) ?>"><?= htmlspecialchars($c) ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <select id="filter-type" class="form-select search-box">
                             <option value="">All Types</option>
                             <option value="Major">Major</option>
@@ -270,9 +262,9 @@ $notifications = get_notifications($user_id, 5);
                             <option value="GE">GE</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <select id="filter-year" class="form-select search-box">
-                            <option value="">All Years</option>
+                            <option value="">All Year Levels</option>
                             <?php foreach ($years_list as $y): ?>
                                 <option value="<?= htmlspecialchars($y) ?>"><?= htmlspecialchars($y) ?></option>
                             <?php endforeach; ?>
@@ -294,7 +286,7 @@ $notifications = get_notifications($user_id, 5);
                                 <th class="ps-4 text-secondary small py-3">COURSE</th>
                                 <th class="text-secondary small py-3">TYPE</th>
                                 <th class="text-secondary small py-3">COLLEGE</th>
-                                <th class="text-secondary small py-3">YEAR/SEM</th>
+                                <th class="text-secondary small py-3">YEAR LEVEL / SEM</th>
                                 <th class="text-secondary small py-3">FACULTY</th>
                                 <th class="text-center text-secondary small py-3">FILE</th>
                             </tr>
@@ -359,22 +351,19 @@ $notifications = get_notifications($user_id, 5);
 
         function applyFilters() {
             const query = searchInput.value.toLowerCase();
-            const dept = filterDept.value;
             const type = filterType.value;
             const year = filterYear.value;
 
             tableRows.forEach(row => {
                 const text = row.innerText.toLowerCase();
-                const rowDept = row.getAttribute('data-dept');
                 const rowType = row.getAttribute('data-type');
                 const rowYear = row.getAttribute('data-year');
 
                 const matchesSearch = text.includes(query);
-                const matchesDept = !dept || rowDept === dept;
                 const matchesType = !type || rowType === type;
                 const matchesYear = !year || rowYear === year;
 
-                if (matchesSearch && matchesDept && matchesType && matchesYear) {
+                if (matchesSearch && matchesType && matchesYear) {
                     row.classList.remove('hidden-row');
                 } else {
                     row.classList.add('hidden-row');
@@ -391,7 +380,6 @@ $notifications = get_notifications($user_id, 5);
         }
 
         searchInput.addEventListener('input', applyFilters);
-        filterDept.addEventListener('change', applyFilters);
         filterType.addEventListener('change', applyFilters);
         filterYear.addEventListener('change', applyFilters);
     </script>

@@ -150,7 +150,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                                 <thead>
                                     <tr>
                                         <th>Course Details</th>
-                                        <th class="d-none d-md-table-cell">School Year</th>
+                                        <th class="d-none d-md-table-cell">Year Level</th>
                                         <th>Status</th>
                                         <th class="text-center">Syllabus</th>
                                         <th>Submitted</th>
@@ -198,7 +198,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                                 <thead>
                                     <tr>
                                         <th>Course Details</th>
-                                        <th class="d-none d-md-table-cell">School Year</th>
+                                        <th class="d-none d-md-table-cell">Year Level</th>
                                         <th>Status</th>
                                         <th class="text-center">Syllabus</th>
                                         <th>Approved At</th>

@@ -81,7 +81,7 @@ if (isset($_GET['mark_read'])) {
     include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="scc-page-header d-flex justify-content-between align-items-center">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">Manage <span
                         style="color:var(--primary)">Users</span></h4>

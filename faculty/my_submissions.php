@@ -50,7 +50,7 @@ $notifications = get_notifications($user_id, 5);
 
     <main class="scc-main">
         <!-- Page Header -->
-        <div class="mb-4 position-relative">
+        <div class="scc-page-header position-relative">
             <nav aria-label="breadcrumb" class="animate-in" style="--animation-order:1">
                 <ol class="breadcrumb mb-2" style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">
                     <li class="breadcrumb-item"><a href="faculty_dashboard.php" class="text-decoration-none text-muted">Dashboard</a></li>

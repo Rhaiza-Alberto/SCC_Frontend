@@ -29,6 +29,15 @@ html,body{height:100%;margin:0;padding:0;overflow-x:hidden}
   --transition:all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --font:'Inter', sans-serif;
   --font-serif:'Merriweather', serif;
+
+  /* Layering Hierarchy System */
+  --z-index-tab: 10;
+  --z-index-search: 20;
+  --z-index-header: 100;
+  --z-index-sidebar: 1100;
+  --z-index-dropdown: 1500;
+  --z-index-notification: 2000;
+  --z-index-modal: 3000;
 }
 
 [data-theme="dark"] {
@@ -399,7 +408,17 @@ a:hover {
   margin-left: 260px;
   padding: 2rem 2.5rem;
   min-height: 100vh;
-  transition: margin var(--transition)
+  transition: margin var(--transition);
+  position: relative;
+  overflow: visible !important; /* Critical for notification visibility */
+  z-index: 1;
+}
+
+/* Page Header Wrapper to ensure notifications are on top of content */
+.scc-page-header {
+    position: relative;
+    z-index: var(--z-index-header);
+    margin-bottom: 2rem;
 }
 
 /* === Tables === */
@@ -499,7 +518,26 @@ a:hover {
   justify-content: center;
   padding: 0 4px;
   border: 2px solid var(--bg);
-  line-height: 1
+  line-height: 1;
+  z-index: 5;
+}
+
+/* Global Notification Dropdown Panel */
+.dropdown-menu.shadow-lg.border-0 {
+    z-index: var(--z-index-notification) !important;
+    position: absolute !important;
+    margin-top: 0.75rem !important;
+}
+
+/* Fix for Search Bar & Tab Stacking */
+.search-container {
+    position: relative;
+    z-index: var(--z-index-search);
+}
+
+.scc-tabs-container {
+    position: relative;
+    z-index: var(--z-index-tab);
 }
 
 /* === Auth Pages (Split Screen) === */
@@ -812,6 +850,8 @@ a:hover {
   align-items: stretch;
   gap: 1rem;
   margin-bottom: 2rem;
+  position: relative;
+  z-index: 5; /* Lower than header (100) and notifications (2000) */
 }
 
 @media (min-width: 768px) {
@@ -827,6 +867,7 @@ a:hover {
   .scc-tab-search-wrapper .search-container {
     margin-bottom: 0 !important;
     padding-bottom: 0.5rem; /* Optical alignment with tab baseline */
+    flex-shrink: 0;
   }
 }
 

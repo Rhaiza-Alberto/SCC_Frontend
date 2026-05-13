@@ -121,7 +121,7 @@ $notifications = get_notifications($user_id, 5);
     <main class="scc-main">
         <div class="container-fluid p-0">
             <!-- Header Section -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="scc-page-header d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="fw-bold mb-1" style="color:var(--text)">Institutional <span style="color:var(--primary)">Dashboard</span></h4>
                     <p class="text-muted small mb-0"><?= get_current_school_year() ?> — Academic & Compliance Overview</p>

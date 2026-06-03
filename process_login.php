@@ -1,4 +1,23 @@
 <?php
+/**
+ * process_login.php
+ * Validates credentials and establishes a secure, authenticated session.
+ */
+
+// ── Secure Session Cookie Parameters ─────────────────────────────────────────
+// Must be called BEFORE session_start().
+$is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (int) ($_SERVER['SERVER_PORT'] ?? 80) === 443;
+
+session_set_cookie_params([
+    'lifetime' => 8 * 3600,          // 8-hour cookie lifetime
+    'path' => '/',
+    'domain' => '',                // current domain only
+    'secure' => $is_https,         // HTTPS-only in production
+    'httponly' => true,              // not accessible via JavaScript
+    'samesite' => 'Strict',          // block CSRF cross-site delivery
+]);
+
 session_start();
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
@@ -32,7 +51,7 @@ try {
         SELECT u.*, r.role_name
         FROM users u
         JOIN roles r ON u.role_id = r.id
-        WHERE u.email = ? AND u.is_deleted = 0
+        WHERE u.email = ?
         LIMIT 1
     ");
     $stmt->execute([$email]);
@@ -57,6 +76,13 @@ try {
         exit();
     }
 
+    // Email verification check
+    if (empty($user['email_verified'])) {
+        $_SESSION['error'] = 'Your email address is not verified. <a href="verify.php?email=' . urlencode($email) . '" class="text-orange fw-bold">Enter code</a> or <a href="resend_verification.php?email=' . urlencode($email) . '" class="text-orange fw-bold">resend it</a>.';
+        header('Location: login.php');
+        exit();
+    }
+
     // Faculty approval check
     if ($user['role_name'] === 'faculty' && empty($user['is_approved'])) {
         $_SESSION['error'] = 'Your account is pending approval by the Dean.';
@@ -77,13 +103,16 @@ try {
      * we map the 'dean' role_name to the 'dean' session role.
      */
     $role_map = [
-        'faculty'         => 'faculty',
-        'dean'            => 'dean',
-        'vpaa'            => 'vpaa',
+        'faculty' => 'faculty',
+        'dean' => 'dean',
+        'vpaa' => 'vpaa',
         'department_head' => 'department_head',
     ];
 
     $session_role = $role_map[$user['role_name']] ?? 'faculty';
+
+    // Regenerate session ID to prevent session fixation attacks
+    session_regenerate_id(true);
 
     // Set Session Variables
     $_SESSION['logged_in'] = true;
@@ -94,6 +123,7 @@ try {
     $_SESSION['role_name'] = $user['role_name'];
     $_SESSION['role_id'] = (int) $user['role_id'];
     $_SESSION['college_id'] = $user['college_id'] ? (int) $user['college_id'] : null;
+    $_SESSION['last_activity'] = time();  // for backend inactivity guard
 
     /**
      * REDIRECT LOGIC

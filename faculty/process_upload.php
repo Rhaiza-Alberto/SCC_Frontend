@@ -25,20 +25,35 @@ $back_url = $is_dean ? '../admin/upload_syllabus.php' : 'upload_syllabus.php';
 $success_url = $is_dean ? '../admin/my_submissions.php' : 'my_submissions.php';
 
 // ── Read fields ───────────────────────────────────────────────────────────────
-$course_code = trim($_POST['course_code'] ?? '');
-$course_title = trim($_POST['course_title'] ?? '');
-$course_name = trim($_POST['course'] ?? '');
+$course_id = (int)($_POST['course_id'] ?? 0);
 $subject_type = trim($_POST['subject_type'] ?? '');
-$semester = trim($_POST['subject_semester'] ?? $_POST['semester'] ?? '');
-$school_year = trim($_POST['year_level'] ?? get_current_school_year());
-$year_level = $school_year; // maintain for any other references
+$semester = trim($_POST['subject_semester'] ?? '');
+$school_year = trim($_POST['school_year'] ?? get_current_school_year());
+$year_level = trim($_POST['year_level'] ?? '');
 
 // ── Validate required fields ─────────────────────────────────────────────────
-if (empty($course_code) || empty($course_title) || empty($subject_type) || empty($semester)) {
+if (empty($course_id) || empty($subject_type) || empty($semester) || empty($school_year)) {
     $_SESSION['upload_error'] = 'Please fill in all required fields.';
     header('Location: ' . $back_url);
     exit();
 }
+
+// Fetch course details
+$conn = get_db();
+$cstmt = $conn->prepare("SELECT course_code, course_title FROM courses WHERE id = ? LIMIT 1");
+$cstmt->execute([$course_id]);
+$course = $cstmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$course) {
+    $_SESSION['upload_error'] = 'Invalid course selected.';
+    header('Location: ' . $back_url);
+    exit();
+}
+
+$course_code = $course['course_code'];
+$course_title = $course['course_title'];
+$course_name = $course_title; // legacy compatibility
+
 
 // ── Validate file upload ─────────────────────────────────────────────────────
 if (!isset($_FILES['pdf_file']) || $_FILES['pdf_file']['error'] !== UPLOAD_ERR_OK) {
@@ -92,12 +107,6 @@ if (!move_uploaded_file($tmp_path, $dest_path)) {
 
 $web_path = 'uploads/syllabi/' . $unique_name;
 
-// ── Try to match existing course FK (optional) ────────────────────────────────
-$conn = get_db();
-$cstmt = $conn->prepare("SELECT id FROM courses WHERE course_code = ? LIMIT 1");
-$cstmt->execute([$course_code]);
-$matched = $cstmt->fetch(PDO::FETCH_ASSOC);
-$course_id = $matched ? (int) $matched['id'] : null;
 
 try {
     $conn->beginTransaction();

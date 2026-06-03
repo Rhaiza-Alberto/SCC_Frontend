@@ -72,224 +72,203 @@ $notifications = get_notifications($user_id, 5);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compliance Reports - VPAA</title>
+    <title>Compliance Reports — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Inter:wght@400;600&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        .text-orange {
-            color: #ff8800 !important;
-        }
-
-        .notif-dot {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            width: 10px;
-            height: 10px;
-            background: #dc3545;
-            border-radius: 50%;
-            border: 2px solid #fff;
-        }
-    </style>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
-            </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="vpaa_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review
-                    <?php if ($vpaa_pending_count > 0): ?><span
-                            class="badge bg-danger ms-1"><?= $vpaa_pending_count ?></span><?php endif; ?>
-                </a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">ANALYTICS</div>
-                <a href="compliance_reports.php" class="nav-link text-white active-nav-link p-3 rounded">Compliance
-                    Reports</a>
-                <a href="syllabus_vault.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Vault</a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="javascript:void(0)" class="nav-link text-white p-3 rounded hover-effect mt-5" onclick="confirmLogout()">Logout</a>
-            </nav>
-        </div>
+<body>
+    <?php $active_page = 'compliance'; include '_sidebar.php'; ?>
 
-        <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <div>
-                    <h2 class="text-orange font-serif fw-bold mb-0">College Compliance Reports</h2>
-                    <p class="text-muted small mb-0">Academic year <?= get_current_school_year() ?></p>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <button
-                        class="btn btn-sm btn-white border shadow-sm rounded-1 px-3 py-1 fw-bold text-dark d-flex align-items-center"
-                        onclick="window.print()">
-                        <i class="bi bi-printer me-2"></i> PRINT
-                    </button>
-                    <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                            <i class="bi bi-bell fs-4 text-dark"></i>
-                            <?php if ($unread_count > 0): ?>
-                                <span class="notif-dot"></span>
-                            <?php endif; ?>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                            style="width:320px;max-height:400px;overflow-y:auto;">
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
-                                style="z-index:11;">
-                                <strong>Notifications</strong>
-                                <?php if ($unread_count > 0): ?>
-                                    <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                                <?php endif; ?>
-                            </li>
-                            <?php if (empty($notifications)): ?>
-                                <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                            <?php else:
-                                foreach ($notifications as $n):
-                                    $color = get_notification_color($n['message']); ?>
-                                    <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                        <a href="notifications.php?notif_id=<?= $n['id'] ?>"
-                                            class="text-decoration-none text-dark d-block px-3 py-2">
-                                            <p class="mb-0 small">
-                                                <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                                <span
-                                                    class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                            </p>
-                                            <span class="text-muted"
-                                                style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                        </a>
-                                    </li>
-                                <?php endforeach; endif; ?>
-                            <li class="dropdown-menu-sticky-footer">
-                                <a href="notifications.php"
-                                    class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View
-                                    all notifications</a>
-                            </li>
-                        </ul>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Compliance <span style="color:var(--primary)">Reports</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Academic year <?= get_current_school_year() ?> — Readiness Audit</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-sm d-flex align-items-center gap-1" style="color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.8rem;background:var(--bg-card)" onclick="window.print()"><i class="bi bi-printer"></i></button>
+                <div class="dropdown">
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
                     </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
+                    </ul>
                 </div>
             </div>
+        </div>
+        
+        <!-- Summary Stats -->
+        <div class="row g-3 mb-4">
+            <?php 
+                $total_global = array_sum(array_column($college_rows, 'total'));
+                $approved_global = array_sum(array_column($college_rows, 'approved'));
+                $pending_global = array_sum(array_column($college_rows, 'pending'));
+                $rejected_global = array_sum(array_column($college_rows, 'rejected'));
+                $compliance_avg = $total_global > 0 ? round(($approved_global / $total_global) * 100) : 0;
+            ?>
+            <div class="col-md-3">
+                <div class="scc-stat stat-total animate-in">
+                    <div class="stat-icon"><i class="bi bi-files"></i></div>
+                    <div class="stat-label">Total Submissions</div>
+                    <div class="stat-value"><?= $total_global ?></div>
+                    <div class="small text-secondary mt-1">Institutional volume</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scc-stat stat-approved animate-in">
+                    <div class="stat-icon"><i class="bi bi-patch-check"></i></div>
+                    <div class="stat-label">Fully Compliant</div>
+                    <div class="stat-value text-success"><?= $approved_global ?></div>
+                    <div class="small text-secondary mt-1"><?= $compliance_avg ?>% Approval rate</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scc-stat stat-pending animate-in">
+                    <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="stat-label">Awaiting Review</div>
+                    <div class="stat-value text-warning"><?= $pending_global ?></div>
+                    <div class="small text-secondary mt-1">Pending verification</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scc-stat stat-rejected animate-in">
+                    <div class="stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                    <div class="stat-label">Revision Required</div>
+                    <div class="stat-value text-danger"><?= $rejected_global ?></div>
+                    <div class="small text-secondary mt-1">Institutional rejections</div>
+                </div>
+            </div>
+        </div>
 
             <!-- College Cards -->
             <div class="row g-4 mb-5">
                 <?php if (empty($college_rows)): ?>
                     <div class="col-12">
-                        <p class="text-muted">No submission data available yet.</p>
+                        <p class="text-secondary">No submission data available yet.</p>
                     </div>
                 <?php else:
                     foreach ($college_rows as $dept):
                         $pct = $dept['total'] > 0 ? round(($dept['approved'] / $dept['total']) * 100) : 0;
-                        [$bar_class, $badge_class, $badge_label] = $pct >= 80
-                            ? ['bg-success', 'bg-success', 'Ready for Audit']
-                            : ($pct >= 50
-                                ? ['bg-warning', 'bg-warning text-dark', 'In Progress']
-                                : ['bg-danger', 'bg-danger', 'Action Required']);
+                        [$bar_class, $badge_class, $badge_label, $border_color] = $pct >= 85
+                            ? ['bg-success', 'badge-approved', 'Ready for Audit', 'var(--success)']
+                            : ($pct >= 60
+                                ? ['bg-warning', 'badge-pending', 'In Progress', 'var(--warning)']
+                                : ['bg-danger', 'badge-rejected', 'High Attention', 'var(--danger)']);
                         ?>
                         <div class="col-md-4">
-                            <div class="card premium-card p-4 border-0 shadow-sm">
-                                <h5 class="font-serif fw-bold mb-1"><?= htmlspecialchars($dept['college_name']) ?></h5>
-                                <div class="progress mb-2 mt-3" style="height:18px;">
-                                    <div class="progress-bar <?= $bar_class ?> fw-bold" style="width:<?= $pct ?>%"><?= $pct ?>%
+                            <div class="scc-card border-0 shadow-sm animate-in h-100" style="border-top: 4px solid <?= $border_color ?> !important;">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <h6 class="fw-bold mb-0" style="color:var(--text)"><?= htmlspecialchars($dept['college_name']) ?></h6>
+                                        <span class="badge rounded-pill px-3 py-2 <?= $badge_class ?>" style="font-size: 0.65rem; font-weight: 700;"><?= $badge_label ?></span>
+                                    </div>
+                                    
+                                    <div class="progress mb-2" style="height:6px; background:var(--bg-secondary)">
+                                        <div class="progress-bar <?= $bar_class ?> rounded-pill" style="width:<?= $pct ?>%"></div>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <span class="small fw-bold text-secondary"><?= $pct ?>% Complete</span>
+                                        <span class="small text-secondary"><?= $dept['approved'] ?> / <?= $dept['total'] ?> Approved</span>
+                                    </div>
+
+                                    <div class="row g-2 pt-3 border-top">
+                                        <div class="col-4 border-end text-center">
+                                            <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Pending</div>
+                                            <div class="fw-bold text-warning small"><?= $dept['pending'] ?></div>
+                                        </div>
+                                        <div class="col-4 border-end text-center">
+                                            <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Rejected</div>
+                                            <div class="fw-bold text-danger small"><?= $dept['rejected'] ?></div>
+                                        </div>
+                                        <div class="col-4 text-center">
+                                            <div style="font-size: 0.6rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total</div>
+                                            <div class="fw-bold small" style="color:var(--text)"><?= $dept['total'] ?></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="d-flex justify-content-between small text-muted mb-3">
-                                    <span><i class="bi bi-check-circle-fill text-success me-1"></i> Approved:
-                                        <?= $dept['approved'] ?></span>
-                                    <span><i class="bi bi-clock-fill text-warning me-1"></i> Pending:
-                                        <?= $dept['pending'] ?></span>
-                                    <span><i class="bi bi-x-circle-fill text-danger me-1"></i> Rejected:
-                                        <?= $dept['rejected'] ?></span>
-                                </div>
-                                <p class="text-muted small mb-3">Total Submissions: <strong><?= $dept['total'] ?></strong></p>
-                                <span class="badge <?= $badge_class ?> rounded-pill px-3"><?= $badge_label ?></span>
                             </div>
                         </div>
                     <?php endforeach; endif; ?>
             </div>
 
             <!-- Audit Log -->
-            <div class="card premium-card p-4 border-0 shadow-sm">
-                <h5 class="font-serif fw-bold mb-4 text-orange">Audit Log — Recent Submissions</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-secondary small">#</th>
-                                <th class="text-secondary small">INSTRUCTOR</th>
-                                <th class="text-secondary small">ROLE</th>
-                                <th class="text-secondary small">COURSE CODE</th>
-                                <th class="text-secondary small">COLLEGE</th>
-                                <th class="text-secondary small">STATUS</th>
-                                <th class="text-secondary small">SUBMITTED</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (empty($audit_log)): ?>
+            <div class="scc-card animate-in">
+                <div class="card-header border-0 bg-transparent p-4 pb-0">
+                    <h6 class="fw-bold mb-0" style="color:var(--text)">Audit Log — <span style="color:var(--primary)">Recent Submissions</span></h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="scc-table">
+                            <thead>
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">No submissions recorded</td>
+                                    <th class="text-secondary small">INSTRUCTOR</th>
+                                    <th class="text-secondary small">ROLE</th>
+                                    <th class="text-secondary small">COURSE</th>
+                                    <th class="text-secondary small">COLLEGE</th>
+                                    <th class="text-secondary small">STATUS</th>
+                                    <th class="text-secondary small">SUBMITTED</th>
                                 </tr>
-                            <?php else:
-                                foreach ($audit_log as $i => $row):
-                                    $badge = match ($row['status']) {
-                                        'Approved' => 'bg-success',
-                                        'Rejected' => 'bg-danger',
-                                        default => 'bg-warning text-dark',
-                                    };
-                                    ?>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($audit_log)): ?>
                                     <tr>
-                                        <td class="small"><?= $i + 1 ?></td>
-                                        <td class="small fw-bold"><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></td>
-                                        <td>
-                                            <span class="badge bg-light text-dark border rounded-pill px-2" style="font-size: .65rem;">
-                                                <?= ucfirst(htmlspecialchars($row['uploader_role'])) ?>
-                                            </span>
-                                        </td>
-                                        <td class="small fw-bold"><?= htmlspecialchars($row['course_code']) ?></td>
-                                        <td class="small"><?= htmlspecialchars($row['college_name'] ?? '—') ?></td>
-                                        <td><span class="badge <?= $badge ?> rounded-pill px-3"><?= $row['status'] ?></span>
-                                        </td>
-                                        <td class="small"><?= date('M d, Y', strtotime($row['submitted_at'])) ?></td>
+                                        <td colspan="6" class="text-center py-4 text-muted">No submissions recorded</td>
                                     </tr>
-                                <?php endforeach; endif; ?>
-                        </tbody>
-                    </table>
+                                <?php else:
+                                    foreach ($audit_log as $i => $row):
+                                        $badge = match ($row['status']) {
+                                            'Approved' => 'bg-success-subtle text-success',
+                                            'Rejected' => 'bg-danger-subtle text-danger',
+                                            default => 'bg-warning-subtle text-warning',
+                                        };
+                                        ?>
+                                        <tr>
+                                            <td class="py-3">
+                                                <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?></div>
+                                            </td>
+                                            <td class="py-3">
+                                                <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-3 py-1" style="font-size: .65rem; font-weight: 600;">
+                                                    <?= ucfirst(htmlspecialchars($row['uploader_role'])) ?>
+                                                </span>
+                                            </td>
+                                            <td class="py-3 small fw-bold" style="color:var(--text)"><?= htmlspecialchars($row['course_code']) ?></td>
+                                            <td class="py-3 small text-secondary"><?= htmlspecialchars($row['college_name'] ?? '—') ?></td>
+                                            <td class="py-3"><?= format_syllabus_status($row['status']) ?></td>
+                                            <td class="py-3 small text-secondary"><?= date('M d, Y', strtotime($row['submitted_at'])) ?></td>
+                                        </tr>
+                                    <?php endforeach; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        </main>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/common.js"></script>
     <script>
-        function confirmLogout() {
-            Swal.fire({
-                title: 'Sign Out?',
-                text: "Are you sure you want to end your current session?",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#ff8800',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, Logout',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = '../logout.php';
-                }
-            });
-        }
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
     </script>
 </body>
 

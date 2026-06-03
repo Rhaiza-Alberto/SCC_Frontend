@@ -67,6 +67,8 @@ $reg_count = (int) $conn->query("
     JOIN roles r ON u.role_id = r.id
     WHERE r.role_name = 'faculty' AND u.is_approved = 0 AND u.is_deleted = 0
 ")->fetchColumn();
+$unread_count = count_unread_notifications($user_id);
+$notifications = get_notifications($user_id, 5);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -85,12 +87,35 @@ $reg_count = (int) $conn->query("
     <?php $active_page = 'courses'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="scc-page-header d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">Edit <span style="color:var(--primary)">Course</span></h4>
                 <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Update existing course information in the institutional catalog</p>
             </div>
-            <div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
+                    </div>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?id=<?= $id ?>&mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                        <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
+                    </ul>
+                </div>
                 <a href="manage_courses.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
                     <i class="bi bi-arrow-left me-2"></i> Back to Catalog
                 </a>

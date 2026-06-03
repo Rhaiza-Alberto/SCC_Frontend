@@ -59,13 +59,29 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
     <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Floating UI Fix for Notifications */
+        .scc-page-header { 
+            z-index: 1000 !important; 
+            position: relative; 
+            background: var(--bg); 
+        }
+        .dropdown-menu { 
+            z-index: 99999 !important; 
+            position: absolute !important;
+        }
+        .scc-tab-search-wrapper, .search-container { 
+            z-index: 1 !important; 
+            position: relative; 
+        }
+    </style>
 </head>
 <body>
     <?php $active_page = 'submissions'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
         <!-- Page Header -->
-        <div class="mb-4 position-relative">
+        <div class="scc-page-header position-relative">
             <nav aria-label="breadcrumb" class="animate-in" style="--animation-order:1">
                 <ol class="breadcrumb mb-2" style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">
                     <li class="breadcrumb-item"><a href="admin_dashboard.php" class="text-decoration-none text-muted">Dashboard</a></li>

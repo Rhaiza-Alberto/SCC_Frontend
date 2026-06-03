@@ -117,40 +117,37 @@ $notifications = get_notifications($user_id, 5);
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Floating UI Fix for Notifications */
+        .scc-page-header { 
+            z-index: 1000 !important; 
+            position: relative; 
+            background: var(--bg); /* Ensure no transparency issues */
+        }
+        .dropdown-menu { 
+            z-index: 99999 !important; 
+            position: absolute !important;
+        }
+        .scc-tab-search-wrapper, .search-container { 
+            z-index: 1 !important; 
+            position: relative; 
+        }
+    </style>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
-            </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white active-nav-link p-3 rounded">Syllabus
-                    Review</a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
-                    Requests</a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
+<body>
+    <?php $active_page = 'review';
+    include '_sidebar.php'; ?>
+
+    <main class="scc-main">
+        <div class="scc-page-header position-relative animate-in" style="--animation-order: 1">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2" style="font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">
+                    <li class="breadcrumb-item"><a href="admin_dashboard.php" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Syllabus Review</li>
+                </ol>
             </nav>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 animate-in" style="--animation-order: 2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h2 class="fw-800 mb-1" style="color:var(--text); letter-spacing: -0.5px;">Syllabus <span class="text-orange">Command Center</span></h2>
                     <p class="text-secondary mb-0" style="font-size: 0.95rem;">Streamline institutional excellence through rigorous syllabus evaluation.</p>

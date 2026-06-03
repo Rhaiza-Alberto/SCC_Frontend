@@ -52,7 +52,7 @@ $notifications = get_notifications($user_id, 5);
     <main class="scc-main">
         <div class="container-fluid p-0">
             <!-- Top Bar -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="scc-page-header d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="fw-bold mb-1" style="color:var(--text)">
                         <i class="bi bi-geo-alt text-primary me-2"></i>Faculty <span style="color:var(--primary)">Dashboard</span>

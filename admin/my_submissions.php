@@ -59,91 +59,68 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
     <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Floating UI Fix for Notifications */
+        .scc-page-header { 
+            z-index: 1000 !important; 
+            position: relative; 
+            background: var(--bg); 
+        }
+        .dropdown-menu { 
+            z-index: 99999 !important; 
+            position: absolute !important;
+        }
+        .scc-tab-search-wrapper, .search-container { 
+            z-index: 1 !important; 
+            position: relative; 
+        }
+    </style>
 </head>
-<body class="bg-light">
-<div class="d-flex">
+<body>
+    <?php $active_page = 'submissions'; include '_sidebar.php'; ?>
 
-    <!-- Sidebar -->
-    <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
-            </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Syllabus Review
-                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Registration Requests
-                    <?php if (isset($reg_count) && $reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
+    <main class="scc-main">
+        <!-- Page Header -->
+        <div class="scc-page-header position-relative">
+            <nav aria-label="breadcrumb" class="animate-in" style="--animation-order:1">
+                <ol class="breadcrumb mb-2" style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">
+                    <li class="breadcrumb-item"><a href="admin_dashboard.php" class="text-decoration-none text-muted">Dashboard</a></li>
+                    <li class="breadcrumb-item active fw-bold" style="color:var(--primary)" aria-current="page">My Submissions</li>
+                </ol>
             </nav>
-        </div>
-
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h3 class="text-orange font-serif fw-bold mb-0">My Syllabus Submissions</h3>
-
-            <!-- Notification Bell -->
-            <div class="dropdown">
-                <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                    <i class="bi bi-bell fs-4 text-dark"></i>
-                    <?php if ($unread_count > 0): ?>
-                        <span class="notif-dot"></span>
-                    <?php endif; ?>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 animate-in" style="--animation-order:2">
+                <div>
+                    <h2 class="fw-bold mb-1" style="color:var(--text);letter-spacing:-0.5px;">My <span class="text-orange">Submissions</span></h2>
+                    <p class="text-secondary mb-0" style="font-size:0.95rem;">Track and manage your institutional syllabus submission status.</p>
                 </div>
-
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="width:320px;max-height:400px;overflow-y:auto;">
-                    <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white" style="z-index:11;">
-                        <strong>Notifications</strong>
-                        <?php if ($unread_count > 0): ?>
-                            <a href="?mark_read=1" class="text-decoration-none small text-orange">Mark all read</a>
-                        <?php endif; ?>
-                    </li>
-                    <?php if (empty($notifications)): ?>
-                        <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                    <?php else: foreach ($notifications as $n): 
-                        $color = get_notification_color($n['message']); ?>
-                        <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                            <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none text-dark d-block px-3 py-2">
-                                <p class="mb-0 small">
-                                    <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                    <span class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                </p>
-                                <span class="text-muted" style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                            </a>
-                        </li>
-                    <?php endforeach; endif; ?>
-                    <li class="dropdown-menu-sticky-footer">
-                        <a href="notifications.php" class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View all notifications</a>
-                    </li>
-                </ul>
+                <!-- Notification Bell -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dropdown">
+                        <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                            <?php if ($unread_count > 0): ?>
+                                <span class="notif-badge" style="top:-2px;right:-2px;"><?= $unread_count > 9 ? '9+' : $unread_count ?></span>
+                            <?php endif; ?>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 animate-in" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card);--animation-order:1">
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                                <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                                <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
+                            </li>
+                            <?php if (empty($notifications)): ?>
+                                <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                            <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                                <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                    <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                        <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                        <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                    </a>
+                                </li>
+                            <?php endforeach; endif; ?>
+                            <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -189,7 +166,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                                 <thead>
                                     <tr>
                                         <th>Course Details</th>
-                                        <th class="d-none d-md-table-cell">School Year</th>
+                                        <th class="d-none d-md-table-cell">Year Level</th>
                                         <th>Status</th>
                                         <th class="text-center">Syllabus</th>
                                         <th>Submitted</th>
@@ -237,7 +214,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                                 <thead>
                                     <tr>
                                         <th>Course Details</th>
-                                        <th class="d-none d-md-table-cell">School Year</th>
+                                        <th class="d-none d-md-table-cell">Year Level</th>
                                         <th>Status</th>
                                         <th class="text-center">Syllabus</th>
                                         <th>Approved At</th>

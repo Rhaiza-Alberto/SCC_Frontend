@@ -114,40 +114,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php $active_page = 'users'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="scc-page-header d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">Transfer <span style="color:var(--primary)">Dean Role</span></h4>
                 <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Succession management and administrative role handover</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="transfer_dean_role.php" class="nav-link text-white p-3 rounded active-nav-link">Transfer Role</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
-        </div>
-
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="text-orange font-serif fw-bold">Transfer Dean Role</h2>
-                <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4">
-                    <i class="bi bi-arrow-left me-2"></i> Back
+            <div class="d-flex align-items-center gap-3">
+                <a href="manage_user.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Users
                 </a>
             </div>
+        </div>
 
         <?php if ($error): ?>
             <div class="alert alert-danger border-0 shadow-sm mb-4 d-flex align-items-center animate-in" style="border-radius:var(--radius-md)">

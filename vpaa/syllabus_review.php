@@ -130,6 +130,22 @@ $notifications = get_notifications($user_id, 5);
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Floating UI Fix for Notifications */
+        .scc-page-header { 
+            z-index: 1000 !important; 
+            position: relative; 
+            background: var(--bg); /* Ensure no transparency issues */
+        }
+        .dropdown-menu { 
+            z-index: 99999 !important; 
+            position: absolute !important;
+        }
+        .scc-tab-search-wrapper, .search-container { 
+            z-index: 1 !important; 
+            position: relative; 
+        }
+    </style>
 </head>
 
 <body>
@@ -137,8 +153,8 @@ $notifications = get_notifications($user_id, 5);
     include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="mb-5 position-relative">
-            <nav aria-label="breadcrumb" class="animate-in" style="--animation-order: 1">
+        <div class="scc-page-header position-relative animate-in" style="--animation-order: 1">
+            <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-2"
                     style="font-size: 0.75rem; letter-spacing: 0.5px; text-transform: uppercase;">
                     <li class="breadcrumb-item"><a href="vpaa_dashboard.php"
@@ -146,8 +162,7 @@ $notifications = get_notifications($user_id, 5);
                     <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Syllabus Review</li>
                 </ol>
             </nav>
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 animate-in"
-                style="--animation-order: 2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                 <div>
                     <h2 class="fw-800 mb-1" style="color:var(--text); letter-spacing: -0.5px;">Institutional <span
                             class="text-orange">Review Hub</span></h2>

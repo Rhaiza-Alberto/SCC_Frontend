@@ -43,7 +43,7 @@ if (!$user) {
     exit();
 }
 
-// Fetch all roles except department_head
+// Fetch roles
 $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head' ORDER BY role_name");
 $stmt->execute();
 $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -59,13 +59,16 @@ $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $first_name = trim($_POST['first_name']);
+    $middle_name = trim($_POST['middle_name']);
     $last_name = trim($_POST['last_name']);
+    $birthdate = $_POST['birthdate'];
+    $sex = $_POST['sex'];
     $email = trim($_POST['email']);
     $role_id = (int) $_POST['role_id'];
     $college_id = !empty($_POST['college_id']) ? (int) $_POST['college_id'] : null;
 
     // Validate
-    if (empty($first_name) || empty($last_name) || empty($email) || empty($role_id)) {
+    if (empty($first_name) || empty($last_name) || empty($email) || empty($role_id) || empty($birthdate)) {
         $error = 'Please fill in all required fields.';
     } else {
         // Check duplicate email
@@ -74,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($stmt->fetch()) {
             $error = 'Email already exists.';
         } else {
-            // Check if role is Dean/Admin and if one already exists (excluding current user)
+            // Check Dean/Admin limit
             $stmt = $conn->prepare("SELECT role_name FROM roles WHERE id = ?");
             $stmt->execute([$role_id]);
             $target_role = $stmt->fetchColumn();
@@ -141,91 +144,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+<body>
+    <?php $active_page = 'users'; include '_sidebar.php'; ?>
+
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Edit <span style="color:var(--primary)">User Account</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Update member details or change administrative roles</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration
-                    Requests</a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded active-nav-link">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
-        </div>
-
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="text-orange font-serif fw-bold mb-0">Edit User</h2>
-                    <p class="text-muted small">Update member details or change account roles.</p>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="dropdown">
-                        <div class="position-relative" style="cursor:pointer;" data-bs-toggle="dropdown">
-                            <i class="bi bi-bell fs-4 text-dark"></i>
-                            <?php if ($unread_count > 0): ?>
-                                <span class="notif-dot"></span>
-                            <?php endif; ?>
-                        </div>
-
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0"
-                            style="width:320px;max-height:400px;overflow-y:auto;">
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top bg-white"
-                                style="z-index:11;">
-                                <strong>Notifications</strong>
-                                <?php if ($unread_count > 0): ?>
-                                    <a href="?id=<?= $user_id ?>&mark_read=1"
-                                        class="text-decoration-none small text-orange">Mark all read</a>
-                                <?php endif; ?>
-                            </li>
-                            <?php if (empty($notifications)): ?>
-                                <li class="px-3 py-3 text-center text-muted small">No notifications yet</li>
-                            <?php else:
-                                foreach ($notifications as $n):
-                                    $color = get_notification_color($n['message']); ?>
-                                    <li class="border-bottom <?= !$n['is_read'] ? 'bg-light' : '' ?>">
-                                        <a href="notifications.php?notif_id=<?= $n['id'] ?>"
-                                            class="text-decoration-none text-dark d-block px-3 py-2">
-                                            <p class="mb-0 small">
-                                                <span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span>
-                                                <span
-                                                    class="<?= $color['text'] ?>"><?= htmlspecialchars($n['message']) ?></span>
-                                            </p>
-                                            <span class="text-muted"
-                                                style="font-size:.7rem;"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
-                                        </a>
-                                    </li>
-                                <?php endforeach; endif; ?>
-                            <li class="dropdown-menu-sticky-footer">
-                                <a href="notifications.php"
-                                    class="d-block text-center text-orange text-decoration-none small fw-bold py-2">View
-                                    all notifications</a>
-                            </li>
-                        </ul>
+            <div class="d-flex align-items-center gap-3">
+                <div class="dropdown">
+                    <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
+                        <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
+                        <?php if ($unread_count > 0): ?><span class="notif-badge"><?= $unread_count > 9 ? '9+' : $unread_count ?></span><?php endif; ?>
                     </div>
-                    <a href="manage_user.php" class="btn btn-outline-secondary rounded-pill px-4"><i
-                            class="bi bi-arrow-left me-2"></i> Back to Users</a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card)">
+                        <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                            <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
+                            <?php if ($unread_count > 0): ?><a href="?id=<?= $user_id ?>&mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
+                        </li>
+                        <?php if (empty($notifications)): ?>
+                            <li class="px-3 py-4 text-center" style="color:var(--text-muted)"><i class="bi bi-bell-slash fs-4 d-block mb-2 opacity-50"></i><span class="small">No notifications</span></li>
+                        <?php else: foreach ($notifications as $n): $color = get_notification_color($n['message']); ?>
+                            <li class="border-bottom" style="<?= !$n['is_read'] ? 'background:var(--primary-light)' : '' ?>">
+                                <a href="notifications.php?notif_id=<?= $n['id'] ?>" class="text-decoration-none d-block px-3 py-2">
+                                    <p class="mb-0 small" style="color:var(--text)"><span class="<?= $color['text'] ?> fw-bold me-1"><?= $color['icon'] ?></span><?= htmlspecialchars($n['message']) ?></p>
+                                    <span style="font-size:.7rem;color:var(--text-muted)"><?= date('M d, Y h:i A', strtotime($n['created_at'])) ?></span>
+                                </a>
+                            </li>
+                        <?php endforeach; endif; ?>
+                    </ul>
                 </div>
                 <a href="manage_user.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
                     <i class="bi bi-arrow-left me-2"></i> Back to Users
@@ -303,13 +252,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Role <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold small text-secondary">Assigned Role <span class="text-danger">*</span></label>
                             <select name="role_id" class="form-select" required>
-                                <option value="">Select Role</option>
                                 <?php foreach ($roles as $role): ?>
-                                    <option value="<?= $role['id'] ?>" <?= $role['id'] == $user['role_id'] ? 'selected' : '' ?>>
-                                        <?= ucfirst($role['role_name']) ?>
-                                    </option>
+                                    <option value="<?= $role['id'] ?>" <?= $role['id'] == $user['role_id'] ? 'selected' : '' ?>><?= ucfirst($role['role_name']) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -322,19 +268,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold">New Password <small class="text-muted">(leave blank to
-                                    keep current)</small></label>
-                            <input type="password" name="password" class="form-control"
-                                placeholder="Enter new password">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold small text-secondary">Reset Password <small class="text-muted">(Optional)</small></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                                <input type="password" name="password" class="form-control border-start-0" placeholder="Enter new password to reset">
+                            </div>
                         </div>
 
-                        <div class="col-12 mt-4">
-                            <button type="submit" class="btn btn-orange rounded-pill px-4">
-                                <i class="bi bi-save me-2"></i>Update User
-                            </button>
-                            <a href="manage_user.php"
-                                class="btn btn-outline-secondary rounded-pill px-4 ms-2">Cancel</a>
+                        <div class="col-12 mt-5 border-top pt-4">
+                            <div class="row g-2">
+                                <div class="col-md-8">
+                                    <button type="button" onclick="confirmEdit()" class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow-sm">
+                                        <i class="bi bi-check2-circle me-2"></i> Save Changes
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <a href="manage_user.php" class="btn btn-light btn-lg w-100 fw-bold rounded-pill border">Cancel</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>

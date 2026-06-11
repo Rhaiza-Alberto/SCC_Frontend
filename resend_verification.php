@@ -74,61 +74,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resend Verification — SCC Syllabus Portal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/style.css">
     <style>
-        body {
-            background: var(--bg-secondary);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .resend-card {
-            background: white;
-            border-radius: var(--radius-lg);
-            padding: 3rem;
-            max-width: 450px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        .custom-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            color: var(--text);
+            opacity: 0.85;
+            margin-bottom: 0.35rem;
+            display: block;
         }
     </style>
 </head>
 
 <body>
-    <div class="resend-card animate-in">
-        <div class="text-center mb-4">
-            <div class="d-inline-block bg-primary-light text-primary rounded-circle p-3 mb-3">
-                <i class="bi bi-envelope-arrow-up fs-2"></i>
+    <div class="auth-wrapper">
+        <div class="auth-form-side">
+            <div class="auth-form-container animate-in" style="max-width:420px">
+                
+                <a href="login.php" class="d-inline-flex align-items-center text-decoration-none mb-4" style="color:var(--text-secondary);font-size:0.85rem">
+                    <i class="bi bi-arrow-left me-2"></i> Back to Login
+                </a>
+
+                <div class="mb-3">
+                    <div style="width:56px;height:56px;border-radius:var(--radius-md);background:rgba(255,136,0,0.1);display:flex;align-items:center;justify-content:center">
+                        <i class="bi bi-envelope-arrow-up" style="font-size:1.5rem;color:var(--primary)"></i>
+                    </div>
+                </div>
+
+                <h1 style="font-size:1.5rem">Resend Link</h1>
+                <p class="subtitle">Enter your email address to receive a new verification link.</p>
+
+                <?php if ($message): ?>
+                    <div class="alert <?= $error ? 'alert-danger' : 'alert-success' ?> alert-dismissible fade show rounded-4 border-0 shadow-sm mb-4" style="font-size:0.85rem">
+                        <i class="bi <?= $error ? 'bi-exclamation-circle' : 'bi-check-circle' ?> me-2"></i>
+                        <?= htmlspecialchars($message) ?>
+                        <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST">
+                    <div class="mb-4">
+                        <label class="custom-label">Email Address</label>
+                        <input type="email" name="email" class="auth-input" placeholder="name@gmail.com"
+                               value="<?= htmlspecialchars($email) ?>" required autofocus>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary-scc w-100 py-3 fw-bold mb-4 shadow-sm" style="font-size:1rem; border-radius: 12px;">
+                        Send New Link <i class="bi bi-arrow-right ms-2"></i>
+                    </button>
+                </form>
+
+                <div class="text-center pt-2">
+                    <a href="login.php" class="text-decoration-none small fw-bold" style="color:var(--primary)">
+                        Return to Login
+                    </a>
+                </div>
             </div>
-            <h2 class="fw-bold mb-1" style="color:var(--text)">Resend Link</h2>
-            <p class="text-secondary small">Enter your email address to receive a new verification link.</p>
         </div>
 
-        <?php if ($message): ?>
-            <div class="alert <?= $error ? 'alert-danger' : 'alert-success' ?> border-0 small py-2 mb-4">
-                <i class="bi <?= $error ? 'bi-exclamation-triangle' : 'bi-check-circle' ?> me-2"></i>
-                <?= htmlspecialchars($message) ?>
+        <div class="auth-illustration-side" style="background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);">
+            <div class="text-center text-white px-5" style="position:relative;z-index:2;max-width:400px">
+                <div class="mb-4 d-inline-block p-4 rounded-circle" style="background: rgba(255,136,0,0.1); border: 1px solid rgba(255,136,0,0.2);">
+                    <i class="bi bi-shield-lock-fill" style="font-size:3.5rem; color:var(--primary)"></i>
+                </div>
+                <h3 class="fw-bold" style="font-family:var(--font-serif)">Secure Request</h3>
+                <p style="color:rgba(255,255,255,0.6); font-size:0.95rem; line-height:1.6">Verifying your professional email preserves academic workflow transparency and securely registers your syllabus submission configurations.</p>
             </div>
-        <?php endif; ?>
-
-        <form method="POST">
-            <div class="mb-4">
-                <label class="form-label small fw-bold">Email Address</label>
-                <input type="email" name="email" class="form-control py-2" placeholder="name@gmail.com"
-                    value="<?= htmlspecialchars($email) ?>" required>
-            </div>
-            <button type="submit" class="btn btn-primary-scc w-100 py-2 fw-bold rounded-pill mb-3 shadow-sm">Send New
-                Link</button>
-            <div class="text-center">
-                <a href="login.php" class="text-decoration-none text-muted small"><i class="bi bi-arrow-left me-1"></i>
-                    Back to Login</a>
-            </div>
-        </form>
+            <div style="position:absolute; bottom:-50px; left:-50px; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, rgba(255,136,0,0.1) 0%, transparent 70%);"></div>
+        </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/theme.js"></script>
 </body>
 
 </html>

@@ -54,7 +54,7 @@ $stmt->execute();
 $colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Handle form submission
-$error   = '';
+$error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($first_name) || empty($last_name) || empty($email) || empty($role_id) || empty($birthdate)) {
         $error = 'Please fill in all required fields.';
     } else {
-        // Check duplicate email
+        // Check if email already exists for another user
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ? AND is_deleted = 0");
         $stmt->execute([$email, $user_id]);
         if ($stmt->fetch()) {
@@ -82,23 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$role_id]);
             $target_role = $stmt->fetchColumn();
 
-            // Block assigning dean or department_head via this form
-            if (in_array($target_role, ['dean', 'department_head'])) {
-                $error = 'Dean and Department Head roles cannot be assigned here. Use the Transfer Role feature.';
-            }
-
-            // Block duplicate VPAA
-            if (!$error && $target_role === 'vpaa') {
-                $stmt = $conn->prepare("
-                    SELECT COUNT(*) FROM users u
-                    JOIN roles r ON u.role_id = r.id
-                    WHERE r.role_name = 'vpaa'
-                      AND u.id != ?
-                      AND u.is_deleted = 0
-                ");
+            if ($target_role === 'dean' || $target_role === 'admin') {
+                $stmt = $conn->prepare("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id WHERE (r.role_name = 'dean' OR r.role_name = 'admin') AND u.id != ? AND u.is_deleted = 0");
                 $stmt->execute([$user_id]);
                 if ($stmt->fetchColumn() > 0) {
-                    $error = 'A VPAA account already exists. Only one is allowed.';
+                    $error = "A Dean/Admin account already exists. Only one is allowed.";
                 }
             }
 

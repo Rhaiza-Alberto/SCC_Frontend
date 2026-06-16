@@ -854,7 +854,7 @@ a:hover {
   justify-content: space-between;
   align-items: stretch;
   gap: 1rem;
-  margin-bottom: 2rem;
+  margin-bottom: 0.75rem;
   position: relative;
   z-index: 1 !important; /* Extremely low to stay below header */
 }
@@ -871,7 +871,7 @@ a:hover {
   
   .scc-tab-search-wrapper .search-container {
     margin-bottom: 0 !important;
-    padding-bottom: 0.5rem; /* Optical alignment with tab baseline */
+    padding-bottom: 0.15rem; /* Optical alignment with tab baseline */
     flex-shrink: 0;
   }
 }

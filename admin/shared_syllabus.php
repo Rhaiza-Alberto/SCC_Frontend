@@ -1,7 +1,7 @@
 <?php
 /**
  * dean/shared_syllabus.php
- * Displays all VPAA-approved syllabi shared across faculty and dean.
+ * Displays all Dean-approved syllabi shared across faculty and dean.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -71,10 +71,12 @@ $stmt->execute();
 $approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 /* ── Unique filter values ── */
+$colleges = array_unique(array_filter(array_column($approved_syllabi, 'college_name')));
 $semesters = array_unique(array_filter(array_column($approved_syllabi, 'semester')));
-$year_levels = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
+$years = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
+sort($colleges);
 sort($semesters);
-rsort($year_levels);
+rsort($years);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -91,64 +93,16 @@ rsort($year_levels);
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="d-flex">
+<body>
+    <?php $active_page = 'shared'; include '_sidebar.php'; ?>
 
-        <!-- ── Sidebar ── -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                    style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?>
-                </p>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)">Shared <span style="color:var(--primary)">Syllabus</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Publicly available syllabi across the institution</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Syllabus Review
-                    <?php if ($pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-                <a href="manage_courses.php" class="nav-link text-white p-3 rounded hover-effect">Manage Courses</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white active-nav-link p-3 rounded">Shared
-                    Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">
-                    Registration Requests
-                    <?php if ($reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-            </nav>
-        </div>
-
-
-        <!-- ── Main Content ── -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
-            <!-- Top Bar -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <h2 class="text-orange font-serif fw-bold mb-0">Shared Syllabus Repository</h2>
-                    <p class="text-muted small mb-0">All VPAA-approved syllabi available to faculty and dean</p>
-                </div>
-
-                <!-- Notification Bell -->
+            <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
                     <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
                         <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
@@ -180,7 +134,7 @@ rsort($year_levels);
             <?php $stats_data = [
                 ['label' => 'Approved Syllabi', 'value' => count($approved_syllabi), 'icon' => 'bi-journal-check'],
                 ['label' => 'Contributing Faculty', 'value' => count(array_unique(array_column($approved_syllabi, 'faculty_name'))), 'icon' => 'bi-people'],
-                ['label' => 'Active Terms', 'value' => count($semesters), 'icon' => 'bi-calendar3']
+                ['label' => 'Active Colleges', 'value' => count($colleges), 'icon' => 'bi-building']
             ]; foreach ($stats_data as $i => $s): ?>
             <div class="col-md-4">
                 <div class="scc-stat stat-total animate-in animate-in-delay-<?= $i ?>">
@@ -200,27 +154,34 @@ rsort($year_levels);
         <div class="scc-card mb-4 animate-in">
             <div class="card-body p-4">
                 <div class="row g-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
                             <input type="text" id="searchInput" class="form-control border-start-0 ps-0" style="font-size:0.85rem" placeholder="Search by course or faculty...">
                         </div>
                     </div>
                     <div class="col-md-2">
+                        <select id="collegeFilter" class="form-select" style="font-size:0.85rem">
+                            <option value="">All Colleges</option>
+                            <?php foreach ($colleges as $col): ?>
+                                <option value="<?= htmlspecialchars($col) ?>"><?= htmlspecialchars($col) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <select id="semFilter" class="form-select" style="font-size:0.85rem">
                             <option value="">All Semesters</option>
-                            <option value="1st Semester">1st Semester</option>
-                            <option value="2nd Semester">2nd Semester</option>
-                            <option value="Summer">Summer</option>
+                            <?php foreach ($semesters as $sem): ?>
+                                <option value="<?= htmlspecialchars($sem) ?>"><?= htmlspecialchars($sem) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-md-2">
                         <select id="yearFilter" class="form-select" style="font-size:0.85rem">
-                            <option value="">All Year Levels</option>
-                            <option value="1st Year">1st Year</option>
-                            <option value="2nd Year">2nd Year</option>
-                            <option value="3rd Year">3rd Year</option>
-                            <option value="4th Year">4th Year</option>
+                            <option value="">All Years</option>
+                            <?php foreach ($years as $yr): ?>
+                                <option value="<?= htmlspecialchars($yr) ?>"><?= htmlspecialchars($yr) ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -241,6 +202,7 @@ rsort($year_levels);
                     <?php foreach ($approved_syllabi as $row): ?>
                         <div class="col-xl-3 col-lg-4 col-md-6 syllabus-card-item animate-in" 
                              data-search="<?= strtolower(htmlspecialchars($row['course_code'] . ' ' . $row['course_title'] . ' ' . $row['faculty_name'])) ?>"
+                             data-college="<?= htmlspecialchars($row['college_name'] ?? '') ?>"
                              data-sem="<?= htmlspecialchars($row['semester'] ?? '') ?>"
                              data-year="<?= htmlspecialchars($row['school_year'] ?? '') ?>">
                             <div class="scc-card h-100 border-0 shadow-sm" style="border-top: 3px solid var(--primary) !important;">
@@ -257,8 +219,8 @@ rsort($year_levels);
                                             <span class="small text-muted text-truncate"><?= htmlspecialchars($row['faculty_name']) ?></span>
                                         </div>
                                         <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-mortarboard text-muted me-2" style="font-size: 0.8rem;"></i>
-                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['school_year'] ?? '—') ?> Level</span>
+                                            <i class="bi bi-building text-muted me-2" style="font-size: 0.8rem;"></i>
+                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['college_name'] ?? '—') ?></span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                                             <div>
@@ -314,15 +276,17 @@ rsort($year_levels);
 
             function applyFilters() {
                 const q = searchInput.value.toLowerCase().trim();
+                const college = collegeFilter.value;
                 const sem = semFilter.value;
                 const yr = yearFilter.value;
                 let visible = 0;
 
                 cards.forEach(card => {
                     const matchSearch = !q || card.dataset.search.includes(q);
+                    const matchCollege = !college || card.dataset.college === college;
                     const matchSem = !sem || card.dataset.sem === sem;
                     const matchYear = !yr || card.dataset.year === yr;
-                    const show = matchSearch && matchSem && matchYear;
+                    const show = matchSearch && matchCollege && matchSem && matchYear;
                     card.classList.toggle('d-none', !show);
                     if (show) visible++;
                 });
@@ -330,11 +294,12 @@ rsort($year_levels);
                 noResults.classList.toggle('d-none', visible > 0);
             }
 
-            [searchInput, semFilter, yearFilter].forEach(el =>
+            [searchInput, collegeFilter, semFilter, yearFilter].forEach(el =>
                 el.addEventListener('input', applyFilters));
 
             clearBtn.addEventListener('click', () => {
                 searchInput.value = '';
+                collegeFilter.value = '';
                 semFilter.value = '';
                 yearFilter.value = '';
                 applyFilters();

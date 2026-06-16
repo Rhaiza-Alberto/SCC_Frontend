@@ -69,55 +69,18 @@ if (isset($_GET['mark_read'])) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
+<body class="bg-light" data-toast-error="<?= $_SESSION['error_message'] ?? '' ?>" data-toast-success="<?= $_SESSION['success_message'] ?? '' ?>">
+    <?php unset($_SESSION['success_message'], $_SESSION['error_message']); ?>
+    <?php $active_page = 'profile';
+    include '_sidebar.php'; ?>
 
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-            style="width:260px; position:fixed; z-index:1100;">
-            <div class="text-center mb-3 mt-2">
-                <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-            style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-                <h5 class="font-serif fw-bold text-orange mb-0"><?= $role_display ?></h5>
-                <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
+    <main class="scc-main">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="fw-bold mb-1" style="color:var(--text)"><?= $edit_mode ? 'Edit' : 'My' ?> <span style="color:var(--primary)">Profile</span></h4>
+                <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Manage your personal information and account settings</p>
             </div>
-            <nav class="nav flex-column gap-2 mb-auto">
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-                <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active-nav-link' : 'hover-effect' ?>">Dashboard</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-                <a href="syllabus_review.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'syllabus_review.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Syllabus Review
-                    <?php if (isset($pending_review_count) && $pending_review_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $pending_review_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'upload_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Upload Syllabus</a>
-                <a href="my_submissions.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'my_submissions.php' ? 'active-nav-link' : 'hover-effect' ?>">My Submissions</a>
-                <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'shared_syllabus.php' ? 'active-nav-link' : 'hover-effect' ?>">Shared Syllabus</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-                <a href="registration_requests.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'registration_requests.php' ? 'active-nav-link' : 'hover-effect' ?>">
-            Registration Requests
-                    <?php if (isset($reg_count) && $reg_count > 0): ?>
-                        <span class="badge bg-danger ms-1"><?= $reg_count ?></span>
-                    <?php endif; ?>
-                </a>
-                <a href="manage_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'manage_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Manage Users</a>
-                <a href="add_user.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'add_user.php' ? 'active-nav-link' : 'hover-effect' ?>">Add User</a>
-
-                <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-                <a href="profile.php" class="nav-link text-white p-3 rounded <?= basename($_SERVER['PHP_SELF']) == 'profile.php' ? 'active-nav-link' : 'hover-effect' ?>">Profile</a>
-                <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5 logout-link">Logout</a>
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content flex-grow-1 p-5" style="margin-left: 260px;">
-            <div class="d-flex justify-content-between align-items-center mb-5">
-                <h3 class="text-orange font-serif fw-bold mb-0">
-                    <?php echo $edit_mode ? 'Edit my Profile' : 'My Profile'; ?>
-                </h3>
+            <div class="d-flex align-items-center gap-3">
                 <div class="dropdown">
                     <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
                         <i class="bi bi-bell fs-5" style="color:var(--text)"></i>

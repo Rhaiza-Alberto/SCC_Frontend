@@ -531,7 +531,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="js/theme.js"></script>
     <script>
         // Clear errors on input
         document.querySelectorAll('.modern-input, .input-group-modern input').forEach(input => {

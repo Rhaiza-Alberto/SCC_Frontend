@@ -74,6 +74,19 @@ $unread_count = count_unread_notifications($user_id);
             </div>
         </div>
 
+        <!-- Filter Controls -->
+        <div class="d-flex flex-column flex-md-row gap-3 mb-4 align-items-md-center justify-content-between animate-in" style="--animation-order:2">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-primary filter-btn active" onclick="filterNotifications('all', this)">All</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterNotifications('unread', this)">Unread</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterNotifications('read', this)">Read</button>
+            </div>
+            <div class="position-relative search-container" style="width:100%; max-width:300px;">
+                <i class="bi bi-search position-absolute" style="left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted)"></i>
+                <input type="text" id="notifSearch" class="form-control ps-5" placeholder="Search notifications..." style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 40px;">
+            </div>
+        </div>
+
         <div class="scc-card p-0 overflow-hidden animate-in shadow-sm">
             <?php if (empty($all_notifications)): ?>
                 <div class="text-center py-5 text-muted">
@@ -119,6 +132,75 @@ $unread_count = count_unread_notifications($user_id);
     <script src="../js/common.js"></script>
     <script>
     function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+
+    let currentFilter = 'all';
+
+    function filterNotifications(type, btn) {
+        currentFilter = type;
+        
+        // Update button classes
+        document.querySelectorAll('.filter-btn').forEach(b => {
+            b.classList.remove('btn-primary', 'active');
+            b.classList.add('btn-outline-secondary');
+        });
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-primary', 'active');
+        
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const searchVal = document.getElementById('notifSearch').value.toLowerCase().trim();
+        const items = document.querySelectorAll('.notification-item');
+        let visibleCount = 0;
+        
+        items.forEach(item => {
+            const pText = item.querySelector('p');
+            const text = pText ? pText.textContent.toLowerCase() : '';
+            const isUnread = item.classList.contains('unread');
+            
+            let matchFilter = false;
+            if (currentFilter === 'all') {
+                matchFilter = true;
+            } else if (currentFilter === 'unread') {
+                matchFilter = isUnread;
+            } else if (currentFilter === 'read') {
+                matchFilter = !isUnread;
+            }
+            
+            let matchSearch = text.includes(searchVal);
+            
+            if (matchFilter && matchSearch) {
+                item.style.display = 'block';
+                visibleCount++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+        
+        let noMatchEl = document.getElementById('noNotifMatch');
+        if (visibleCount === 0 && items.length > 0) {
+            if (!noMatchEl) {
+                noMatchEl = document.createElement('div');
+                noMatchEl.id = 'noNotifMatch';
+                noMatchEl.className = 'text-center py-5 text-muted';
+                noMatchEl.innerHTML = '<i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>No notifications match your filters';
+                const card = document.querySelector('.scc-card');
+                if (card) card.appendChild(noMatchEl);
+            } else {
+                noMatchEl.style.display = 'block';
+            }
+        } else {
+            if (noMatchEl) {
+                noMatchEl.style.display = 'none';
+            }
+        }
+    }
+
+    const searchInput = document.getElementById('notifSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilters);
+    }
     </script>
 </body>
 </html>

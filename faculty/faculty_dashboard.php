@@ -101,7 +101,7 @@ $notifications = get_notifications($user_id, 5);
                     </div>
                     <div class="flex-grow-1">
                         <h6 class="fw-bold mb-1 text-primary">Submissions Pending Review</h6>
-                        <p class="mb-0 text-muted small">You have <?= $pending ?> syllabus submission(s) currently being reviewed by the Dean or VPAA.</p>
+                        <p class="mb-0 text-muted small">You have <?= $pending ?> syllabus submission(s) currently awaiting Dean review.</p>
                     </div>
                 </div>
             <?php endif; ?>

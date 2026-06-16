@@ -109,14 +109,11 @@ try {
             course_name  = ?,
             subject_type = ?,
             semester     = ?,
-            school_year   = ?,
+            year_level   = ?,
             file_path    = ?,
             status       = 'Pending'
         WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')
     ");
-    // Since Dean is the first reviewer for faculty, but Dean's own upload usually goes straight to VPAA for review.
-    // Setting stage to 'vpaa'.
-    
     $upd->execute([
         $course_id,
         $course_code,
@@ -130,8 +127,8 @@ try {
         $user_id,
     ]);
 
-    // Reset workflow so it restarts (from dean -> vpaa)
-    reset_syllabus_workflow($syllabus_id, 'dean');
+    // Reset workflow so it restarts (dean is the final reviewer)
+    reset_syllabus_workflow($syllabus_id, 'faculty');
 
     // Delete old file if replaced
     if ($old_dest_path && file_exists($old_dest_path)) {

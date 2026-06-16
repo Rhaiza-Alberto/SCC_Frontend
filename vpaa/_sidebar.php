@@ -4,7 +4,7 @@
  * Usage: Set $active_page before including.
  */
 $_username = $username ?? $_SESSION['username'] ?? 'VPAA';
-$_vpaa_pending = $vpaa_pending_count ?? 0;
+// VPAA pending review badge count removed as VPAA approval is no longer required
 ?>
 <script src="../js/theme.js"></script>
 <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
@@ -23,10 +23,7 @@ $_vpaa_pending = $vpaa_pending_count ?? 0;
 
         <div class="sidebar-section">SYLLABUS MANAGEMENT</div>
         <a href="syllabus_review.php" class="nav-item <?= ($active_page ?? '') === 'review' ? 'active' : '' ?>"><i
-                        class="bi bi-clipboard-check me-2"></i> Syllabus Review
-                <?php if ($_vpaa_pending > 0): ?><span
-                                class="badge bg-danger ms-auto"><?= $_vpaa_pending ?></span><?php endif; ?>
-        </a>
+                        class="bi bi-clipboard-check me-2"></i> Approved Syllabi</a>
 
         <div class="sidebar-section">ANALYTICS</div>
         <a href="compliance_reports.php"

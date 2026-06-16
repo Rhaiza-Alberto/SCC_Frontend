@@ -434,7 +434,7 @@ $notifications = get_notifications($user_id, 5);
             if (action === 'approve') {
                 Swal.fire({
                     title: 'Approve Syllabus?',
-                    html: `Approve <strong>${courseCode}</strong> and forward to VPAA?`,
+                    html: `Approve <strong>${courseCode}</strong>?`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: 'var(--success)',

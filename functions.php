@@ -112,8 +112,8 @@ function get_notification_color(string $message): array
 {
     $msg = strtolower($message);
 
-    // Fully approved by VPAA
-    if (str_contains($msg, 'fully approved') || str_contains($msg, 'approved by vpaa')) {
+    // Fully approved by Dean
+    if (str_contains($msg, 'fully approved') || str_contains($msg, 'approved by vpaa') || str_contains($msg, 'approved by the dean')) {
         return [
             'bg' => 'bg-success',
             'text' => 'text-success',
@@ -209,6 +209,7 @@ function get_dean($college_id = null)
         $stmt = $conn->prepare("
             SELECT u.* FROM users u
             JOIN roles r ON u.role_id = r.id
+               AND r.role_name = 'dean'
                AND u.college_id = ?
             LIMIT 1
         ");
@@ -425,8 +426,7 @@ function determine_next_role($current_role)
 {
     return match ($current_role) {
         'faculty' => 'dean',
-        'dean' => 'vpaa',
-        'vpaa' => null,
+        'dean' => null,
         default => null
     };
 }
@@ -443,12 +443,8 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty')
     $is_dean = in_array($uploader_role, ['dean', 'admin']);
 
     if ($is_dean) {
-        $role_id = get_role_id('vpaa');
-        $conn->prepare("
-            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
-            VALUES (?, 2, ?, 'Pending')
-        ")->execute([$syllabus_id, $role_id]);
-        notify_next_reviewer($syllabus_id, 'vpaa');
+        // Dean's own upload is immediately approved
+        $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")->execute([$syllabus_id]);
     } else {
         $role_id = get_role_id('dean');
         $conn->prepare("
@@ -515,15 +511,27 @@ function notify_on_vpaa_approval($syllabus_id)
         return;
     notify_user(
         $syllabus['uploaded_by'],
-        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by VPAA",
+        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved",
+        $syllabus_id
+    );
+}
+
+function notify_on_dean_approval($syllabus_id)
+{
+    $syllabus = get_syllabus_details_with_dept($syllabus_id);
+    if (!$syllabus)
+        return;
+    notify_user(
+        $syllabus['uploaded_by'],
+        "Your syllabus (" . $syllabus['course_code'] . ") has been fully approved by the Dean",
         $syllabus_id
     );
 }
 
 /* ============================
    MAIN WORKFLOW ENGINE
-   Flow: faculty → dean (step 1) → vpaa (step 2, final)
-   Dean approval keeps status 'Pending' until VPAA gives final approval.
+   Flow: faculty → dean (step 1, final)
+   Dean approval is the final approval.
 ============================ */
 
 function process_syllabus_action($syllabus_id, $action, $comment = null)
@@ -591,15 +599,14 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
     $next_role = determine_next_role($role);
 
     if ($next_role === null) {
-        // VPAA is final — only NOW mark as fully Approved
+        // Dean is final — only NOW mark as fully Approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")
             ->execute([$syllabus_id]);
-        notify_on_vpaa_approval($syllabus_id);
+        notify_on_dean_approval($syllabus_id);
         return true;
     }
 
-    // Dean approved — keep syllabus as Pending until VPAA acts
-    // Do NOT set status = 'Approved' here
+    // This block is only reached if next_role is non-null (legacy path — should not be hit with current workflow)
     $conn->prepare("UPDATE syllabus SET status = 'Pending' WHERE id = ?")
         ->execute([$syllabus_id]);
 
@@ -628,16 +635,12 @@ function process_syllabus_action($syllabus_id, $action, $comment = null)
 function format_syllabus_status($status, $current_stage_role = null, $rejecting_role = null, $rejecting_name = null)
 {
     if ($status === 'Approved') {
-        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--success-light); color:var(--success); border:1px solid var(--success-light) !important">APPROVED BY VPAA</span>';
+        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--success-light); color:var(--success); border:1px solid var(--success-light) !important">APPROVED BY DEAN</span>';
     }
     if ($status === 'Rejected') {
         $role_text = $rejecting_role ? strtoupper(str_replace('_', ' ', $rejecting_role)) : 'ADMIN';
         $name_text = $rejecting_name ? " — " . htmlspecialchars($rejecting_name) : "";
         return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--danger-light); color:var(--danger); border:1px solid var(--danger-light) !important">REJECTED BY ' . $role_text . $name_text . '</span>';
-    }
-    // Pending — show which stage
-    if ($current_stage_role === 'vpaa') {
-        return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--primary-light); color:var(--primary); border:1px solid var(--primary-light) !important">AWAITING VPAA APPROVAL</span>';
     }
     return '<span class="badge rounded-pill px-3 py-1" style="font-size:0.72rem; background:var(--warning-light); color:var(--warning); border:1px solid var(--warning-light) !important">AWAITING DEAN REVIEW</span>';
 }

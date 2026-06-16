@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syl
     $comment = trim($_POST['comment'] ?? '') ?: null;
     process_syllabus_action($syllabus_id, $action, $comment);
     $_SESSION['review_success'] = $action === 'Approved'
-        ? 'Syllabus approved and forwarded to VPAA.'
+        ? 'Syllabus approved successfully.'
         : 'Syllabus rejected. The faculty member has been notified.';
     header('Location: syllabus_review.php');
     exit();
@@ -228,27 +228,49 @@ $notifications = get_notifications($user_id, 5);
             </div>
         <?php endif; ?>
 
-        <!-- Search and Bookmark Tabs -->
-        <!-- Search and Bookmark Tabs -->
-        <div class="scc-tab-search-wrapper animate-in" style="--animation-order:3">
+        <!-- Tabs + Search Row + Filters -->
+        <div class="scc-tab-search-wrapper animate-in flex-wrap gap-3" style="--animation-order:3">
             <div class="scc-tabs-container" id="reviewTabs" role="tablist">
                 <button class="scc-tab-item tab-orange <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
                     <span class="tab-indicator"></span> Pending <span class="tab-count"><?= count($pending_rows) ?></span>
                 </button>
                 <button class="scc-tab-item tab-green <?= (isset($_GET['status']) && $_GET['status'] === 'Approved') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabApproved" type="button">
-                    <span class="tab-indicator"></span> Approved / Forwarded <span class="tab-count"><?= count($approved_rows) ?></span>
+                    <span class="tab-indicator"></span> Approved <span class="tab-count"><?= count($approved_rows) ?></span>
                 </button>
                 <button class="scc-tab-item tab-red <?= (isset($_GET['status']) && $_GET['status'] === 'Declined') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabDeclined" type="button">
                     <span class="tab-indicator"></span> Declined <span class="tab-count"><?= count($rejected_rows) ?></span>
                 </button>
             </div>
-            <div class="position-relative search-container" style="width:100%;max-width:300px;">
-                <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
-                <input type="text" id="reviewSearch" class="form-control ps-5" placeholder="Search in this tab..." style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 45px;">
+            <div class="d-flex flex-wrap gap-2 align-items-center w-100 w-md-auto">
+                <div class="position-relative search-container" style="width:100%;max-width:240px;">
+                    <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                    <input type="text" id="reviewSearch" class="form-control ps-5" placeholder="Search in this tab..." style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 45px;">
+                </div>
+                <select id="filterSubjectType" class="form-select form-select-sm" style="width: 140px; height: 45px; border-radius: var(--radius-md); background:var(--bg-card); border:1px solid var(--border);">
+                    <option value="">All Categories</option>
+                    <option value="Institutional Subject">Institutional Subject</option>
+                    <option value="General Education (GE)">General Education (GE)</option>
+                    <option value="Core Subject">Core Subject</option>
+                    <option value="Professional Subjects">Professional Subjects</option>
+                    <option value="Mandatory / Elect Subject">Mandatory / Elect Subject</option>
+                </select>
+                <select id="filterSemester" class="form-select form-select-sm" style="width: 130px; height: 45px; border-radius: var(--radius-md); background:var(--bg-card); border:1px solid var(--border);">
+                    <option value="">All Semesters</option>
+                    <option value="1st Semester">1st Semester</option>
+                    <option value="2nd Semester">2nd Semester</option>
+                    <option value="Summer">Summer</option>
+                </select>
+                <select id="filterYearLevel" class="form-select form-select-sm" style="width: 120px; height: 45px; border-radius: var(--radius-md); background:var(--bg-card); border:1px solid var(--border);">
+                    <option value="">All Years</option>
+                    <option value="1st Year">1st Year</option>
+                    <option value="2nd Year">2nd Year</option>
+                    <option value="3rd Year">3rd Year</option>
+                    <option value="4th Year">4th Year</option>
+                </select>
             </div>
         </div>
 
-        <div class="tab-content pt-4">
+        <div class="tab-content pt-1">
                             <!-- PENDING TAB -->
                             <div class="tab-pane fade show active" id="tabPending">
                                 <?php if (empty($pending_rows)): ?>
@@ -268,6 +290,8 @@ $notifications = get_notifications($user_id, 5);
                                                         <th class="ps-4">Course</th>
                                                         <th>Instructor</th>
                                                         <th>Category</th>
+                                                        <th>Semester</th>
+                                                        <th>Year Level</th>
                                                         <th>Submitted</th>
                                                         <th class="text-center">Syllabus</th>
                                                         <th class="text-center pe-4">Action</th>
@@ -275,7 +299,11 @@ $notifications = get_notifications($user_id, 5);
                                                 </thead>
                                                 <tbody>
                                                     <?php foreach ($pending_rows as $sub): ?>
-                                                        <tr class="review-item" data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>">
+                                                        <tr class="review-item" 
+                                                            data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>"
+                                                            data-subject-type="<?= htmlspecialchars($sub['subject_type'] ?? '') ?>"
+                                                            data-semester="<?= htmlspecialchars($sub['semester'] ?? '') ?>"
+                                                            data-year-level="<?= htmlspecialchars($sub['year_level'] ?? '') ?>">
                                                             <td class="ps-4">
                                                                 <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
                                                                 <div class="text-secondary small text-truncate" style="max-width:200px;"><?= htmlspecialchars($sub['course_title']) ?></div>
@@ -290,6 +318,8 @@ $notifications = get_notifications($user_id, 5);
                                                                     <div class="small" style="color:var(--text)"><?= htmlspecialchars($sub['subject_type'] ?? 'General') ?></div>
                                                                 </div>
                                                             </td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['semester'] ?? 'N/A') ?></td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['year_level'] ?? 'N/A') ?></td>
                                                             <td class="small text-muted"><?= date('M d, Y', strtotime($sub['submitted_at'])) ?></td>
                                                             <td class="text-center">
                                                                 <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-primary hover-lift d-inline-block">
@@ -334,6 +364,8 @@ $notifications = get_notifications($user_id, 5);
                                                     <tr>
                                                         <th class="ps-4">Course</th>
                                                         <th>Instructor</th>
+                                                        <th>Semester</th>
+                                                        <th>Year Level</th>
                                                         <th>Status</th>
                                                         <th>Reviewed</th>
                                                         <th class="text-center">Syllabus</th>
@@ -342,7 +374,11 @@ $notifications = get_notifications($user_id, 5);
                                                 </thead>
                                                 <tbody>
                                                     <?php foreach ($approved_rows as $sub): ?>
-                                                        <tr class="review-item" data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>">
+                                                        <tr class="review-item" 
+                                                            data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>"
+                                                            data-subject-type="<?= htmlspecialchars($sub['subject_type'] ?? '') ?>"
+                                                            data-semester="<?= htmlspecialchars($sub['semester'] ?? '') ?>"
+                                                            data-year-level="<?= htmlspecialchars($sub['year_level'] ?? '') ?>">
                                                             <td class="ps-4">
                                                                 <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
                                                                 <div class="text-secondary small"><?= htmlspecialchars($sub['course_title']) ?></div>
@@ -351,7 +387,9 @@ $notifications = get_notifications($user_id, 5);
                                                                 <div class="small fw-bold" style="color:var(--text)"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
                                                                 <div class="text-muted small" style="font-size:0.7rem"><?= ucfirst(htmlspecialchars($sub['uploader_role'] ?? 'faculty')) ?></div>
                                                             </td>
-                                                            <td><span class="badge-status bg-success-subtle text-success">Forwarded</span></td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['semester'] ?? 'N/A') ?></td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['year_level'] ?? 'N/A') ?></td>
+                                                            <td><span class="badge-status bg-success-subtle text-success">Approved</span></td>
                                                             <td class="small text-muted"><?= date('M d, Y', strtotime($sub['reviewed_at'])) ?></td>
                                                             <td class="text-center">
                                                                 <a href="../faculty/view_syllabus.php?file=<?= urlencode(basename($sub['file_path'])) ?>" target="_blank" class="text-primary hover-lift d-inline-block">
@@ -386,6 +424,8 @@ $notifications = get_notifications($user_id, 5);
                                                     <tr>
                                                         <th class="ps-4">Course</th>
                                                         <th>Instructor</th>
+                                                        <th>Semester</th>
+                                                        <th>Year Level</th>
                                                         <th>Reason</th>
                                                         <th>Declined</th>
                                                         <th class="text-center">Syllabus</th>
@@ -394,7 +434,11 @@ $notifications = get_notifications($user_id, 5);
                                                 </thead>
                                                 <tbody>
                                                     <?php foreach ($rejected_rows as $sub): ?>
-                                                        <tr class="review-item" data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>">
+                                                        <tr class="review-item" 
+                                                            data-search="<?= strtolower(htmlspecialchars($sub['course_code'] . ' ' . $sub['course_title'] . ' ' . $sub['first_name'] . ' ' . $sub['last_name'])) ?>"
+                                                            data-subject-type="<?= htmlspecialchars($sub['subject_type'] ?? '') ?>"
+                                                            data-semester="<?= htmlspecialchars($sub['semester'] ?? '') ?>"
+                                                            data-year-level="<?= htmlspecialchars($sub['year_level'] ?? '') ?>">
                                                             <td class="ps-4">
                                                                 <div class="fw-bold small" style="color:var(--text)"><?= htmlspecialchars($sub['course_code']) ?></div>
                                                                 <div class="text-secondary small"><?= htmlspecialchars($sub['course_title']) ?></div>
@@ -403,6 +447,8 @@ $notifications = get_notifications($user_id, 5);
                                                                 <div class="small fw-bold" style="color:var(--text)"><?= htmlspecialchars($sub['first_name'] . ' ' . $sub['last_name']) ?></div>
                                                                 <div class="text-muted small" style="font-size:0.7rem"><?= htmlspecialchars($sub['uploader_email']) ?></div>
                                                             </td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['semester'] ?? 'N/A') ?></td>
+                                                            <td class="small text-muted"><?= htmlspecialchars($sub['year_level'] ?? 'N/A') ?></td>
                                                             <td class="small"><?= htmlspecialchars($sub['comment'] ?? 'No reason provided') ?></td>
                                                             <td class="small text-muted"><?= date('M d, Y', strtotime($sub['reviewed_at'])) ?></td>
                                                             <td class="text-center">
@@ -437,14 +483,42 @@ $notifications = get_notifications($user_id, 5);
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
 
         // Real-time search/filter
-        document.getElementById('reviewSearch').addEventListener('input', function (e) {
-            const q = e.target.value.toLowerCase().trim();
-            const activePane = document.querySelector('.tab-pane.active');
+        function applyTableFilters() {
+            const query = document.getElementById('reviewSearch').value.toLowerCase().trim();
+            const subjectVal = document.getElementById('filterSubjectType').value;
+            const semVal = document.getElementById('filterSemester').value;
+            const yearVal = document.getElementById('filterYearLevel').value;
+            
+            const activePane = document.querySelector('.tab-pane.active') || document;
             const items = activePane.querySelectorAll('.review-item');
-
+            
             items.forEach(item => {
                 const text = item.getAttribute('data-search') || '';
-                item.style.display = text.includes(q) ? '' : 'none';
+                const rowSubject = item.getAttribute('data-subject-type') || '';
+                const rowSem = item.getAttribute('data-semester') || '';
+                const rowYear = item.getAttribute('data-year-level') || '';
+                
+                const matchesSearch = text.includes(query);
+                const matchesSubject = !subjectVal || rowSubject === subjectVal;
+                const matchesSem = !semVal || rowSem === semVal;
+                const matchesYear = !yearVal || rowYear === yearVal;
+                
+                if (matchesSearch && matchesSubject && matchesSem && matchesYear) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        document.getElementById('reviewSearch').addEventListener('input', applyTableFilters);
+        document.getElementById('filterSubjectType').addEventListener('change', applyTableFilters);
+        document.getElementById('filterSemester').addEventListener('change', applyTableFilters);
+        document.getElementById('filterYearLevel').addEventListener('change', applyTableFilters);
+
+        document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tabEl => {
+            tabEl.addEventListener('shown.bs.tab', () => {
+                applyTableFilters();
             });
         });
 
@@ -454,7 +528,7 @@ $notifications = get_notifications($user_id, 5);
             if (action === 'approve') {
                 Swal.fire({
                     title: 'Approve Syllabus?',
-                    html: `Approve <strong>${courseCode}</strong> and forward to VPAA?`,
+                    html: `Approve <strong>${courseCode}</strong>?`,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: 'var(--success)',

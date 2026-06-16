@@ -61,11 +61,6 @@ $stmt->execute($params);
 $vault_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $colleges = get_colleges();
 
-$vpaa_pending_count = (int) $conn->query("
-    SELECT COUNT(DISTINCT sw.syllabus_id) FROM syllabus_workflow sw
-    JOIN roles r ON sw.role_id = r.id WHERE r.role_name='vpaa' AND sw.action='Pending'
-")->fetchColumn();
-
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 ?>

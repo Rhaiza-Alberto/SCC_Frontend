@@ -45,20 +45,15 @@ $workflows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Map workflow to stages
 // Stages:
-// 1. Submitted by Faculty
+// 1. Submitted by Faculty (or Dean)
 // 2. Pending Dean Review
 // 3. Approved by Dean
-// 4. Pending VPAA Review
-// 5. Approved by VPAA
-// 6. Archived / Stored in Vault
+// 4. Archived in Vault
 
 $stages = [
     1 => ['label' => 'Submitted by Faculty', 'icon' => 'bi-cloud-arrow-up', 'status' => 'completed', 'time' => $syllabus['submitted_at'], 'comment' => ''],
     2 => ['label' => 'Pending Dean Review', 'icon' => 'bi-hourglass-split', 'status' => 'pending', 'time' => null, 'comment' => ''],
     3 => ['label' => 'Approved by Dean', 'icon' => 'bi-check2-circle', 'status' => 'upcoming', 'time' => null, 'comment' => ''],
-    4 => ['label' => 'Pending VPAA Review', 'icon' => 'bi-hourglass-split', 'status' => 'upcoming', 'time' => null, 'comment' => ''],
-    5 => ['label' => 'Approved by VPAA', 'icon' => 'bi-shield-check', 'status' => 'upcoming', 'time' => null, 'comment' => ''],
-    6 => ['label' => 'Archived in Vault', 'icon' => 'bi-archive', 'status' => 'upcoming', 'time' => null, 'comment' => ''],
 ];
 
 $is_rejected = false;
@@ -74,7 +69,6 @@ if ($is_dean_uploader) {
     $stages[3]['status'] = 'completed';
     $stages[3]['label'] = 'Auto-Approved (Uploader)';
     $stages[3]['time'] = $syllabus['submitted_at'];
-    $stages[4]['status'] = 'current';
 }
 
 foreach ($workflows as $wf) {
@@ -86,7 +80,6 @@ foreach ($workflows as $wf) {
             $stages[2]['status'] = 'completed';
             $stages[3]['status'] = 'completed';
             $stages[3]['time'] = $wf['action_at'];
-            $stages[4]['status'] = 'current'; // Move to VPAA Pending
         } elseif ($wf['action'] === 'Rejected') {
             $stages[2]['status'] = 'completed';
             $stages[3]['label'] = 'Returned by Dean';
@@ -98,27 +91,6 @@ foreach ($workflows as $wf) {
             $reject_stage = 3;
             break;
         }
-    } elseif ($wf['role_name'] === 'vpaa') {
-        if ($wf['action'] === 'Pending') {
-            $stages[4]['status'] = 'current';
-            $stages[4]['time'] = $wf['action_at'];
-        } elseif ($wf['action'] === 'Approved') {
-            $stages[4]['status'] = 'completed';
-            $stages[5]['status'] = 'completed';
-            $stages[5]['time'] = $wf['action_at'];
-            $stages[6]['status'] = 'completed';
-            $stages[6]['time'] = $wf['action_at'];
-        } elseif ($wf['action'] === 'Rejected') {
-            $stages[4]['status'] = 'completed';
-            $stages[5]['label'] = 'Returned by VPAA';
-            $stages[5]['icon'] = 'bi-x-circle';
-            $stages[5]['status'] = 'rejected';
-            $stages[5]['time'] = $wf['action_at'];
-            $stages[5]['comment'] = $wf['comment'];
-            $is_rejected = true;
-            $reject_stage = 5;
-            break;
-        }
     }
 }
 
@@ -127,9 +99,14 @@ if (!$is_rejected) {
     if ($syllabus['status'] === 'Approved') {
         $stages[2]['status'] = 'completed';
         $stages[3]['status'] = 'completed';
-        $stages[4]['status'] = 'completed';
-        $stages[5]['status'] = 'completed';
-        $stages[6]['status'] = 'completed';
+
+        $dean_app_time = null;
+        foreach ($workflows as $wf) {
+            if ($wf['role_name'] === 'dean' && $wf['action'] === 'Approved') {
+                $dean_app_time = $wf['action_at'];
+            }
+        }
+        $stages[3]['time'] = $dean_app_time ?? $syllabus['submitted_at'];
     }
 }
 
@@ -162,7 +139,7 @@ if (!$is_rejected) {
     position: relative;
     z-index: 2;
     text-align: center;
-    width: 16.66%;
+    width: 33.33%;
     padding: 0 10px;
 }
 .tracker-icon {
@@ -255,9 +232,9 @@ if (!$is_rejected) {
                     </div>
                 <?php endif; ?>
                 
-                <?php if ($i < 6 && $stage['status'] === 'completed'): ?>
+                <?php if ($i < 3 && $stage['status'] === 'completed'): ?>
                     <!-- Highlighted connector to next step if this step is completed -->
-                    <div class="tracker-connector" style="width: 100%;"></div>
+                    <div class="tracker-connector"></div>
                 <?php endif; ?>
             </div>
         <?php endforeach; ?>

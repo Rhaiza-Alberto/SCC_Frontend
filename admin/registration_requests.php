@@ -86,7 +86,7 @@ $pending_review_count = (int) $conn->query("
     <?php $active_page = 'registration'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="scc-page-header d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">Registration <span style="color:var(--primary)">Requests</span></h4>
                 <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Approve or reject new faculty access requests</p>

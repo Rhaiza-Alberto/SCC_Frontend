@@ -32,8 +32,9 @@ $school_year = trim($_POST['school_year'] ?? get_current_school_year());
 $year_level = trim($_POST['year_level'] ?? '');
 
 // ── Validate required fields ─────────────────────────────────────────────────
-if (empty($course_id) || empty($subject_type) || empty($semester) || empty($school_year)) {
+if (empty($course_id) || empty($subject_type) || empty($semester) || empty($school_year) || empty($year_level)) {
     $_SESSION['upload_error'] = 'Please fill in all required fields.';
+    $_SESSION['error_message'] = 'Please fill in all required fields.';
     header('Location: ' . $back_url);
     exit();
 }
@@ -46,6 +47,7 @@ $course = $cstmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$course) {
     $_SESSION['upload_error'] = 'Invalid course selected.';
+    $_SESSION['error_message'] = 'Invalid course selected.';
     header('Location: ' . $back_url);
     exit();
 }
@@ -68,6 +70,7 @@ if (!isset($_FILES['pdf_file']) || $_FILES['pdf_file']['error'] !== UPLOAD_ERR_O
     ];
     $err_code = $_FILES['pdf_file']['error'] ?? UPLOAD_ERR_NO_FILE;
     $_SESSION['upload_error'] = $upload_errors[$err_code] ?? 'Unknown upload error.';
+    $_SESSION['error_message'] = $_SESSION['upload_error'];
     header('Location: ' . $back_url);
     exit();
 }
@@ -78,12 +81,14 @@ $filetype = mime_content_type($tmp_path);
 
 if ($filetype !== 'application/pdf') {
     $_SESSION['upload_error'] = 'Only PDF files are allowed.';
+    $_SESSION['error_message'] = 'Only PDF files are allowed.';
     header('Location: ' . $back_url);
     exit();
 }
 
 if ($file['size'] > 10 * 1024 * 1024) {
     $_SESSION['upload_error'] = 'File size must not exceed 10 MB.';
+    $_SESSION['error_message'] = 'File size must not exceed 10 MB.';
     header('Location: ' . $back_url);
     exit();
 }
@@ -101,6 +106,7 @@ $dest_path = $upload_dir . $unique_name;
 
 if (!move_uploaded_file($tmp_path, $dest_path)) {
     $_SESSION['upload_error'] = 'Failed to save the uploaded file. Please try again.';
+    $_SESSION['error_message'] = 'Failed to save the uploaded file. Please try again.';
     header('Location: ' . $back_url);
     exit();
 }
@@ -115,8 +121,8 @@ try {
     $stmt = $conn->prepare("
         INSERT INTO syllabus
             (uploaded_by, course_id, course_code, course_title, course_name,
-             subject_type, semester, school_year, file_path, status, submitted_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
+             subject_type, semester, school_year, year_level, file_path, status, submitted_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', NOW())
     ");
     $stmt->execute([
         $user_id,
@@ -127,29 +133,17 @@ try {
         $subject_type,
         $semester,
         $school_year,
+        $year_level,
         $web_path,
     ]);
     $syllabus_id = (int) $conn->lastInsertId();
 
     // ── Insert workflow step based on who uploaded ────────────────────────────
     if ($is_dean) {
-        // Dean's own upload: skip dean review, go straight to VPAA
-        $vpaa_role_id = get_role_id('vpaa');
-        if (!$vpaa_role_id) {
-            throw new Exception("'vpaa' role not found in roles table.");
-        }
-        $conn->prepare("
-            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action)
-            VALUES (?, 2, ?, 'Pending')
-        ")->execute([$syllabus_id, $vpaa_role_id]);
-
+        // Dean's own upload: immediately approved
+        $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")->execute([$syllabus_id]);
         $conn->commit();
-
-        // Notify VPAA
-        notify_next_reviewer($syllabus_id, 'vpaa');
-
-        $_SESSION['upload_success'] = "Syllabus for \"{$course_code}\" submitted and sent to VPAA for final approval.";
-
+        $_SESSION['upload_success'] = "Syllabus for \"{$course_code}\" submitted and approved successfully.";
     } else {
         // Faculty upload: first reviewer is the dean
         $dean_role_id = get_role_id('dean');
@@ -175,11 +169,15 @@ try {
     exit();
 
 } catch (Exception $e) {
-    $conn->rollBack();
-    if (file_exists($dest_path))
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+    if (file_exists($dest_path)) {
         unlink($dest_path);
+    }
     error_log('Upload DB Error: ' . $e->getMessage());
     $_SESSION['upload_error'] = 'A database error occurred. Please try again.';
+    $_SESSION['error_message'] = 'A database error occurred: ' . $e->getMessage();
     header('Location: ' . $back_url);
     exit();
 }

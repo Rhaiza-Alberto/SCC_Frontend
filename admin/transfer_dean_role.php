@@ -114,12 +114,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php $active_page = 'users'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <div class="scc-page-header d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">Transfer <span style="color:var(--primary)">Dean Role</span></h4>
                 <p style="font-size:0.85rem;color:var(--text-secondary);margin:0">Succession management and administrative role handover</p>
             </div>
-            <div class="d-flex align-items-center gap-3">
+            <div>
                 <a href="manage_user.php" class="btn btn-light border fw-bold text-secondary rounded-pill px-4">
                     <i class="bi bi-arrow-left me-2"></i> Back to Users
                 </a>

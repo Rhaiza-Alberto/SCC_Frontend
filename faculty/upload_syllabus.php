@@ -223,7 +223,8 @@ $course_list = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+        const uploadForm = document.getElementById('uploadForm');
+        uploadForm.addEventListener('submit', function (e) {
             e.preventDefault();
             Swal.fire({
                 title: 'Confirm Submission',
@@ -235,7 +236,7 @@ $course_list = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
                 confirmButtonText: 'Yes, submit it!'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    this.submit();
+                    uploadForm.submit();
                 }
             });
         });

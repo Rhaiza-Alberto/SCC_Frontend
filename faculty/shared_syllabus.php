@@ -1,7 +1,7 @@
 <?php
 /**
  * faculty/shared_syllabus.php
- * Displays all VPAA-approved syllabi shared across faculty and dean.
+ * Displays all Dean-approved syllabi shared across faculty and dean.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -26,10 +26,12 @@ $notifications = get_notifications($user_id, 5);
 $approved_syllabi = get_shared_syllabi($_SESSION['college_id'] ?? null);
 
 /* ── Unique filter values ── */
+$colleges = array_unique(array_filter(array_column($approved_syllabi, 'college_name')));
 $semesters = array_unique(array_filter(array_column($approved_syllabi, 'semester')));
-$year_levels = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
+$years = array_unique(array_filter(array_column($approved_syllabi, 'school_year')));
+sort($colleges);
 sort($semesters);
-rsort($year_levels);
+rsort($years);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,127 +85,160 @@ rsort($year_levels);
         </div>
 
             <!-- Stats Row -->
-        <div class="row g-3 mb-4">
-            <?php $stats_data = [
-                ['label' => 'Approved Syllabi', 'value' => count($approved_syllabi), 'icon' => 'bi-journal-check'],
-                ['label' => 'Contributing Faculty', 'value' => count(array_unique(array_column($approved_syllabi, 'faculty_name'))), 'icon' => 'bi-people'],
-                ['label' => 'Active Terms', 'value' => count($semesters), 'icon' => 'bi-calendar3']
-            ]; foreach ($stats_data as $i => $s): ?>
-            <div class="col-md-4">
-                <div class="scc-stat stat-total animate-in animate-in-delay-<?= $i ?>">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="stat-label"><?= $s['label'] ?></div>
-                            <div class="stat-value" style="color:var(--text)"><?= $s['value'] ?></div>
-                        </div>
-                        <div class="stat-icon"><i class="bi <?= $s['icon'] ?>"></i></div>
-                    </div>
-                </div>
-            </div>
-            <?php endforeach; ?>
-        </div>
-
-            <!-- Filter / Search Bar -->
-        <div class="scc-card mb-4 animate-in">
-            <div class="card-body p-4">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="input-group">
-                            <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" id="searchInput" class="form-control border-start-0 ps-0" style="font-size:0.85rem" placeholder="Search by course or faculty...">
-                        </div>
-                    </div>
-                    <div class="col-md-2">
-                        <select id="semFilter" class="form-select" style="font-size:0.85rem">
-                            <option value="">All Semesters</option>
-                            <option value="1st Semester">1st Semester</option>
-                            <option value="2nd Semester">2nd Semester</option>
-                            <option value="Summer">Summer</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select id="yearFilter" class="form-select" style="font-size:0.85rem">
-                            <option value="">All Year Levels</option>
-                            <option value="1st Year">1st Year</option>
-                            <option value="2nd Year">2nd Year</option>
-                            <option value="3rd Year">3rd Year</option>
-                            <option value="4th Year">4th Year</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-light border w-100 fw-bold" style="font-size:0.85rem" id="clearFilters">Clear All</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-            <!-- Syllabi Cards Grid -->
-            <div id="syllabi-container" class="row g-3">
-                <?php if (empty($approved_syllabi)): ?>
-                    <div class="col-12 text-center py-5 text-muted">
-                        <i class="bi bi-folder2-open fs-1 text-primary opacity-50 mb-3 d-block"></i>
-                        <p class="mb-0">No approved syllabi currently shared in the repository.</p>
-                    </div>
-                <?php else: ?>
-                    <?php foreach ($approved_syllabi as $row): ?>
-                        <div class="col-xl-3 col-lg-4 col-md-6 syllabus-card-item animate-in" 
-                             data-search="<?= strtolower(htmlspecialchars($row['course_code'] . ' ' . $row['course_title'] . ' ' . $row['faculty_name'])) ?>"
-                             data-sem="<?= htmlspecialchars($row['semester'] ?? '') ?>"
-                             data-year="<?= htmlspecialchars($row['school_year'] ?? '') ?>">
-                            <div class="scc-card h-100 border-0 shadow-sm" style="border-top: 3px solid var(--primary) !important;">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <span class="badge bg-primary-light text-primary fw-bold" style="font-size: 0.65rem;"><?= htmlspecialchars($row['course_code']) ?></span>
-                                        <a href="view_syllabus.php?file=<?= urlencode(basename($row['file_path'])) ?>" target="_blank" class="text-primary"><i class="bi bi-file-earmark-pdf fs-5"></i></a>
-                                    </div>
-                                    <h6 class="fw-bold mb-1 text-truncate" style="color:var(--text); font-size: 0.9rem;" title="<?= htmlspecialchars($row['course_title']) ?>"><?= htmlspecialchars($row['course_title']) ?></h6>
-                                    
-                                    <div class="mt-3 pt-2 border-top">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-person text-muted me-2" style="font-size: 0.8rem;"></i>
-                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['faculty_name']) ?></span>
-                                        </div>
-                                        <div class="d-flex align-items-center mb-2">
-                                            <i class="bi bi-mortarboard text-muted me-2" style="font-size: 0.8rem;"></i>
-                                            <span class="small text-muted text-truncate"><?= htmlspecialchars($row['school_year'] ?? '—') ?> Level</span>
-                                        </div>
-                                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                                            <div>
-                                                <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Submission Date</div>
-                                                <div class="fw-bold small" style="color: var(--text-secondary);"><?= date('M d, Y', strtotime($row['submitted_at'])) ?></div>
-                                            </div>
-                                            <div class="text-end">
-                                                <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Current Status</div>
-                                                <span class="badge rounded-pill bg-success-light text-success fw-bold" style="font-size: 0.6rem;">APPROVED</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="row g-3 mb-4 animate-in">
+                <div class="col-12 col-md-6">
+                    <div class="scc-stat p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon" style="background:rgba(34,197,94,0.1);color:var(--success)"><i class="bi bi-journal-check"></i></div>
+                            <div>
+                                <h3 class="stat-value mb-0"><?= count($approved_syllabi) ?></h3>
+                                <p class="stat-label mb-0">Approved Syllabi</p>
                             </div>
                         </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="scc-stat p-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon" style="background:rgba(59,130,246,0.1);color:var(--primary)"><i class="bi bi-people"></i></div>
+                            <div>
+                                <h3 class="stat-value mb-0"><?= count(array_unique(array_column($approved_syllabi, 'faculty_name'))) ?></h3>
+                                <p class="stat-label mb-0">Contributing Faculty</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div id="noResults" class="text-center py-5 text-muted d-none">
-                <i class="bi bi-search fs-2 mb-2 d-block opacity-50"></i>
-                No syllabi match your search criteria.
+
+            <!-- Filter / Search Bar -->
+            <div class="scc-card p-3 mb-4 animate-in">
+                <div class="row g-2 align-items-end">
+                    <div class="col-12 col-md-5">
+                        <label class="form-label small fw-bold text-muted mb-1">Search repository</label>
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute" style="left:12px;top:50%;transform:translateY(-50%);color:var(--text-muted)"></i>
+                            <input type="text" id="searchInput" class="form-control ps-5" placeholder="Course code, title, or faculty…" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem 0.6rem 0.6rem 2.5rem;">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Semester</label>
+                        <select id="semFilter" class="form-select" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem;">
+                            <option value="">All Semesters</option>
+                            <?php foreach ($semesters as $sem): ?>
+                                <option value="<?= htmlspecialchars($sem) ?>"><?= htmlspecialchars($sem) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <label class="form-label small fw-bold text-muted mb-1">Year Level</label>
+                        <select id="yearFilter" class="form-select" style="border-radius:var(--radius-sm);background:var(--bg-card);border:1px solid var(--border); padding:0.6rem;">
+                            <option value="">All Year Levels</option>
+                            <?php foreach ($years as $yr): ?>
+                                <option value="<?= htmlspecialchars($yr) ?>"><?= htmlspecialchars($yr) ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-1 d-flex align-items-end">
+                        <button class="btn btn-outline-scc w-100" id="clearFilters" title="Clear filters" style="border-radius:var(--radius-sm); padding:0.6rem;">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Syllabi Table -->
+            <div class="scc-card animate-in">
+                <div class="card-body p-0">
+                    <?php if (empty($approved_syllabi)): ?>
+                        <div class="text-center py-5" style="color:var(--text-muted)">
+                            <i class="bi bi-folder2-open fs-1 mb-3 d-block opacity-50"></i>
+                            <p class="mb-0">No approved syllabi yet.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="table-responsive">
+                            <table class="scc-table" id="syllabi-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-secondary small ps-4">#</th>
+                                        <th class="text-secondary small">COURSE</th>
+                                        <th class="text-secondary small">FACULTY</th>
+                                        <th class="text-secondary small d-none d-lg-table-cell">COLLEGE</th>
+                                        <th class="text-secondary small d-none d-md-table-cell">SEMESTER</th>
+                                        <th class="text-secondary small d-none d-xl-table-cell">YEAR LEVEL</th>
+                                        <th class="text-secondary small d-none d-md-table-cell">SUBMITTED</th>
+                                        <th class="text-secondary small text-center">STATUS</th>
+                                        <th class="text-secondary small text-center pe-4">FILE</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($approved_syllabi as $i => $row): ?>
+                                        <tr data-search="<?= strtolower(htmlspecialchars($row['course_code'] . ' ' . $row['course_title'] . ' ' . $row['faculty_name'])) ?>"
+                                            data-dept="<?= htmlspecialchars($row['college_name'] ?? '') ?>"
+                                            data-sem="<?= htmlspecialchars($row['semester'] ?? '') ?>"
+                                            data-year="<?= htmlspecialchars($row['school_year'] ?? '') ?>">
+                                            <td class="ps-4 text-muted small"><?= $i + 1 ?></td>
+                                            <td>
+                                                <div class="fw-bold small"><?= htmlspecialchars($row['course_code']) ?></div>
+                                                <div class="text-muted" style="font-size:.72rem;max-width:180px;"
+                                                    class="text-truncate">
+                                                    <?= htmlspecialchars($row['course_title']) ?>
+                                                </div>
+                                            </td>
+                                            <td class="small"><?= htmlspecialchars($row['faculty_name']) ?></td>
+                                            <td class="small d-none d-lg-table-cell text-muted">
+                                                <?= htmlspecialchars($row['college_name'] ?? '—') ?>
+                                            </td>
+                                            <td class="small d-none d-md-table-cell">
+                                                <?= htmlspecialchars($row['semester'] ?? '—') ?>
+                                            </td>
+                                            <td class="small d-none d-xl-table-cell">
+                                                <?= htmlspecialchars($row['school_year'] ?? '—') ?>
+                                            </td>
+                                            <td class="small d-none d-md-table-cell text-muted">
+                                                <?= date('M d, Y', strtotime($row['submitted_at'])) ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge-status bg-success-subtle text-success">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Approved
+                                                </span>
+                                            </td>
+                                            <td class="text-center pe-4">
+                                                <a href="view_syllabus.php?file=<?= urlencode(basename($row['file_path'])) ?>"
+                                                    target="_blank" rel="noopener" class="btn btn-sm btn-link text-orange p-0"
+                                                    title="View PDF">
+                                                    <i class="bi bi-file-earmark-pdf fs-5"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="noResults" class="text-center py-5 text-muted d-none">
+                            <i class="bi bi-search fs-2 mb-2 d-block opacity-50"></i>
+                            No syllabi match your filters.
+                        </div>
+                    <?php endif; ?>
+                </div>
             </div>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/common.js"></script>
     <script>
-        function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+    </script>
+    <script>
         (function () {
             const searchInput = document.getElementById('searchInput');
             const semFilter = document.getElementById('semFilter');
             const yearFilter = document.getElementById('yearFilter');
             const clearBtn = document.getElementById('clearFilters');
-            const container = document.getElementById('syllabi-container');
+            const table = document.getElementById('syllabi-table');
             const noResults = document.getElementById('noResults');
-            const cards = document.querySelectorAll('.syllabus-card-item');
 
-            if (!container) return;
+            if (!table) return;
 
             function applyFilters() {
                 const q = searchInput.value.toLowerCase().trim();
@@ -211,12 +246,12 @@ rsort($year_levels);
                 const yr = yearFilter.value;
                 let visible = 0;
 
-                cards.forEach(card => {
-                    const matchSearch = !q || card.dataset.search.includes(q);
-                    const matchSem = !sem || card.dataset.sem === sem;
-                    const matchYear = !yr || card.dataset.year === yr;
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    const matchSearch = !q || row.dataset.search.includes(q);
+                    const matchSem = !sem || row.dataset.sem === sem;
+                    const matchYear = !yr || row.dataset.year === yr;
                     const show = matchSearch && matchSem && matchYear;
-                    card.classList.toggle('d-none', !show);
+                    row.style.display = show ? '' : 'none';
                     if (show) visible++;
                 });
 
@@ -235,4 +270,5 @@ rsort($year_levels);
         })();
     </script>
 </body>
+
 </html>

@@ -30,7 +30,7 @@ $total_faculty_uploads = (int) $conn->prepare("SELECT COUNT(*) FROM syllabus s J
 // Re-running because previous check was slightly wrong logic in one line
 $total_faculty_uploads = (int) $conn->query("SELECT COUNT(*) FROM syllabus s JOIN users u ON s.uploaded_by = u.id JOIN roles r ON u.role_id = r.id WHERE r.role_name = 'faculty'")->fetchColumn();
 
-// Dean Approval Stats (How many approved by Deans but maybe not yet by VPAA)
+// Dean Approval Stats
 $dean_approved_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id) 
     FROM syllabus_workflow sw 
@@ -38,12 +38,12 @@ $dean_approved_count = (int) $conn->query("
     WHERE r.role_name = 'dean' AND sw.action = 'Approved'
 ")->fetchColumn();
 
-// Syllabi waiting for VPAA final approval
-$vpaa_pending_count = (int) $conn->query("
+// Syllabi waiting for Dean approval
+$dean_pending_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
     JOIN roles r ON sw.role_id = r.id
-    WHERE r.role_name = 'vpaa' AND sw.action = 'Pending'
+    WHERE r.role_name = 'dean' AND sw.action = 'Pending'
 ")->fetchColumn();
 
 // Revision Requests (Total Rejections in workflow)
@@ -154,27 +154,13 @@ $notifications = get_notifications($user_id, 5);
                 </div>
             </div>
 
-            <!-- Priority Alert -->
-            <?php if ($vpaa_pending_count > 0): ?>
-                <div class="alert border-0 shadow-sm mb-4 d-flex align-items-center p-3 rounded-4 animate-in" style="background: var(--primary-light); border-left: 5px solid var(--primary) !important;">
-                    <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width:45px;height:45px;">
-                        <i class="bi bi-shield-lock-fill fs-4"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1 text-dark">Institutional Action Required</h6>
-                        <p class="mb-0 text-muted small">There are <strong><?= $vpaa_pending_count ?></strong> syllabus submission(s) currently awaiting your final institutional approval.</p>
-                    </div>
-                    <a href="syllabus_review.php" class="btn btn-primary-scc rounded-pill px-4 py-2 fw-bold small ms-3 shadow-sm">Review Now</a>
-                </div>
-            <?php endif; ?>
-
             <!-- Analytics Summary Cards -->
             <div class="row g-3 mb-4">
                 <?php 
                 $vpaa_stats = [
                     ['label' => 'Total Submissions', 'value' => $total_count, 'icon' => 'bi-files', 'color' => 'var(--primary)', 'bg' => 'var(--primary-light)'],
                     ['label' => 'Fully Approved', 'value' => $approved_count, 'icon' => 'bi-patch-check', 'color' => 'var(--success)', 'bg' => 'var(--success-light)'],
-                    ['label' => 'Pending VPAA', 'value' => $vpaa_pending_count, 'icon' => 'bi-clock-history', 'color' => 'var(--warning)', 'bg' => 'var(--warning-light)'],
+                    ['label' => 'Pending Dean', 'value' => $dean_pending_count, 'icon' => 'bi-clock-history', 'color' => 'var(--warning)', 'bg' => 'var(--warning-light)'],
                     ['label' => 'Revision Requests', 'value' => $revision_requests, 'icon' => 'bi-arrow-repeat', 'color' => 'var(--danger)', 'bg' => 'var(--danger-light)'],
                     ['label' => 'Faculty Uploads', 'value' => $total_faculty_uploads, 'icon' => 'bi-person-up', 'color' => '#6366f1', 'bg' => 'rgba(99, 102, 241, 0.1)'],
                     ['label' => 'Dean Approvals', 'value' => $dean_approved_count, 'icon' => 'bi-person-check', 'color' => '#8b5cf6', 'bg' => 'rgba(139, 92, 246, 0.1)']
@@ -324,11 +310,11 @@ $notifications = get_notifications($user_id, 5);
                                 <i class="bi bi-stack text-warning fs-3"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-1">Review <span class="text-orange">Queue</span></h6>
-                                <p class="mb-0 text-muted small"><?= $vpaa_pending_count ?> syllabi currently awaiting institutional verification.</p>
+                                <h6 class="fw-bold mb-1">Approved <span class="text-orange">Syllabi</span></h6>
+                                <p class="mb-0 text-muted small">View and search through all course syllabi approved by the Dean.</p>
                             </div>
                         </div>
-                        <a href="syllabus_review.php" class="btn btn-primary-scc w-100 py-2 fw-bold">Open Review Queue</a>
+                        <a href="syllabus_review.php" class="btn btn-primary-scc w-100 py-2 fw-bold">Open Approved Syllabi</a>
                     </div>
                 </div>
                 <div class="col-md-6">

@@ -51,9 +51,22 @@ if (!$syllabus) {
 $success_message = $_SESSION['success_message'] ?? '';
 $error_message = $_SESSION['error_message'] ?? '';
 unset($_SESSION['success_message'], $_SESSION['error_message']);
-
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
+
+// Fetch latest rejection comment if status is Rejected
+$rejection = null;
+if ($syllabus['status'] === 'Rejected') {
+    $reject_stmt = $conn->prepare("
+        SELECT comment, action_at 
+        FROM syllabus_workflow 
+        WHERE syllabus_id = ? AND action = 'Rejected' 
+        ORDER BY action_at DESC 
+        LIMIT 1
+    ");
+    $reject_stmt->execute([$syllabus_id]);
+    $rejection = $reject_stmt->fetch(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -86,7 +99,7 @@ $notifications = get_notifications($user_id, 5);
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light">
     <?php include '_sidebar.php'; ?>
 
     <main class="scc-main">
@@ -117,6 +130,20 @@ $notifications = get_notifications($user_id, 5);
             <?php endif; ?>
 
             <div class="row">
+                <!-- Rejection alert callout -->
+                <?php if ($rejection && !empty($rejection['comment'])): ?>
+                    <div class="col-12 mb-4">
+                        <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-start gap-3 p-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 text-warning mt-1"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1 text-dark">Revision Required</h6>
+                                <p class="mb-1 text-secondary small">Rejection Reason: <strong><?= htmlspecialchars($rejection['comment']) ?></strong></p>
+                                <span class="text-muted" style="font-size: 0.7rem;"><i class="bi bi-clock"></i> Declined on <?= date('M d, Y h:i A', strtotime($rejection['action_at'])) ?></span>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <div class="col-lg-8">
                     <div class="scc-card animate-in">
                         <div class="card-body p-4">
@@ -168,7 +195,7 @@ $notifications = get_notifications($user_id, 5);
                                         <select class="form-select" name="year_level" required>
                                             <option disabled>-- Select --</option>
                                             <?php foreach (['1st Year', '2nd Year', '3rd Year', '4th Year'] as $lvl): ?>
-                                                <option value="<?= $lvl ?>" <?= ($syllabus['school_year'] ?? '') === $lvl ? 'selected' : '' ?>><?= $lvl ?></option>
+                                                <option value="<?= $lvl ?>" <?= ($syllabus['year_level'] ?? '') === $lvl ? 'selected' : '' ?>><?= $lvl ?></option>
                                             <?php endforeach; ?>
                                         </select>
                                     </div>

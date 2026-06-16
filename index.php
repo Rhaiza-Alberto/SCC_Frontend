@@ -108,7 +108,7 @@ require_once __DIR__ . '/functions.php';
             <a class="navbar-brand d-flex align-items-center gap-3" href="index.php">
                 <img src="css/logo.png" alt="Logo" width="42" height="42" class="rounded-circle shadow-sm">
                 <div class="d-none d-md-block">
-                    <div class="fw-bold fs-5 mb-0" style="color:var(--text); line-height:1">SCC <span
+                    <div class="fw-bold fs-5 mb-0" style="color:var(--text); line-height:1">SCCs <span
                             style="color:var(--primary)">Syllabus</span></div>
                     <small class="text-muted"
                         style="font-size: 0.6rem; letter-spacing: 1px; text-transform: uppercase;">College of Computing
@@ -136,7 +136,7 @@ require_once __DIR__ . '/functions.php';
                 <div class="col-lg-7">
                     <span class="badge rounded-pill mb-3 px-3 py-2 fw-bold"
                         style="background:rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(5px);">
-                        <i class="bi bi-shield-check me-2 text-warning"></i> SCC-CCS OFFICIAL PORTAL
+                        <i class="bi bi-shield-check me-2 text-warning"></i> SCCs-CCS OFFICIAL PORTAL
                     </span>
                     <h1 class="display-3 fw-bold mb-4" style="text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Streamlining
                         Academic <span style="color:var(--primary)">Excellence.</span></h1>
@@ -185,8 +185,8 @@ require_once __DIR__ . '/functions.php';
                             <i class="bi bi-diagram-3"></i>
                         </div>
                         <h5 class="fw-bold mb-3" style="font-size: 1.1rem;">Multi-tier Approval</h5>
-                        <p class="text-muted small mb-0">Automated workflow routing from Faculties to Dean and
-                            VPAA for thorough institutional review.</p>
+                        <p class="text-muted small mb-0">Automated workflow routing from Faculty to Dean for streamlined
+                            institutional approval.</p>
                     </div>
                 </div>
                 <div class="col-md-4">

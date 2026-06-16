@@ -68,39 +68,10 @@ $unread_count = count_unread_notifications($user_id);
     <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
 </head>
-<body class="bg-light">
-<div class="d-flex">
+<body>
+    <?php $active_page = 'notifications'; include '_sidebar.php'; ?>
 
-    <!-- Sidebar (same as dashboard) -->
-    <div class="sidebar sidebar-premium text-white p-2 min-vh-100 d-flex flex-column"
-         style="width:260px; position:fixed; z-index:1100;">
-        <div class="text-center mb-3 mt-2">
-            <img src="../css/logo.png" alt="CCS Logo" class="rounded-circle mb-2"
-                 style="width:80px;height:80px;border:2px solid rgba(255,136,0,.5);padding:3px;">
-            <h5 class="font-serif fw-bold text-orange mb-0">Dean's Panel</h5>
-            <p class="text-white-50 small fw-bold mb-0" style="font-size:.75rem;"><?= htmlspecialchars($username) ?></p>
-        </div>
-        <nav class="nav flex-column gap-2 mb-auto">
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">OVERVIEW</div>
-            <a href="admin_dashboard.php" class="nav-link text-white p-3 rounded hover-effect">Dashboard</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYLLABUS MANAGEMENT</div>
-            <a href="syllabus_review.php" class="nav-link text-white p-3 rounded hover-effect">Syllabus Review</a>
-            <a href="upload_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Upload Syllabus</a>
-            <a href="my_submissions.php" class="nav-link text-white p-3 rounded hover-effect">My Submissions</a>
-            <a href="shared_syllabus.php" class="nav-link text-white p-3 rounded hover-effect">Shared Syllabus</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">USER MANAGEMENT</div>
-            <a href="registration_requests.php" class="nav-link text-white p-3 rounded hover-effect">Registration Requests</a>
-            <a href="manage_user.php" class="nav-link text-white p-3 rounded hover-effect">Manage Users</a>
-            <a href="add_user.php" class="nav-link text-white p-3 rounded hover-effect">Add User</a>
-            <div class="sidebar-header-sm text-white-50 small fw-bold mb-1 ps-3 mt-4">SYSTEM</div>
-            <a href="profile.php" class="nav-link text-white p-3 rounded hover-effect">Profile</a>
-            <a href="../logout.php" class="nav-link text-white p-3 rounded hover-effect mt-5">Logout</a>
-        </nav>
-    </div>
-
-    <!-- Main Content -->
-    <div class="main-content flex-grow-1 p-5" style="margin-left:260px;">
-
+    <main class="scc-main">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h4 class="fw-bold mb-1" style="color:var(--text)">All <span style="color:var(--primary)">Notifications</span></h4>
@@ -112,6 +83,19 @@ $unread_count = count_unread_notifications($user_id);
                         <i class="bi bi-check2-all me-1"></i> Mark All as Read
                     </a>
                 <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="d-flex flex-column flex-md-row gap-3 mb-4 align-items-md-center justify-content-between animate-in" style="--animation-order:2">
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-primary filter-btn active" onclick="filterNotifications('all', this)">All</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterNotifications('unread', this)">Unread</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary filter-btn" onclick="filterNotifications('read', this)">Read</button>
+            </div>
+            <div class="position-relative search-container" style="width:100%; max-width:300px;">
+                <i class="bi bi-search position-absolute" style="left:12px; top:50%; transform:translateY(-50%); color:var(--text-muted)"></i>
+                <input type="text" id="notifSearch" class="form-control ps-5" placeholder="Search notifications..." style="border-radius:var(--radius-md); background:var(--bg-card); border:1px solid var(--border); height: 40px;">
             </div>
         </div>
 
@@ -163,6 +147,75 @@ $unread_count = count_unread_notifications($user_id);
     <script src="../js/common.js"></script>
     <script>
         function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('sidebarOverlay').classList.toggle('active');}
+
+        let currentFilter = 'all';
+
+        function filterNotifications(type, btn) {
+            currentFilter = type;
+            
+            // Update button classes
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('btn-primary', 'active');
+                b.classList.add('btn-outline-secondary');
+            });
+            btn.classList.remove('btn-outline-secondary');
+            btn.classList.add('btn-primary', 'active');
+            
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const searchVal = document.getElementById('notifSearch').value.toLowerCase().trim();
+            const items = document.querySelectorAll('.notification-item');
+            let visibleCount = 0;
+            
+            items.forEach(item => {
+                const pText = item.querySelector('p');
+                const text = pText ? pText.textContent.toLowerCase() : '';
+                const isUnread = item.classList.contains('unread');
+                
+                let matchFilter = false;
+                if (currentFilter === 'all') {
+                    matchFilter = true;
+                } else if (currentFilter === 'unread') {
+                    matchFilter = isUnread;
+                } else if (currentFilter === 'read') {
+                    matchFilter = !isUnread;
+                }
+                
+                let matchSearch = text.includes(searchVal);
+                
+                if (matchFilter && matchSearch) {
+                    item.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            let noMatchEl = document.getElementById('noNotifMatch');
+            if (visibleCount === 0 && items.length > 0) {
+                if (!noMatchEl) {
+                    noMatchEl = document.createElement('div');
+                    noMatchEl.id = 'noNotifMatch';
+                    noMatchEl.className = 'text-center py-5 text-muted';
+                    noMatchEl.innerHTML = '<i class="bi bi-search fs-1 d-block mb-3 opacity-25"></i>No notifications match your filters';
+                    const card = document.querySelector('.scc-card');
+                    if (card) card.appendChild(noMatchEl);
+                } else {
+                    noMatchEl.style.display = 'block';
+                }
+            } else {
+                if (noMatchEl) {
+                    noMatchEl.style.display = 'none';
+                }
+            }
+        }
+
+        const searchInput = document.getElementById('notifSearch');
+        if (searchInput) {
+            searchInput.addEventListener('input', applyFilters);
+        }
     </script>
 </body>
 </html>

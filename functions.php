@@ -445,6 +445,17 @@ function init_syllabus_workflow($syllabus_id, $uploader_role = 'faculty')
     if ($is_dean) {
         // Dean's own upload is immediately approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")->execute([$syllabus_id]);
+        
+        $dean_role_id = get_role_id('dean');
+        $reviewer_id = $_SESSION['user_id'] ?? null;
+        if (!$reviewer_id) {
+            $dean = get_dean();
+            $reviewer_id = $dean ? $dean['id'] : null;
+        }
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at, comment)
+            VALUES (?, 1, ?, 'Approved', ?, NOW(), 'Dean uploaded syllabus')
+        ")->execute([$syllabus_id, $dean_role_id, $reviewer_id]);
     } else {
         $role_id = get_role_id('dean');
         $conn->prepare("

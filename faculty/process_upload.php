@@ -142,6 +142,14 @@ try {
     if ($is_dean) {
         // Dean's own upload: immediately approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")->execute([$syllabus_id]);
+        
+        // Insert Approved workflow step so it shows up in syllabus_review Approved tab
+        $dean_role_id = get_role_id('dean');
+        $conn->prepare("
+            INSERT INTO syllabus_workflow (syllabus_id, step_order, role_id, action, reviewer_id, action_at, comment)
+            VALUES (?, 1, ?, 'Approved', ?, NOW(), 'Dean uploaded syllabus')
+        ")->execute([$syllabus_id, $dean_role_id, $user_id]);
+
         $conn->commit();
         $_SESSION['upload_success'] = "Syllabus for \"{$course_code}\" submitted and approved successfully.";
     } else {

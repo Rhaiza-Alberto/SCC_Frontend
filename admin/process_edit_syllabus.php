@@ -127,8 +127,8 @@ try {
         $user_id,
     ]);
 
-    // Reset workflow so it restarts (dean is the final reviewer)
-    reset_syllabus_workflow($syllabus_id, 'faculty');
+    // Reset workflow so it restarts as auto-approved for Dean
+    reset_syllabus_workflow($syllabus_id, 'dean');
 
     // Delete old file if replaced
     if ($old_dest_path && file_exists($old_dest_path)) {

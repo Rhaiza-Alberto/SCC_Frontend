@@ -20,11 +20,12 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Fetch Courses with College Names
-$query = "SELECT c.*, col.college_name 
+// Fetch Courses with joined College AND Department Names
+$query = "SELECT c.*, col.college_name, d.department_name 
           FROM courses c 
           LEFT JOIN colleges col ON c.college_id = col.id 
-          ORDER BY col.college_name, c.course_code";
+          LEFT JOIN departments d ON c.department_id = d.id
+          ORDER BY col.college_name, d.department_name, c.course_code";
 $stmt = $conn->prepare($query);
 $stmt->execute();
 $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -45,7 +46,6 @@ $reg_count = (int) $conn->query("
     JOIN roles r ON u.role_id = r.id
     WHERE r.role_name = 'faculty' AND u.is_approved = 0 AND u.is_deleted = 0
 ")->fetchColumn();
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -100,7 +100,7 @@ $reg_count = (int) $conn->query("
         </div>
 
         <?php if (isset($_GET['deleted'])): ?>
-            <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4 animate-in" role="alert" style="background:var(--success-light);color:var(--success)">
+            <div class="alert alert-success alert-dismissible fade show rounded-4 border-0 shadow-sm p-3 mb-4" role="alert" style="background:var(--success-light);color:var(--success)">
                 <i class="bi bi-check-circle-fill me-2"></i> Course successfully removed from the repository.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
@@ -111,49 +111,55 @@ $reg_count = (int) $conn->query("
                 <h6 class="fw-bold mb-0" style="color:var(--text)">Course <span style="color:var(--primary)">Catalog</span></h6>
             </div>
             <div class="card-body p-4">
-                    <div class="table-responsive">
-                        <table class="scc-table">
-                            <thead>
+                <div class="table-responsive">
+                    <table class="scc-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px">#</th>
+                                <th>COURSE CODE</th>
+                                <th>COURSE TITLE</th>
+                                <th>COLLEGE</th>
+                                <th>DEPARTMENT</th>
+                                <th class="text-center">ACTIONS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($courses)): ?>
                                 <tr>
-                                    <th style="width: 50px">#</th>
-                                    <th>COURSE CODE</th>
-                                    <th>COURSE TITLE</th>
-                                    <th>COLLEGE</th>
-                                    <th class="text-center">ACTIONS</th>
+                                    <td colspan="6" class="text-center py-5 text-muted">No courses found.</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($courses)): ?>
+                            <?php else: 
+                                $c = 1;
+                                foreach ($courses as $course): ?>
                                     <tr>
-                                        <td colspan="5" class="text-center py-5 text-muted">No courses found.</td>
+                                        <td class="small text-muted"><?= $c++ ?></td>
+                                        <td><span class="fw-bold" style="color:var(--text)"><?= htmlspecialchars($course['course_code']) ?></span></td>
+                                        <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($course['course_title']) ?></td>
+                                        <td>
+                                            <span class="badge rounded-pill border px-3 py-1" style="font-size:0.7rem;background:var(--primary-light);color:var(--primary);border-color:var(--primary-light) !important">
+                                                <?= htmlspecialchars($course['college_name'] ?? 'Unassigned') ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge rounded-pill border px-3 py-1 bg-light text-dark border-secondary-subtle">
+                                                <?= htmlspecialchars($course['department_name'] ?? 'General') ?>
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex gap-1 justify-content-center">
+                                                <a href="edit_course.php?id=<?= $course['id'] ?>" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
+                                                <button class="btn btn-sm btn-light border text-danger" title="Delete" onclick="confirmCourseDelete(<?= $course['id'] ?>, '<?= htmlspecialchars($course['course_code']) ?>')"><i class="bi bi-trash"></i></button>
+                                            </div>
+                                        </td>
                                     </tr>
-                                <?php else: 
-                                    $c = 1;
-                                    foreach ($courses as $course): ?>
-                                        <tr>
-                                            <td class="small text-muted"><?= $c++ ?></td>
-                                            <td><span class="fw-bold" style="color:var(--text)"><?= htmlspecialchars($course['course_code']) ?></span></td>
-                                            <td class="small" style="color:var(--text-secondary)"><?= htmlspecialchars($course['course_title']) ?></td>
-                                            <td>
-                                                <span class="badge rounded-pill border px-3 py-1" style="font-size:0.7rem;background:var(--primary-light);color:var(--primary);border-color:var(--primary-light) !important">
-                                                    <?= htmlspecialchars($course['college_name'] ?? 'Unassigned') ?>
-                                                </span>
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex gap-1 justify-content-center">
-                                                    <a href="edit_course.php?id=<?= $course['id'] ?>" class="btn btn-sm btn-light border" title="Edit"><i class="bi bi-pencil"></i></a>
-                                                    <button class="btn btn-sm btn-light border text-danger" title="Delete" onclick="confirmCourseDelete(<?= $course['id'] ?>, '<?= htmlspecialchars($course['course_code']) ?>')"><i class="bi bi-trash"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </main>
+        </div>
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="../js/common.js"></script>

@@ -102,4 +102,4 @@ $demo_otp = $_SESSION['fp_otp_demo'] ?? null;
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/theme.js"></script>
 </body>
-</html>
+</html>

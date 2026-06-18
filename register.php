@@ -544,6 +544,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
     </script>
+    <script src="js/theme.js"></script>
 </body>
 
 </html>

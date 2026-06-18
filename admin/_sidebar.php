@@ -44,7 +44,7 @@ $_reg = $reg_count ?? 0;
         </a>
         <a href="manage_user.php" class="nav-item <?= ($active_page ?? '') === 'users' ? 'active' : '' ?>"><i
                         class="bi bi-people me-2"></i> Manage Users</a>
-        <a href="add_user.php" class="nav-item <?= ($active_page ?? '') === 'adduser' ? 'active' : '' ?>"><i
+        <a href="add_user.php" class="nav-item <?= ($active_page ?? '') === 'add_user' ? 'active' : '' ?>"><i
                         class="bi bi-person-plus me-2"></i> Add User</a>
 
         <div class="sidebar-section">SYSTEM</div>

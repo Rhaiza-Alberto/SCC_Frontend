@@ -59,13 +59,28 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
     <link rel="stylesheet" href="../css/design-system.css">
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Forces the header wrapper to allow dropdowns to pop out without clipping */
+        .position-relative.mb-4 {
+            z-index: 1070 !important;
+        }
+        /* Elevates dropdown options above the grid table lists safely */
+        .dropdown-menu {
+            z-index: 1080 !important;
+        }
+        /* Prevents parent container design from swallowing select inputs on small screens */
+        .scc-tab-search-wrapper {
+            overflow: visible !important;
+            position: relative;
+            z-index: 1050;
+        }
+    </style>
 </head>
 <body>
     <?php $active_page = 'submissions'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <!-- Page Header -->
-        <div class="mb-4 position-relative">
+        <div class="mb-4 position-relative" style="z-index: 1070;">
             <nav aria-label="breadcrumb" class="animate-in" style="--animation-order:1">
                 <ol class="breadcrumb mb-2" style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">
                     <li class="breadcrumb-item"><a href="admin_dashboard.php" class="text-decoration-none text-muted">Dashboard</a></li>
@@ -77,8 +92,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                     <h2 class="fw-bold mb-1" style="color:var(--text);letter-spacing:-0.5px;">My <span class="text-orange">Submissions</span></h2>
                     <p class="text-secondary mb-0" style="font-size:0.95rem;">Track and manage your institutional syllabus submission status.</p>
                 </div>
-                <!-- Notification Bell -->
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3" style="position: relative; z-index: 1075;">
                     <div class="dropdown">
                         <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
@@ -86,8 +100,8 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                                 <span class="notif-badge" style="top:-2px;right:-2px;"><?= $unread_count > 9 ? '9+' : $unread_count ?></span>
                             <?php endif; ?>
                         </div>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 animate-in" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card);--animation-order:1">
-                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card)">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 animate-in" style="width:340px;max-height:420px;overflow-y:auto;border-radius:var(--radius-md);background:var(--bg-card);--animation-order:1; z-index: 1080 !important;">
+                            <li class="px-3 py-2 d-flex justify-content-between align-items-center border-bottom sticky-top" style="background:var(--bg-card); z-index: 12;">
                                 <strong style="font-size:0.9rem;color:var(--text)">Notifications</strong>
                                 <?php if ($unread_count > 0): ?><a href="?mark_read=1" class="text-decoration-none small" style="color:var(--primary)">Mark all read</a><?php endif; ?>
                             </li>
@@ -115,8 +129,7 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
             </div>
         <?php endif; ?>
 
-        <!-- Tabs + Search Row + Filters -->
-        <div class="scc-tab-search-wrapper animate-in flex-wrap gap-3" style="--animation-order:3">
+        <div class="scc-tab-search-wrapper animate-in flex-wrap gap-3" style="--animation-order:3; overflow: visible !important;">
             <div class="scc-tabs-container" id="submissionTabs" role="tablist">
                 <button class="scc-tab-item tab-orange active" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
                     <span class="tab-indicator"></span> Pending <span class="tab-count"><?= count($pending) ?></span>
@@ -158,7 +171,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
         </div>
 
         <div class="tab-content pt-1">
-            <!-- Pending Tab -->
             <div class="tab-pane fade show active" id="tabPending">
                 <?php if (empty($pending)): ?>
                     <div class="scc-card p-5 text-center animate-in" style="--animation-order:4">
@@ -209,7 +221,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                 <?php endif; ?>
             </div>
 
-            <!-- Approved Tab -->
             <div class="tab-pane fade" id="tabApproved">
                 <?php if (empty($approved)): ?>
                     <div class="scc-card p-5 text-center animate-in">
@@ -260,7 +271,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
                 <?php endif; ?>
             </div>
 
-            <!-- Declined Tab -->
             <div class="tab-pane fade" id="tabDeclined">
                 <?php if (empty($rejected)): ?>
                     <div class="scc-card p-5 text-center animate-in">

@@ -1,8 +1,4 @@
  <?php
-/**
- * process_profile.php
- * Handles faculty profile update — saves first/middle/last name, birthdate, sex to DB.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -27,7 +23,6 @@ $last_name   = trim($_POST['last_name']   ?? '');
 $birthdate   = trim($_POST['birthdate']   ?? '');
 $sex         = trim($_POST['sex']         ?? '');
 
-// Basic validation
 if (empty($first_name) || empty($last_name)) {
     $_SESSION['error_message'] = "First name and last name are required.";
     header('Location: profile.php?edit=true');
@@ -72,7 +67,6 @@ try {
         $user_id
     ]);
 
-    // Update session username
     $_SESSION['username'] = $first_name . ' ' . $last_name;
 
     $_SESSION['success_message'] = "Profile updated successfully.";

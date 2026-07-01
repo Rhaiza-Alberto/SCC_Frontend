@@ -15,7 +15,6 @@ $user_id = $_SESSION['user_id'];
 
 $conn = get_db();
 
-// Handle AJAX Department Lookup Requests
 if (isset($_GET['get_departments'])) {
     header('Content-Type: application/json');
     $college_id = (int)$_GET['get_departments'];
@@ -29,7 +28,6 @@ $error = '';
 $success = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // 1. Clean and normalize input data
     $course_code = strtoupper(trim($_POST['course_code'] ?? ''));
     $course_title = trim($_POST['course_title'] ?? '');
     $college_id = (int)($_POST['college_id'] ?? 0);
@@ -39,18 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Please fill in all fields and select a department.';
     } else {
         try {
-            // 2. AGGRESSIVE DIAGNOSTIC CHECK: 
-            // We search using both a exact literal match and a loose string comparison (LIKE)
-            // to find hidden hidden non-printable characters or whitespace.
             $check_stmt = $conn->prepare("SELECT id, course_code, course_title FROM courses WHERE course_code = ? OR course_code LIKE ?");
             $check_stmt->execute([$course_code, $course_code]);
             $found_course = $check_stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($found_course) {
-                // If found, we surface the EXACT values hidden in your table right to your screen
                 $error = 'The database reveals that this code already exists as: <strong>' . htmlspecialchars($found_course['course_code']) . '</strong> ("' . htmlspecialchars($found_course['course_title']) . '") with system ID: ' . $found_course['id'];
             } else {
-                // 3. Insert query explicitly capturing individual parameter parameters
                 $stmt = $conn->prepare("INSERT INTO courses (course_code, course_title, college_id, department_id) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$course_code, $course_title, $college_id, $department_id]);
                 
@@ -59,7 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit();
             }
         } catch (PDOException $e) {
-            // 4. Detailed error trapping to distinguish true duplicates from field constraint failures
             if ($e->getCode() == 23000 || strpos($e->getMessage(), '1062') !== false) {
                 $error = '<strong>Database Stacking Error (Duplicate Entry Code 1062):</strong> The system index caught a hidden record mapping violation. This means an item using code "' . htmlspecialchars($course_code) . '" exists in an autoincrement sequence, a deleted shadow state, or an unindexed schema view.';
             } else {
@@ -71,11 +63,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $colleges = get_colleges();
 
-// Fetch notification center metrics cleanly
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Counts for sidebar
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw

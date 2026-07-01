@@ -1,8 +1,4 @@
 <?php
-/**
- * vpaa/syllabus_vault.php
- * Accreditation vault — all fully approved syllabi, DB-driven.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';

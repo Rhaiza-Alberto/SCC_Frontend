@@ -17,21 +17,17 @@ ensure_role_in_session();
 
 $user_id = $_SESSION['user_id'];
 $uploader_role = $_SESSION['role_name'] ?? $_SESSION['role'] ?? 'faculty';
-// Normalize: session 'role' for dean is 'dean', role_name is also 'dean'
 $is_dean = in_array($uploader_role, ['dean', 'admin']);
 
-// Redirect targets
 $back_url = $is_dean ? '../admin/upload_syllabus.php' : 'upload_syllabus.php';
 $success_url = $is_dean ? '../admin/my_submissions.php' : 'my_submissions.php';
 
-// ── Read fields ───────────────────────────────────────────────────────────────
 $course_id = (int)($_POST['course_id'] ?? 0);
 $subject_type = trim($_POST['subject_type'] ?? '');
 $semester = trim($_POST['subject_semester'] ?? '');
 $school_year = trim($_POST['school_year'] ?? get_current_school_year());
 $year_level = trim($_POST['year_level'] ?? '');
 
-// ── Validate required fields ─────────────────────────────────────────────────
 if (empty($course_id) || empty($subject_type) || empty($semester) || empty($school_year) || empty($year_level)) {
     $_SESSION['upload_error'] = 'Please fill in all required fields.';
     $_SESSION['error_message'] = 'Please fill in all required fields.';
@@ -39,7 +35,6 @@ if (empty($course_id) || empty($subject_type) || empty($semester) || empty($scho
     exit();
 }
 
-// Fetch course details
 $conn = get_db();
 $cstmt = $conn->prepare("SELECT course_code, course_title FROM courses WHERE id = ? LIMIT 1");
 $cstmt->execute([$course_id]);
@@ -54,10 +49,8 @@ if (!$course) {
 
 $course_code = $course['course_code'];
 $course_title = $course['course_title'];
-$course_name = $course_title; // legacy compatibility
+$course_name = $course_title;
 
-
-// ── Validate file upload ─────────────────────────────────────────────────────
 if (!isset($_FILES['pdf_file']) || $_FILES['pdf_file']['error'] !== UPLOAD_ERR_OK) {
     $upload_errors = [
         UPLOAD_ERR_INI_SIZE => 'File exceeds server size limit.',
@@ -93,7 +86,6 @@ if ($file['size'] > 10 * 1024 * 1024) {
     exit();
 }
 
-// ── Save file ─────────────────────────────────────────────────────────────────
 $upload_dir = __DIR__ . '/../uploads/syllabi/';
 if (!is_dir($upload_dir)) {
     mkdir($upload_dir, 0755, true);
@@ -117,7 +109,6 @@ $web_path = 'uploads/syllabi/' . $unique_name;
 try {
     $conn->beginTransaction();
 
-    // ── Insert syllabus row ───────────────────────────────────────────────────
     $stmt = $conn->prepare("
         INSERT INTO syllabus
             (uploaded_by, course_id, course_code, course_title, course_name,
@@ -138,7 +129,6 @@ try {
     ]);
     $syllabus_id = (int) $conn->lastInsertId();
 
-    // ── Insert workflow step based on who uploaded ────────────────────────────
     if ($is_dean) {
         // Dean's own upload: immediately approved
         $conn->prepare("UPDATE syllabus SET status = 'Approved' WHERE id = ?")->execute([$syllabus_id]);

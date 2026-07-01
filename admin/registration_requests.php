@@ -1,7 +1,6 @@
 <?php
 /**
  * admin/registration_requests.php
- * Dean approves/rejects faculty registration requests (formerly dept_head's role).
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -42,7 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['use
     exit();
 }
 
-// ── Fetch pending faculty registrations ──────────────────────────────────────
 $stmt = $conn->prepare("
     SELECT u.id, u.first_name, u.middle_name, u.last_name,
            u.email, u.created_at, u.email_verified, col.college_name
@@ -60,7 +58,6 @@ $reg_count = count($pending_registrations);
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Sidebar pending review count for badge
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id) FROM syllabus_workflow sw
     JOIN roles r ON sw.role_id = r.id

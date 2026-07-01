@@ -9,7 +9,6 @@ $username = $_SESSION['username'] ?? 'Dean';
 $email = $_SESSION['email'] ?? '';
 $role_display = "Dean's Panel";
 
-// Fetch user profile from database
 $user_id = $_SESSION['user_id'];
 
 $conn = get_db();
@@ -45,7 +44,6 @@ $user_id = $_SESSION['user_id'];
 $notifications = get_notifications($user_id, 10);
 $unread_count = count_unread_notifications($user_id);
 
-// Handle "mark all read" action
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: profile.php');

@@ -1,7 +1,6 @@
 <?php
 /**
  * admin/edit_syllabus.php
- * Allows deans/admins to edit their OWN pending or rejected syllabus submission.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -24,14 +23,12 @@ if (!$syllabus_id) {
     exit();
 }
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: edit_syllabus.php?id=' . $syllabus_id);
     exit();
 }
 
-// Fetch the syllabus — must belong to this user and be Pending or Rejected
 $conn = get_db();
 $stmt = $conn->prepare("
     SELECT s.*, c.course_code AS matched_code, c.course_title AS matched_title
@@ -55,7 +52,6 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Fetch latest rejection comment if status is Rejected
 $rejection = null;
 if ($syllabus['status'] === 'Rejected') {
     $reject_stmt = $conn->prepare("
@@ -69,7 +65,6 @@ if ($syllabus['status'] === 'Rejected') {
     $rejection = $reject_stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// Sidebar counts
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -100,7 +95,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
 
     <main class="scc-main">
         <div class="container-fluid">
-            <!-- Header Section -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h4 class="fw-bold mb-0" style="color:var(--text)">Edit <span style="color:var(--primary)">Syllabus</span></h4>
@@ -125,7 +119,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
             <?php endif; ?>
 
             <div class="row">
-                <!-- Rejection alert callout -->
                 <?php if ($rejection && !empty($rejection['comment'])): ?>
                     <div class="col-12 mb-4">
                         <div class="alert alert-warning border-0 shadow-sm rounded-3 d-flex align-items-start gap-3 p-3">

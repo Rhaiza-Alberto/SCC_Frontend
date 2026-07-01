@@ -11,7 +11,6 @@ $email = $_SESSION['email'] ?? '';
 $role_display = "Dean's Panel";
 $college_id = $_SESSION['college_id'] ?? null;
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: admin_dashboard.php');
@@ -20,7 +19,6 @@ if (isset($_GET['mark_read'])) {
 
 $conn = get_db();
 
-// ── Handle Syllabus Approve/Reject POST ──────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syllabus_id'])) {
     $syllabus_id = (int) $_POST['syllabus_id'];
     $action = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
@@ -28,10 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syl
     process_syllabus_action($syllabus_id, $action, $comment);
     header('Location: admin_dashboard.php');
     exit();
-}
 
-// ── Syllabus Stats ───────────────────────────────────────────────────────────
-// Pending syllabi waiting for dean review
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -44,7 +39,6 @@ $approved_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status
 $pending_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status = 'Pending'")->fetchColumn();
 $rejected_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status = 'Rejected'")->fetchColumn();
 
-// ── Registration Requests ────────────────────────────────────────────────────
 $reg_stmt = $conn->prepare("
     SELECT COUNT(*) FROM users u
     JOIN roles r ON u.role_id = r.id
@@ -53,13 +47,11 @@ $reg_stmt = $conn->prepare("
 $reg_stmt->execute();
 $reg_count = (int) $reg_stmt->fetchColumn();
 
-// ── User Stats ───────────────────────────────────────────────────────────────
 $total_users = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_deleted = 0")->fetchColumn();
 $instructor_count = (int) $conn->query("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id=r.id WHERE r.role_name='faculty' AND u.is_deleted=0")->fetchColumn();
 $dean_count = (int) $conn->query("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id=r.id WHERE r.role_name='dean' AND u.is_deleted=0")->fetchColumn();
 $vpaa_count = (int) $conn->query("SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id=r.id WHERE r.role_name='vpaa' AND u.is_deleted=0")->fetchColumn();
 
-// ── Pending Syllabi for Dean Review ─────────────────────────────────────────
 $pending_syllabi_stmt = $conn->prepare("
     SELECT s.*,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
@@ -80,10 +72,8 @@ $pending_syllabi_stmt = $conn->prepare("
 $pending_syllabi_stmt->execute();
 $pending_syllabi = $pending_syllabi_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ── My Submissions (dean can also upload) ────────────────────────────────────
 $my_submissions = get_faculty_submissions($user_id);
 
-// ── All Submissions ──────────────────────────────────────────────────────────
 $all_stmt = $conn->prepare("
     SELECT s.*,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,
@@ -102,7 +92,6 @@ $all_stmt = $conn->prepare("
 $all_stmt->execute();
 $all_submissions = $all_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ── Monthly Submission Trends (Last 6 Months) ────────────────────────────────
 $monthly_data = [];
 for ($i = 5; $i >= 0; $i--) {
     $month = date('Y-m', strtotime("-$i months"));
@@ -112,7 +101,6 @@ for ($i = 5; $i >= 0; $i--) {
     $monthly_data[] = ['month_name' => $month_name, 'count' => (int) $stmt->fetchColumn()];
 }
 
-// ── Recently Reviewed Syllabi (By Dean) ──────────────────────────────────────
 $recently_reviewed_stmt = $conn->prepare("
     SELECT s.*, 
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,

@@ -17,20 +17,16 @@ if (isset($_GET['mark_read'])) {
 
 $conn = get_db();
 
-// ── Advanced Stats ──────────────────────────────────────────────────────────
 $total_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus")->fetchColumn();
 $approved_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status = 'Approved'")->fetchColumn();
 $pending_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status = 'Pending'")->fetchColumn();
 $rejected_count = (int) $conn->query("SELECT COUNT(*) FROM syllabus WHERE status = 'Rejected'")->fetchColumn();
 
-// Total Faculty Uploads
 $faculty_role_id = (int) $conn->query("SELECT id FROM roles WHERE role_name = 'faculty'")->fetchColumn();
 $total_faculty_uploads = (int) $conn->prepare("SELECT COUNT(*) FROM syllabus s JOIN users u ON s.uploaded_by = u.id WHERE u.role_id = ?")
     ->execute([$faculty_role_id]) ? $conn->prepare("SELECT COUNT(*) FROM syllabus s JOIN users u ON s.uploaded_by = u.id WHERE u.role_id = ?")->fetchColumn() : 0;
-// Re-running because previous check was slightly wrong logic in one line
 $total_faculty_uploads = (int) $conn->query("SELECT COUNT(*) FROM syllabus s JOIN users u ON s.uploaded_by = u.id JOIN roles r ON u.role_id = r.id WHERE r.role_name = 'faculty'")->fetchColumn();
 
-// Dean Approval Stats
 $dean_approved_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id) 
     FROM syllabus_workflow sw 
@@ -38,7 +34,6 @@ $dean_approved_count = (int) $conn->query("
     WHERE r.role_name = 'dean' AND sw.action = 'Approved'
 ")->fetchColumn();
 
-// Syllabi waiting for Dean approval
 $dean_pending_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -46,10 +41,8 @@ $dean_pending_count = (int) $conn->query("
     WHERE r.role_name = 'dean' AND sw.action = 'Pending'
 ")->fetchColumn();
 
-// Revision Requests (Total Rejections in workflow)
 $revision_requests = (int) $conn->query("SELECT COUNT(*) FROM syllabus_workflow WHERE action = 'Rejected'")->fetchColumn();
 
-// ── Monthly Analytics (Last 6 Months) ────────────────────────────────────────
 $monthly_stmt = $conn->query("
     SELECT DATE_FORMAT(submitted_at, '%b') as month_name, COUNT(*) as count 
     FROM syllabus 
@@ -59,7 +52,6 @@ $monthly_stmt = $conn->query("
 ");
 $monthly_data = $monthly_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ── College compliance breakdown ─────────────────────────────────────────────
 $college_rows = $conn->query("
     SELECT col.college_name,
            COUNT(DISTINCT s.id)                                      AS total,
@@ -72,7 +64,6 @@ $college_rows = $conn->query("
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 $compliance_pct = $total_count > 0 ? round(($approved_count / $total_count) * 100) : 0;
-// ── Recent all-submissions (last 10) ─────────────────────────────────────────
 $recent_stmt = $conn->prepare("
     SELECT s.*,
            COALESCE(NULLIF(s.course_code,''),  c.course_code)  AS course_code,

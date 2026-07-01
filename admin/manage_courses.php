@@ -11,7 +11,6 @@ $user_id = $_SESSION['user_id'];
 
 $conn = get_db();
 
-// Handle Delete Course
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     $stmt = $conn->prepare("DELETE FROM courses WHERE id = ?");
@@ -20,7 +19,6 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// Fetch Courses with joined College AND Department Names
 $query = "SELECT c.*, col.college_name, d.department_name 
           FROM courses c 
           LEFT JOIN colleges col ON c.college_id = col.id 
@@ -33,7 +31,6 @@ $courses = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Get counts for sidebar badges
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw

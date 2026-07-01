@@ -1,4 +1,3 @@
-<!-- Syllabus Tracker Modal -->
 <div class="modal fade" id="trackerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: var(--radius-lg); overflow: hidden;">
@@ -36,7 +35,6 @@ function showTrackerModal(syllabusId, courseCode, courseTitle) {
     `;
     modal.show();
 
-    // Fetch tracker HTML
     fetch(`../get_tracker_html.php?id=${syllabusId}`)
         .then(response => response.text())
         .then(html => {

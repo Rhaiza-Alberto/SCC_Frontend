@@ -8,11 +8,9 @@ restrict_to_role('dean');
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
 
-// CONNECT (PDO)
 $db = new Database();
 $conn = $db->connect();
 
-// Check if current user is dean
 $stmt = $conn->prepare("SELECT users.*, roles.role_name FROM users
                         LEFT JOIN roles ON users.role_id = roles.id
                         WHERE users.id = ?");
@@ -20,11 +18,9 @@ $stmt->execute([$_SESSION['user_id']]);
 $current_user = $stmt->fetch();
 $is_dean = ($current_user['role_name'] === 'dean');
 
-// ── Initialise badge counters so isset() checks are never needed ──────────────
 $pending_review_count = 0;
 $reg_count = 0;
 
-// DELETE USER (HARD DELETE) — must run BEFORE fetching users
 if (isset($_GET['delete'])) {
     $id = (int) $_GET['delete'];
 
@@ -40,7 +36,6 @@ if (isset($_GET['delete'])) {
     exit();
 }
 
-// FETCH USERS (after possible delete so the list is current)
 $query = "SELECT users.*, roles.role_name, colleges.college_name
           FROM users
           LEFT JOIN roles       ON users.role_id       = roles.id

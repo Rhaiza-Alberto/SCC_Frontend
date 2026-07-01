@@ -20,17 +20,14 @@ $notifications = get_notifications($user_id_session, 5);
 
 $conn = get_db();
 
-// Fetch roles
 $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head' ORDER BY role_name");
 $stmt->execute();
 $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch colleges
 $stmt = $conn->prepare("SELECT * FROM colleges ORDER BY college_name");
 $stmt->execute();
 $colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get counts for sidebar badges
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -70,7 +67,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $form_data['role_id'] = $_POST['role_id'] ?? '';
     $form_data['college_id'] = $_POST['college_id'] ?? '1';
 
-    // Validation
     if (empty($form_data['firstName'])) $errors['firstName'] = 'First name is required.';
     if (empty($form_data['lastName'])) $errors['lastName'] = 'Last name is required.';
     if (empty($form_data['birthdate'])) {

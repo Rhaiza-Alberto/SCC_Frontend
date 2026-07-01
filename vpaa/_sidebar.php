@@ -1,10 +1,5 @@
 <?php
-/**
- * VPAA sidebar include.
- * Usage: Set $active_page before including.
- */
 $_username = $username ?? $_SESSION['username'] ?? 'VPAA';
-// VPAA pending review badge count removed as VPAA approval is no longer required
 ?>
 <script src="../js/theme.js"></script>
 <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>

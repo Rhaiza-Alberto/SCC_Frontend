@@ -1,8 +1,4 @@
 <?php
-/**
- * vpaa/syllabus_review.php
- * VPAA reviews syllabi already approved by the Dean (step 2 of workflow).
- */
 session_start();
 
 require_once __DIR__ . '/../database.php';
@@ -20,7 +16,6 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
-// Handle Approve / Reject
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syllabus_id'])) {
     $syllabus_id = (int) $_POST['syllabus_id'];
     $action = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
@@ -46,7 +41,6 @@ unset($_SESSION['review_success'], $_SESSION['review_error']);
 
 $conn = get_db();
 
-// Pending for VPAA — alias s.id as syllabus_id explicitly to avoid collision with sw.id
 $stmt = $conn->prepare("
     SELECT s.id AS syllabus_id,
            s.file_path, s.submitted_at, s.subject_type, s.semester, s.year_level,
@@ -67,7 +61,6 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $pending_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Approved by VPAA
 $stmt = $conn->prepare("
     SELECT s.id AS syllabus_id,
            s.file_path, s.semester, s.year_level,
@@ -89,7 +82,6 @@ $stmt = $conn->prepare("
 $stmt->execute();
 $approved_rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Rejected by VPAA
 $stmt = $conn->prepare("
     SELECT s.id AS syllabus_id,
            s.file_path, s.semester, s.year_level,

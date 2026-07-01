@@ -1,6 +1,6 @@
  <?php
 /**
- * forgot_password.php — Modern split-screen style
+ * forgot_password.php 
  */
 session_start();
 require_once __DIR__ . '/database.php';

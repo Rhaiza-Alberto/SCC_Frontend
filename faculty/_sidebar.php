@@ -1,9 +1,4 @@
 <?php
-/**
- * Faculty sidebar include.
- * Usage: Set $active_page before including, e.g. $active_page = 'upload';
- * Required vars: $username (from session)
- */
 $_username = $username ?? $_SESSION['username'] ?? 'User';
 ?>
 <script src="../js/theme.js"></script>

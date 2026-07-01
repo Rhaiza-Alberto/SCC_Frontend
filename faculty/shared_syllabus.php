@@ -1,8 +1,4 @@
 <?php
-/**
- * dean/shared_syllabus.php
- * Displays all VPAA-approved syllabi shared across faculty and dean using the card layout system.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -14,7 +10,6 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 
 ensure_role_in_session();
 
-// Initialize the database connection early so $pdo is available for all queries
 $pdo = get_db();
 
 $user_id = $_SESSION['user_id'];
@@ -30,7 +25,6 @@ if (isset($_GET['mark_read'])) {
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-/* ── Sidebar badge counts ── */
 $pending_review_count = (int) $pdo->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -46,7 +40,6 @@ $reg_stmt = $pdo->prepare("
 $reg_stmt->execute();
 $reg_count = (int) $reg_stmt->fetchColumn();
 
-/* ── Fetch all approved syllabi with uploader info ── */
 $stmt = $pdo->prepare("
     SELECT
         s.id,
@@ -68,7 +61,6 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $approved_syllabi = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-/* ── Unique filter values for remaining fields ── */
 $colleges = array_unique(array_filter(array_column($approved_syllabi, 'college_name')));
 sort($colleges);
 ?>

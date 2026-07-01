@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['resend'])) {
     try {
         $conn = get_db();
         $new_otp = str_pad(random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
-        
+
         $update = $conn->prepare("UPDATE users SET verification_token = ? WHERE email = ? AND is_deleted = 0");
         $update->execute([$new_otp, $target_email]);
 

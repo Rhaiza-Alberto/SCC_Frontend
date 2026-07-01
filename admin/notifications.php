@@ -13,22 +13,18 @@ ensure_role_in_session();
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'Dean / Admin';
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: notifications.php');
     exit();
 }
 
-// Handle single notification click (mark read + redirect)
 if (isset($_GET['notif_id'])) {
     $notif_id = (int) $_GET['notif_id'];
     $user_id = $_SESSION['user_id'];
     
-    // Mark as read
     mark_single_notification_read($notif_id, $user_id);
     
-    // Determine redirect based on message content
     $conn = get_db();
     $stmt = $conn->prepare("SELECT message FROM notifications WHERE id = ?");
     $stmt->execute([$notif_id]);
@@ -42,7 +38,6 @@ if (isset($_GET['notif_id'])) {
     exit();
 }
 
-// Fetch ALL notifications (no limit)
 $conn = get_db();
 $stmt = $conn->prepare("
     SELECT n.*, s.file_path
@@ -86,7 +81,6 @@ $unread_count = count_unread_notifications($user_id);
             </div>
         </div>
 
-        <!-- Filter Controls -->
         <div class="d-flex flex-column flex-md-row gap-3 mb-4 align-items-md-center justify-content-between animate-in" style="--animation-order:2">
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-sm btn-primary filter-btn active" onclick="filterNotifications('all', this)">All</button>
@@ -153,7 +147,6 @@ $unread_count = count_unread_notifications($user_id);
         function filterNotifications(type, btn) {
             currentFilter = type;
             
-            // Update button classes
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('btn-primary', 'active');
                 b.classList.add('btn-outline-secondary');

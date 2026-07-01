@@ -14,14 +14,12 @@ $user_id      = $_SESSION['user_id'];
 $username     = $_SESSION['username'] ?? 'VPAA';
 $role_display = 'VPAA Institutional Hub';
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: notifications.php');
     exit();
 }
 
-// Handle single notification click (mark read + redirect)
 if (isset($_GET['notif_id'])) {
     $notif_id = (int) $_GET['notif_id'];
     mark_single_notification_read($notif_id, $user_id);
@@ -29,7 +27,6 @@ if (isset($_GET['notif_id'])) {
     exit();
 }
 
-// Fetch ALL notifications (no limit)
 $conn = get_db();
 $stmt = $conn->prepare("
     SELECT n.*, s.file_path

@@ -1,8 +1,4 @@
 <?php
-/**
- * admin/upload_syllabus.php
- * Dean/Admin syllabus upload form.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -13,7 +9,6 @@ $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 $role_display = "Dean's Panel";
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: upload_syllabus.php');
@@ -27,13 +22,11 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Fetch courses for dropdown
 $conn = get_db();
 $courses_stmt = $conn->prepare("SELECT * FROM courses ORDER BY course_code");
 $courses_stmt->execute();
 $course_list = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Sidebar counts
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
     FROM syllabus_workflow sw
@@ -135,7 +128,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
             <div class="card-body p-4 p-md-5">
                 <form action="../faculty/process_upload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
                     <div class="row g-4">
-                        <!-- Course Selection -->
                         <div class="col-12">
                             <label for="courseId" class="form-label fw-bold small"
                                 style="color:var(--text-secondary)">Select Course <span
@@ -250,7 +242,6 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
             });
         });
 
-        // Show selected filename
         document.getElementById('pdfFile').addEventListener('change', function (e) {
             const fileName = e.target.files[0] ? e.target.files[0].name : '';
             const infoDiv = document.getElementById('fileInfo');

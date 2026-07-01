@@ -1,8 +1,4 @@
 <?php
-/**
- * process_edit_syllabus.php
- * Handles editing a pending syllabus submission.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -27,7 +23,6 @@ if (!$syllabus_id) {
     exit();
 }
 
-// Verify ownership + status
 $conn = get_db();
 $stmt = $conn->prepare("SELECT * FROM syllabus WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')");
 $stmt->execute([$syllabus_id, $user_id]);
@@ -39,7 +34,6 @@ if (!$syllabus) {
     exit();
 }
 
-// Read fields
 $course_code  = trim($_POST['course_code']      ?? '');
 $course_title = trim($_POST['course_title']     ?? '');
 $course_name  = trim($_POST['course']           ?? '');
@@ -53,8 +47,7 @@ if (empty($course_code) || empty($course_title) || empty($subject_type) || empty
     exit();
 }
 
-// Optional file replacement
-$new_file_path = $syllabus['file_path']; // keep existing by default
+$new_file_path = $syllabus['file_path'];
 $old_dest_path = null;
 
 if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
@@ -94,7 +87,6 @@ if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK
     $old_dest_path = __DIR__ . '/../' . $syllabus['file_path'];
 }
 
-// Try to re-match course FK
 $cstmt = $conn->prepare("SELECT id FROM courses WHERE course_code = ? LIMIT 1");
 $cstmt->execute([$course_code]);
 $matched   = $cstmt->fetch(PDO::FETCH_ASSOC);

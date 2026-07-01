@@ -1,9 +1,4 @@
  <?php
-/**
- * view_syllabus.php
- * Streams a stored PDF to the browser so users can view it inline.
- * Usage: view_syllabus.php?file=COURSECODE_1stSemester_2025_abc123.pdf
- */
 session_start();
 
 if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
@@ -11,7 +6,7 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit('Access denied.');
 }
 
-$filename  = basename($_GET['file'] ?? '');   // basename prevents directory traversal
+$filename  = basename($_GET['file'] ?? '');
 $file_path = __DIR__ . '/../uploads/syllabi/' . $filename;
 
 if (empty($filename) || !file_exists($file_path)) {

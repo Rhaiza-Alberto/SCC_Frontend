@@ -1,8 +1,4 @@
  <?php
-/**
- * forgot_password_otp.php
- * Step 2 — user enters the 6-digit OTP sent to their email.
- */
 session_start();
 require_once __DIR__ . '/database.php';
 require_once __DIR__ . '/functions.php';
@@ -16,7 +12,6 @@ $error   = $_SESSION['fp_error']   ?? '';
 $success = $_SESSION['fp_success'] ?? '';
 unset($_SESSION['fp_error'], $_SESSION['fp_success']);
 
-// Demo: show the generated OTP on-screen (remove this in production)
 $demo_otp = $_SESSION['fp_otp_demo'] ?? null;
 ?>
 <!DOCTYPE html>

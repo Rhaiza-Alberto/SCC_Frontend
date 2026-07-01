@@ -1,9 +1,4 @@
 <?php
-/**
- * faculty/my_submissions.php
- * Shows all faculty syllabus submissions from the database.
- * Rebuilt for perfect alignment and consistency with the Dean panel.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -49,7 +44,6 @@ $notifications = get_notifications($user_id, 5);
     <?php $active_page = 'submissions'; include '_sidebar.php'; ?>
 
     <main class="scc-main">
-        <!-- Page Header -->
         <div class="scc-page-header position-relative">
             <nav aria-label="breadcrumb" class="animate-in" style="--animation-order:1">
                 <ol class="breadcrumb mb-2" style="font-size:0.75rem;letter-spacing:0.5px;text-transform:uppercase;">
@@ -100,7 +94,6 @@ $notifications = get_notifications($user_id, 5);
             </div>
         <?php endif; ?>
 
-        <!-- Tabs + Search Row + Filters -->
         <div class="scc-tab-search-wrapper animate-in flex-wrap gap-3" style="--animation-order:3">
             <div class="scc-tabs-container" id="submissionTabs" role="tablist">
                 <button class="scc-tab-item tab-orange active" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
@@ -143,7 +136,6 @@ $notifications = get_notifications($user_id, 5);
         </div>
 
         <div class="tab-content pt-1">
-            <!-- Pending Tab -->
             <div class="tab-pane fade show active" id="tabPending">
                 <?php if (empty($pending)): ?>
                     <div class="scc-card p-5 text-center animate-in" style="--animation-order:4">
@@ -195,7 +187,6 @@ $notifications = get_notifications($user_id, 5);
                 <?php endif; ?>
             </div>
 
-            <!-- Approved Tab -->
             <div class="tab-pane fade" id="tabApproved">
                 <?php if (empty($approved)): ?>
                     <div class="scc-card p-5 text-center animate-in">
@@ -246,7 +237,6 @@ $notifications = get_notifications($user_id, 5);
                 <?php endif; ?>
             </div>
 
-            <!-- Declined Tab -->
             <div class="tab-pane fade" id="tabDeclined">
                 <?php if (empty($rejected)): ?>
                     <div class="scc-card p-5 text-center animate-in">

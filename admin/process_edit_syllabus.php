@@ -1,7 +1,6 @@
 <?php
 /**
  * admin/process_edit_syllabus.php
- * Handles editing a pending/rejected syllabus submission for deans.
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -27,7 +26,6 @@ if (!$syllabus_id) {
     exit();
 }
 
-// Verify ownership + status (allow Pending or Rejected)
 $conn = get_db();
 $stmt = $conn->prepare("SELECT * FROM syllabus WHERE id = ? AND uploaded_by = ? AND status IN ('Pending', 'Rejected')");
 $stmt->execute([$syllabus_id, $user_id]);
@@ -39,7 +37,6 @@ if (!$syllabus) {
     exit();
 }
 
-// Read fields
 $course_code  = trim($_POST['course_code']      ?? '');
 $course_title = trim($_POST['course_title']     ?? '');
 $course_name  = trim($_POST['course']           ?? '');
@@ -53,8 +50,7 @@ if (empty($course_code) || empty($course_title) || empty($subject_type) || empty
     exit();
 }
 
-// Optional file replacement
-$new_file_path = $syllabus['file_path']; // keep existing by default
+$new_file_path = $syllabus['file_path'];
 $old_dest_path = null;
 
 if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
@@ -94,7 +90,6 @@ if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK
     $old_dest_path = __DIR__ . '/../' . $syllabus['file_path'];
 }
 
-// Try to re-match course FK
 $cstmt = $conn->prepare("SELECT id FROM courses WHERE course_code = ? LIMIT 1");
 $cstmt->execute([$course_code]);
 $matched   = $cstmt->fetch(PDO::FETCH_ASSOC);
@@ -127,10 +122,8 @@ try {
         $user_id,
     ]);
 
-    // Reset workflow so it restarts as auto-approved for Dean
     reset_syllabus_workflow($syllabus_id, 'dean');
 
-    // Delete old file if replaced
     if ($old_dest_path && file_exists($old_dest_path)) {
         unlink($old_dest_path);
     }

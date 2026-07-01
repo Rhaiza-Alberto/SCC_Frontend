@@ -1,8 +1,4 @@
 <?php
-/**
- * upload_syllabus.php
- * Faculty syllabus upload form — reads notification data from DB.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -13,7 +9,6 @@ $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'] ?? 'User';
 $role_display = 'Faculty Panel';
 
-// Handle mark-all-read
 if (isset($_GET['mark_read'])) {
     mark_all_notifications_read($user_id);
     header('Location: upload_syllabus.php');
@@ -27,7 +22,6 @@ unset($_SESSION['success_message'], $_SESSION['error_message']);
 $unread_count = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Fetch courses for dropdown
 $conn = get_db();
 $courses_stmt = $conn->prepare("SELECT * FROM courses ORDER BY course_code");
 $courses_stmt->execute();
@@ -241,7 +235,6 @@ $course_list = $courses_stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         });
 
-        // Show selected filename
         document.getElementById('pdfFile').addEventListener('change', function (e) {
             const fileName = e.target.files[0] ? e.target.files[0].name : '';
             const infoDiv = document.getElementById('fileInfo');

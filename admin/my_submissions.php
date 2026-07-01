@@ -1,7 +1,6 @@
 <?php
 /**
- * my_submissions.php (Admin)
- * Shows all admin syllabus submissions from the database.
+ * my_submissions.php 
  */
 session_start();
 require_once __DIR__ . '/../database.php';
@@ -36,7 +35,6 @@ $rejected = array_values(array_filter($all, fn($s) => $s['status'] === 'Rejected
 $unread_count  = count_unread_notifications($user_id);
 $notifications = get_notifications($user_id, 5);
 
-// Sidebar counts
 $conn = get_db();
 $pending_review_count = (int) $conn->query("
     SELECT COUNT(DISTINCT sw.syllabus_id)
@@ -60,15 +58,12 @@ $reg_count = (int) $conn->query("SELECT COUNT(*) FROM users WHERE is_approved = 
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Forces the header wrapper to allow dropdowns to pop out without clipping */
         .position-relative.mb-4 {
             z-index: 1070 !important;
         }
-        /* Elevates dropdown options above the grid table lists safely */
         .dropdown-menu {
             z-index: 1080 !important;
         }
-        /* Prevents parent container design from swallowing select inputs on small screens */
         .scc-tab-search-wrapper {
             overflow: visible !important;
             position: relative;

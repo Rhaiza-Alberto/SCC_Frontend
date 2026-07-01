@@ -1,8 +1,4 @@
 <?php
-/**
- * faculty_dashboard.php
- * Faculty dashboard — modern SaaS-style with analytics.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -51,7 +47,6 @@ $notifications = get_notifications($user_id, 5);
     include '_sidebar.php'; ?>
     <main class="scc-main">
         <div class="container-fluid p-0">
-            <!-- Top Bar -->
             <div class="scc-page-header d-flex justify-content-between align-items-center">
                 <div>
                     <h4 class="fw-bold mb-1" style="color:var(--text)">
@@ -60,7 +55,6 @@ $notifications = get_notifications($user_id, 5);
                     <p class="text-muted small mb-0"><?= get_current_school_year() ?> — Welcome back, <?= htmlspecialchars($username) ?></p>
                 </div>
                 <div class="d-flex align-items-center gap-3">
-                    <!-- Notification Bell -->
                     <div class="dropdown">
                         <div class="position-relative" style="cursor:pointer" data-bs-toggle="dropdown">
                             <i class="bi bi-bell fs-5" style="color:var(--text)"></i>
@@ -84,7 +78,6 @@ $notifications = get_notifications($user_id, 5);
                             <li style="background:var(--bg-card);border-top:1px solid var(--border)"><a href="notifications.php" class="d-block text-center text-decoration-none small fw-bold py-2" style="color:var(--primary)">View all notifications</a></li>
                         </ul>
                     </div>
-                    <!-- Print -->
                     <button class="btn btn-sm d-flex align-items-center gap-1"
                         style="color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.4rem 0.8rem;background:var(--bg-card)"
                         onclick="window.print()">
@@ -93,7 +86,6 @@ $notifications = get_notifications($user_id, 5);
                 </div>
             </div>
 
-            <!-- Pending Alert -->
             <?php if ($pending > 0): ?>
                 <div class="alert border-0 shadow-sm mb-4 d-flex align-items-center p-3 rounded-4 animate-in" style="background: var(--primary-light); border-left: 5px solid var(--primary) !important;">
                     <div class="bg-primary text-white rounded-circle p-2 me-3 d-flex align-items-center justify-content-center shadow-sm" style="width:45px;height:45px;flex-shrink:0">
@@ -106,7 +98,6 @@ $notifications = get_notifications($user_id, 5);
                 </div>
             <?php endif; ?>
 
-            <!-- Statistics Cards -->
             <div class="row g-4 mb-4">
                 <?php
                 $stats = [
@@ -136,7 +127,6 @@ $notifications = get_notifications($user_id, 5);
             </div>
 
             <div class="row g-4 mb-4">
-                <!-- My Submissions -->
                 <div class="col-xl-7">
                     <div class="scc-card h-100 animate-in" style="--animation-order: 4">
                         <div class="card-header border-0 bg-transparent p-4 pb-0 d-flex justify-content-between align-items-center">
@@ -190,7 +180,6 @@ $notifications = get_notifications($user_id, 5);
                     </div>
                 </div>
 
-                <!-- Recent Shared Syllabus -->
                 <div class="col-xl-5">
                     <div class="scc-card p-4 h-100 animate-in" style="--animation-order: 5">
                         <div class="d-flex justify-content-between align-items-center mb-4">

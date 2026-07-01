@@ -1,8 +1,4 @@
 <?php
-/**
- * vpaa/compliance_reports.php
- * DB-driven departmental compliance report for VPAA.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
@@ -26,7 +22,6 @@ if (isset($_GET['mark_read'])) {
 
 $conn = get_db();
 
-// ── College compliance stats ────────────────────────────────────────────
 $college_rows = $conn->query("
     SELECT col.college_name,
            COUNT(DISTINCT s.id)                                    AS total,
@@ -40,7 +35,6 @@ $college_rows = $conn->query("
     ORDER BY col.college_name
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// ── Audit log: last 20 submissions ──────────────────────────────────────────
 $audit_stmt = $conn->prepare("
     SELECT s.id, s.status, s.submitted_at,
            COALESCE(NULLIF(s.course_code,''), c.course_code) AS course_code,

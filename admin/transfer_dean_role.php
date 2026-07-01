@@ -8,7 +8,6 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
     exit();
 }
 
-// Check if current user is dean
 $db   = new Database();
 $conn = $db->connect();
 
@@ -26,7 +25,6 @@ if ($current_user['role_name'] !== 'dean') {
 $username     = $_SESSION['username'] ?? 'Dean / Admin';
 $role_display = "Dean's Panel";
 
-// Fetch all eligible users (exclude current dean and other deans)
 $stmt = $conn->prepare("SELECT users.*, roles.role_name, colleges.college_name
                         FROM users
                         LEFT JOIN roles       ON users.role_id       = roles.id
@@ -38,7 +36,6 @@ $stmt = $conn->prepare("SELECT users.*, roles.role_name, colleges.college_name
 $stmt->execute([$_SESSION['user_id']]);
 $eligible_users = $stmt->fetchAll();
 
-// Get dean role ID
 $stmt = $conn->prepare("SELECT id FROM roles WHERE role_name = 'dean'");
 $stmt->execute();
 $dean_role    = $stmt->fetch();
@@ -59,8 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $conn->beginTransaction();
 
-            // Get the new dean's current role_id — also verify they are not already a dean
-            // and that they actually exist and are not deleted (guard against tampered POST)
             $stmt = $conn->prepare("SELECT users.role_id, roles.role_name FROM users
                                     LEFT JOIN roles ON users.role_id = roles.id
                                     WHERE users.id = ? AND users.is_deleted = 0
@@ -69,21 +64,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_dean_old = $stmt->fetch();
 
             if (!$new_dean_old) {
-                // User doesn't exist, is deleted, or is already a dean — abort
                 $conn->rollBack();
                 $error = 'Invalid user selected. Please try again.';
             } else {
-                // Promote selected user to dean
                 $stmt = $conn->prepare("UPDATE users SET role_id = ? WHERE id = ?");
                 $stmt->execute([$dean_role_id, $new_dean_id]);
 
-                // Demote current dean to the new dean's old role
                 $stmt = $conn->prepare("UPDATE users SET role_id = ? WHERE id = ?");
                 $stmt->execute([$new_dean_old['role_id'], $_SESSION['user_id']]);
 
                 $conn->commit();
 
-                // Destroy current dean's session and redirect to login
                 session_destroy();
                 header('Location: ../login.php?msg=role_transferred');
                 exit();

@@ -1,7 +1,6 @@
 <?php
 /**
  * admin/syllabus_review.php
- * Dean reviews faculty syllabus submissions (step 1 of workflow).
  * Replaces the former dept_head/syllabus_review.php
  */
 session_start();
@@ -20,7 +19,6 @@ if (isset($_GET['mark_read'])) {
     exit();
 }
 
-// ── Handle Approve / Reject ──────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'], $_POST['syllabus_id'])) {
     $syllabus_id = (int) $_POST['syllabus_id'];
     $action = $_POST['action'] === 'approve' ? 'Approved' : 'Rejected';
@@ -118,11 +116,10 @@ $notifications = get_notifications($user_id, 5);
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Floating UI Fix for Notifications */
         .scc-page-header { 
             z-index: 1000 !important; 
             position: relative; 
-            background: var(--bg); /* Ensure no transparency issues */
+            background: var(--bg); 
         }
         .dropdown-menu { 
             z-index: 99999 !important; 
@@ -228,7 +225,6 @@ $notifications = get_notifications($user_id, 5);
             </div>
         <?php endif; ?>
 
-        <!-- Tabs + Search Row + Filters -->
         <div class="scc-tab-search-wrapper animate-in flex-wrap gap-3" style="--animation-order:3">
             <div class="scc-tabs-container" id="reviewTabs" role="tablist">
                 <button class="scc-tab-item tab-orange <?= (!isset($_GET['status']) || $_GET['status'] === 'Pending') ? 'active' : '' ?>" data-bs-toggle="tab" data-bs-target="#tabPending" type="button">
@@ -271,7 +267,6 @@ $notifications = get_notifications($user_id, 5);
         </div>
 
         <div class="tab-content pt-1">
-                            <!-- PENDING TAB -->
                             <div class="tab-pane fade show active" id="tabPending">
                                 <?php if (empty($pending_rows)): ?>
                                     <div class="scc-card p-5 text-center">
@@ -348,7 +343,6 @@ $notifications = get_notifications($user_id, 5);
                                 <?php endif; ?>
                             </div>
 
-                            <!-- APPROVED TAB -->
                             <div class="tab-pane fade" id="tabApproved">
                                 <?php if (empty($approved_rows)): ?>
                                     <div class="scc-card p-5 text-center animate-in">
@@ -408,7 +402,6 @@ $notifications = get_notifications($user_id, 5);
                                 <?php endif; ?>
                             </div>
 
-                            <!-- DECLINED TAB -->
                             <div class="tab-pane fade" id="tabDeclined">
                                 <?php if (empty($rejected_rows)): ?>
                                     <div class="scc-card p-5 text-center animate-in">
@@ -470,7 +463,6 @@ $notifications = get_notifications($user_id, 5);
                         </div>
     </main>
 
-    <!-- Hidden POST form for SweetAlert -->
     <form id="reviewForm" method="POST" action="syllabus_review.php">
         <input type="hidden" name="syllabus_id" id="formSyllabusId">
         <input type="hidden" name="action" id="formAction">
@@ -482,7 +474,6 @@ $notifications = get_notifications($user_id, 5);
     <script>
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
 
-        // Real-time search/filter
         function applyTableFilters() {
             const query = document.getElementById('reviewSearch').value.toLowerCase().trim();
             const subjectVal = document.getElementById('filterSubjectType').value;

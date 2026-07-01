@@ -1,5 +1,5 @@
 <?php
-date_default_timezone_set('Asia/Manila'); // ✅ GLOBAL FIX
+date_default_timezone_set('Asia/Manila'); // GLOBAL FIX
 
 // Prevent browser caching to ensure real-time updates and prevent stale data
 if (!headers_sent()) {
@@ -32,7 +32,7 @@ class Database {
     }
 }
 
-// ✅ SINGLE global function
+// SINGLE global function
 if (!function_exists('get_db')) {
     function get_db() {
         static $conn;

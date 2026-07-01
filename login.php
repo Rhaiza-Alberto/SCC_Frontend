@@ -1,6 +1,6 @@
 <?php
 /**
- * login.php — Modern split-screen Dribbble-style login
+ * login.php
  */
 session_start();
 require_once __DIR__ . '/database.php';

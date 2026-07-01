@@ -1,7 +1,6 @@
 <?php
 /**
- * Admin/Dean sidebar include.
- * Usage: Set $active_page before including.
+ * Admin/Dean sidebar include
  * Required vars: $username, $pending_review_count, $reg_count
  */
 $_username = $username ?? $_SESSION['username'] ?? 'Dean';

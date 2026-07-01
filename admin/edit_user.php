@@ -21,7 +21,6 @@ $notifications = get_notifications($user_id_session, 5);
 
 $conn = get_db();
 
-// Get user ID from URL
 if (!isset($_GET['id'])) {
     header('Location: manage_user.php');
     exit();
@@ -29,7 +28,6 @@ if (!isset($_GET['id'])) {
 
 $user_id = (int) $_GET['id'];
 
-// Fetch user information
 $stmt = $conn->prepare("SELECT users.*, roles.role_name, colleges.college_name 
                         FROM users
                         LEFT JOIN roles ON users.role_id = roles.id
@@ -43,17 +41,14 @@ if (!$user) {
     exit();
 }
 
-// Fetch roles
 $stmt = $conn->prepare("SELECT * FROM roles WHERE role_name != 'department_head' ORDER BY role_name");
 $stmt->execute();
 $roles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Fetch colleges
 $stmt = $conn->prepare("SELECT * FROM colleges ORDER BY college_name");
 $stmt->execute();
 $colleges = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Handle form submission
 $error = '';
 $success = '';
 
@@ -67,17 +62,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role_id = (int) $_POST['role_id'];
     $college_id = !empty($_POST['college_id']) ? (int) $_POST['college_id'] : null;
 
-    // Validate
     if (empty($first_name) || empty($last_name) || empty($email) || empty($role_id) || empty($birthdate)) {
         $error = 'Please fill in all required fields.';
     } else {
-        // Check if email already exists for another user
         $stmt = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ? AND is_deleted = 0");
         $stmt->execute([$email, $user_id]);
         if ($stmt->fetch()) {
             $error = 'Email already exists.';
         } else {
-            // Check Dean/Admin limit
             $stmt = $conn->prepare("SELECT role_name FROM roles WHERE id = ?");
             $stmt->execute([$role_id]);
             $target_role = $stmt->fetchColumn();
@@ -91,11 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$error) {
-                // Update user
                 $stmt = $conn->prepare("UPDATE users SET first_name = ?, middle_name = ?, last_name = ?, birthdate = ?, sex = ?, email = ?, role_id = ?, college_id = ? WHERE id = ?");
                 $stmt->execute([$first_name, $middle_name, $last_name, $birthdate, ucfirst(strtolower($sex)), $email, $role_id, $college_id, $user_id]);
 
-                // Update password if provided
                 if (!empty($_POST['password'])) {
                     $hashed_password = password_hash($_POST['password'], PASSWORD_BCRYPT);
                     $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
@@ -104,7 +94,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $success = 'User updated successfully!';
 
-                // Refresh user data
                 $stmt = $conn->prepare("SELECT users.*, roles.role_name, colleges.college_name 
                                         FROM users
                                         LEFT JOIN roles ON users.role_id = roles.id

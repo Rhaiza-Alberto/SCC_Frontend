@@ -1,8 +1,4 @@
 <?php
-/**
- * vpaa/profile.php
- * VPAA profile — data from DB, uses process_profile.php handler.
- */
 session_start();
 require_once __DIR__ . '/../database.php';
 require_once __DIR__ . '/../functions.php';
